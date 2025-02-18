@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 数据文件
+*.csv
+*.xlsx
+*.xls
+
+# 生成的报告
+*.docx
+*.pdf
+
+# 系统文件
+.DS_Store
+Thumbs.db
+.idea/
+etf_report.log
+__pycache__/

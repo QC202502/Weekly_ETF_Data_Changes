@@ -6,7 +6,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 # 文件路径配置
 etf_file_path = '/Users/admin/Downloads/ETF_DATA_20250214.xlsx'
 classification_file_path = '/Users/admin/Downloads/ETF-Index-Classification_20240218.xlsx'
-business_etf_path = '/Users/admin/Downloads/ETF单产品商务协议（20250214更新）.xlsx'
+business_etf_path = '/Users/admin/Downloads/ETF单产品商务协议20250214.xlsx'
 
 # 分类排序规则
 CATEGORY_ORDER = {

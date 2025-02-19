@@ -6,7 +6,7 @@ import glob
 from datetime import datetime, timedelta
 
 # 新增版本信息
-__version__ = "2.0.2"
+__version__ = "2.2.1"
 RELEASE_DATE = "2024-02-19"  # 请根据实际发布日期修改
 
 def show_version():
@@ -142,7 +142,6 @@ class ETFReporter:
         self._add_combined_analysis('持仓客户数', '持仓客户数', {'total': '户', 'delta': '户'})
         self._add_combined_analysis('保有金额', '保有金额', {'total': '亿', 'delta': '百万'})
         # 新增跟踪指数统计
-
         self._add_tracking_index_stats()
         self.add_classification_analysis()
         self._add_tables()
@@ -327,26 +326,23 @@ class ETFReporter:
             cells[6].text = row['是否商务品']
 
     def add_classification_analysis(self):
-    # 按分类统计
+        # 按分类统计
         for level in ['一级分类', '二级分类', '三级分类']:
             grouped = self.data.groupby(level).agg({
                 f'关注人数（{self.end_date}）': 'sum',
-                f'关注人数（{self.start_date}）': 'sum',
                 '关注人数变动': 'sum',
                 f'持仓客户数（{self.end_date}）': 'sum',
-                f'持仓客户数（{self.start_date}）': 'sum',
                 '持仓客户数变动': 'sum',
                 f'保有金额（{self.end_date}）': 'sum',
-                f'保有金额（{self.start_date}）': 'sum',
                 '保有金额变动': 'sum'
             }).reset_index()
 
             # 添加到报告
             self.doc.add_heading(f"{level}统计", level=2)
-            table = self.doc.add_table(rows=1, cols=10)
+            table = self.doc.add_table(rows=1, cols=7)
             table.style = 'Light Shading Accent 1'
 
-            headers = [level, '本周关注数', '上周关注数', '关注数增减', '本周持仓数', '上周持仓数', '持仓数增减', '本周持仓市值', '上周持仓市值', '持仓市值增减']
+            headers = [level, '本周关注数', '关注数增减', '本周持仓数', '持仓数增减', '本周持仓市值', '持仓市值增减']
             for i, header in enumerate(headers):
                 cell = table.rows[0].cells[i]
                 cell.text = header
@@ -355,16 +351,12 @@ class ETFReporter:
             for _, row in grouped.iterrows():
                 cells = table.add_row().cells
                 cells[0].text = str(row[level])
-                cells[1].text = str(row[f'关注人数（{self.end_date}）'])
-                cells[2].text = str(row[f'关注人数（{self.start_date}）'])
-                cells[3].text = str(row['关注人数变动'])
-                cells[4].text = str(row[f'持仓客户数（{self.end_date}）'])
-                cells[5].text = str(row[f'持仓客户数（{self.start_date}）'])
-                cells[6].text = str(row['持仓客户数变动'])
-                cells[7].text = str(row[f'保有金额（{self.end_date}）'])
-                cells[8].text = str(row[f'保有金额（{self.start_date}）'])
-                cells[9].text = str(row['保有金额变动'])
-
+                cells[1].text = str(int(row[f'关注人数（{self.end_date}）']))  # 本周关注数
+                cells[2].text = str(int(row['关注人数变动']))  # 关注数增减（取整数）
+                cells[3].text = str(int(row[f'持仓客户数（{self.end_date}）']))  # 本周持仓数
+                cells[4].text = str(int(row['持仓客户数变动']))  # 持仓数增减（取整数）
+                cells[5].text = self._format_value(row[f'保有金额（{self.end_date}）'], '保有金额')  # 本周持仓市值（智能格式化）
+                cells[6].text = self._format_value(row['保有金额变动'], '保有金额')  # 持仓市值增减（智能格式化）
 if __name__ == "__main__":
     try:
         df, date_range = preprocess_data()

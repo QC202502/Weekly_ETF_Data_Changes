@@ -3,6 +3,10 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 
+# 新增版本信息
+__version__ = "2.3.0"   
+RELEASE_DATE = "2024-02-19"  # 请根据实际发布日期修改
+
 # 文件路径配置
 etf_file_path = '/Users/admin/Downloads/ETF_DATA_20250214.xlsx'
 classification_file_path = '/Users/admin/Downloads/ETF-Index-Classification_20240218.xlsx'
@@ -41,24 +45,43 @@ merged_data = pd.merge(
 )
 
 
+# 在 add_index_statistics 函数中更新商务品合计规模的计算
+# 分类统计函数
+# 分类统计函数
 # 分类统计函数
 def add_index_statistics(group):
+    # 筛选商务品
+    business_group = group[group['证券代码_处理'].isin(business_etf_codes)]
+    
+    # 统计商务品数量和合计规模
+    business_count = business_group.shape[0]
+    business_total_scale = round(business_group['规模'].sum(), 1) if business_count > 0 else 0
+    
+    # 统计整个跟踪指数的合计规模
+    total_scale = round(group['规模'].sum(), 1)
+    
     return pd.Series({
         '跟踪ETF数量': group.shape[0],
-        '合计规模': round(group['规模'].sum(), 1)
+        '商务品数量': business_count,
+        '商务品合计规模': business_total_scale,
+        '合计规模': total_scale  # 新增：整个跟踪指数的合计规模
     })
 
-
+# 分类合计计算函数
 def calculate_category_totals(df):
     df['二级分类'] = df['二级分类'].fillna('未分类')
     df['三级分类'] = df['三级分类'].fillna('未分类')
 
+    # 计算二级分类合计（基于整个跟踪指数的合计规模）
     df['二级分类合计'] = df.groupby('二级分类', dropna=False)['合计规模'].transform(
         lambda x: round(x.sum(), 1)
     )
+
+    # 计算三级分类合计（基于整个跟踪指数的合计规模）
     df['三级分类合计'] = df.groupby('三级分类', dropna=False)['合计规模'].transform(
         lambda x: round(x.sum(), 1)
     )
+
     return df
 
 
@@ -77,7 +100,7 @@ def custom_sort(df):
     ).drop(columns='sort_key_1')
 
 
-# 主处理流程
+# 在主处理流程中更新 results 的生成逻辑
 results = []
 for index_code, group in merged_data.groupby('跟踪指数代码'):
     if group.empty:
@@ -99,7 +122,9 @@ for index_code, group in merged_data.groupby('跟踪指数代码'):
         results.append({
             '跟踪指数代码': index_code,
             '跟踪ETF数量': stats['跟踪ETF数量'],
-            '合计规模': stats['合计规模'],
+            '商务品数量': stats['商务品数量'],
+            '商务品合计规模': stats['商务品合计规模'],
+            '合计规模': stats['合计规模'],  # 确保 '合计规模' 列被添加
             '一级分类': group['一级分类'].iloc[0] if '一级分类' in group.columns else None,
             '二级分类': group['二级分类'].iloc[0] if '二级分类' in group.columns else None,
             '三级分类': group['三级分类'].iloc[0] if '三级分类' in group.columns else None,
@@ -119,11 +144,15 @@ for index_code, group in merged_data.groupby('跟踪指数代码'):
 
 # 创建DataFrame并处理
 results_df = pd.DataFrame(results)
+# 确保 '合计规模' 列存在
+if '合计规模' not in results_df.columns:
+    raise KeyError("'合计规模' 列未正确添加到 results_df 中")
+
 results_df = calculate_category_totals(results_df)
 
 # 列顺序调整
 columns_order = [
-    '跟踪指数代码', '跟踪ETF数量', '合计规模', '一级分类', '二级分类', '二级分类合计',
+    '跟踪指数代码', '跟踪ETF数量', '商务品数量', '商务品合计规模', '合计规模', '一级分类', '二级分类', '二级分类合计',
     '三级分类', '三级分类合计', '综合费率最低的基金', '综合费率最低的基金代码',
     '综合费率最低的基金公司', '日均交易量最大的基金', '日均交易量最大的基金代码',
     '日均交易量最大的基金公司', '规模合计最大的基金', '规模合计最大的基金代码',
@@ -135,16 +164,18 @@ results_df = results_df[columns_order]
 sorted_results = custom_sort(results_df)
 
 
+# 在 apply_excel_styles 函数中处理 '合计规模' 列
 def apply_excel_styles(worksheet, df):
     # 数值格式设置
-    num_cols = ['合计规模', '二级分类合计', '三级分类合计']
+    num_cols = ['商务品合计规模', '合计规模', '二级分类合计', '三级分类合计']  # 添加 '合计规模'
     for col in num_cols:
         col_idx = df.columns.get_loc(col) + 1
         for row in range(2, worksheet.max_row + 1):
             worksheet.cell(row=row, column=col_idx).number_format = '0.0'
 
     # 获取各关键列索引
-    scale_col = df.columns.get_loc('合计规模') + 1
+    scale_col = df.columns.get_loc('商务品合计规模') + 1  # 商务品合计规模
+    total_scale_col = df.columns.get_loc('合计规模') + 1  # 合计规模
     count_col = df.columns.get_loc('跟踪ETF数量') + 1
     code_col = df.columns.get_loc('跟踪指数代码') + 1
     code_columns = [
@@ -154,7 +185,7 @@ def apply_excel_styles(worksheet, df):
     ]
 
     for row in range(2, worksheet.max_row + 1):
-        # 需求2：合计规模颜色
+        # 需求2：商务品合计规模颜色
         scale_value = worksheet.cell(row=row, column=scale_col).value or 0
         scale_font = Font(bold=True)
         if scale_value >= 1000:

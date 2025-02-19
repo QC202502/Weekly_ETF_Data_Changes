@@ -4,7 +4,7 @@ from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 # 新增版本信息
-__version__ = "2.3.0"   
+__version__ = "2.3.1"   
 RELEASE_DATE = "2024-02-19"  # 请根据实际发布日期修改
 
 # 文件路径配置
@@ -47,7 +47,17 @@ merged_data = pd.merge(
 
 # 在 add_index_statistics 函数中更新商务品合计规模的计算
 # 分类统计函数
-# 分类统计函数
+
+# 定义一个函数，用于简化基金公司名称
+def simplify_fund_company_name(name):
+    if pd.isna(name):  # 如果名称为空，直接返回
+        return name
+    # 找到“基金”的位置，并截取前面的部分
+    index = name.find("基金")
+    if index != -1:
+        return name[:index]  # 返回“基金”前面的部分
+    return name  # 如果没有“基金”，返回原名称
+
 # 分类统计函数
 def add_index_statistics(group):
     # 筛选商务品
@@ -130,13 +140,13 @@ for index_code, group in merged_data.groupby('跟踪指数代码'):
             '三级分类': group['三级分类'].iloc[0] if '三级分类' in group.columns else None,
             '综合费率最低的基金': lowest_fee_fund['证券简称'],
             '综合费率最低的基金代码': lowest_fee_fund['证券代码_处理'],
-            '综合费率最低的基金公司': lowest_fee_fund['基金管理人'],
+            '综合费率最低的基金公司': simplify_fund_company_name(lowest_fee_fund['基金管理人']),  # 简化基金公司名称
             '日均交易量最大的基金': highest_volume_fund['证券简称'],
             '日均交易量最大的基金代码': highest_volume_fund['证券代码_处理'],
-            '日均交易量最大的基金公司': highest_volume_fund['基金管理人'],
+            '日均交易量最大的基金公司': simplify_fund_company_name(highest_volume_fund['基金管理人']),  # 简化基金公司名称
             '规模合计最大的基金': largest_scale_fund['证券简称'],
             '规模合计最大的基金代码': largest_scale_fund['证券代码_处理'],
-            '规模合计最大的基金公司': largest_scale_fund['基金管理人']
+            '规模合计最大的基金公司': simplify_fund_company_name(largest_scale_fund['基金管理人'])  # 简化基金公司名称
         })
     except Exception as e:
         print(f"处理指数 {index_code} 时出错: {str(e)}")

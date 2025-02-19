@@ -6,7 +6,7 @@ import glob
 from datetime import datetime, timedelta
 
 # 新增版本信息
-__version__ = "2.2.1"
+__version__ = "2.2.2"   
 RELEASE_DATE = "2024-02-19"  # 请根据实际发布日期修改
 
 def show_version():
@@ -337,12 +337,21 @@ class ETFReporter:
                 '保有金额变动': 'sum'
             }).reset_index()
 
+            # 按新增关注数排序
+            grouped = grouped.sort_values(by='关注人数变动', ascending=False)
+
+            # 如果是三级分类，只展示关注数增长前 20 和减少前 10
+            if level == '三级分类':
+                top20 = grouped.nlargest(20, '关注人数变动')
+                bottom10 = grouped.nsmallest(10, '关注人数变动')
+                grouped = pd.concat([top20, bottom10])
+
             # 添加到报告
             self.doc.add_heading(f"{level}统计", level=2)
             table = self.doc.add_table(rows=1, cols=7)
             table.style = 'Light Shading Accent 1'
 
-            headers = [level, '本周关注数', '关注数增减', '本周持仓数', '持仓数增减', '本周持仓市值', '持仓市值增减']
+            headers = [level, '总关注数', '本周关注数变化', '总持仓数', '本周持仓数变化', '总持仓市值', '本周持仓市值变化']
             for i, header in enumerate(headers):
                 cell = table.rows[0].cells[i]
                 cell.text = header
@@ -351,12 +360,12 @@ class ETFReporter:
             for _, row in grouped.iterrows():
                 cells = table.add_row().cells
                 cells[0].text = str(row[level])
-                cells[1].text = str(int(row[f'关注人数（{self.end_date}）']))  # 本周关注数
-                cells[2].text = str(int(row['关注人数变动']))  # 关注数增减（取整数）
-                cells[3].text = str(int(row[f'持仓客户数（{self.end_date}）']))  # 本周持仓数
-                cells[4].text = str(int(row['持仓客户数变动']))  # 持仓数增减（取整数）
-                cells[5].text = self._format_value(row[f'保有金额（{self.end_date}）'], '保有金额')  # 本周持仓市值（智能格式化）
-                cells[6].text = self._format_value(row['保有金额变动'], '保有金额')  # 持仓市值增减（智能格式化）
+                cells[1].text = str(int(row[f'关注人数（{self.end_date}）']))  # 总关注数
+                cells[2].text = str(int(row['关注人数变动']))  # 本周关注数变化（取整数）
+                cells[3].text = str(int(row[f'持仓客户数（{self.end_date}）']))  # 总持仓数
+                cells[4].text = str(int(row['持仓客户数变动']))  # 本周持仓数变化（取整数）
+                cells[5].text = self._format_value(row[f'保有金额（{self.end_date}）'], '保有金额')  # 总持仓市值（智能格式化）
+                cells[6].text = self._format_value(row['保有金额变动'], '保有金额')  # 本周持仓市值变化（智能格式化）
 if __name__ == "__main__":
     try:
         df, date_range = preprocess_data()

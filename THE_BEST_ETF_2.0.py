@@ -4,7 +4,7 @@ from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 # 新增版本信息
-__version__ = "2.3.2"   
+__version__ = "2.3.3"   
 RELEASE_DATE = "2024-02-20"  # 请根据实际发布日期修改
 
 # 文件路径配置
@@ -128,26 +128,51 @@ for index_code, group in merged_data.groupby('跟踪指数代码'):
 
         # 获取最大规模基金
         largest_scale_fund = group.loc[group['规模'].idxmax()]
+        # 判断是否为商务品
+        is_lowest_fee_business = lowest_fee_fund['证券代码_处理'] in business_etf_codes
+        is_highest_volume_business = highest_volume_fund['证券代码_处理'] in business_etf_codes
+        is_largest_scale_business = largest_scale_fund['证券代码_处理'] in business_etf_codes
+
+        # 跟踪指数分级逻辑
+        if is_highest_volume_business and is_lowest_fee_business and is_largest_scale_business:
+            index_level = '一级'
+        elif is_highest_volume_business and is_lowest_fee_business and not is_largest_scale_business:
+            index_level = '二级'
+        elif is_highest_volume_business and is_largest_scale_business and not is_lowest_fee_business:
+            index_level = '三级'
+        elif is_lowest_fee_business and is_largest_scale_business and not is_highest_volume_business:
+            index_level = '四级'
+        elif is_highest_volume_business:
+            index_level = '五级'
+        elif is_largest_scale_business:
+            index_level = '六级'
+        elif is_lowest_fee_business:
+            index_level = '七级'
+        elif stats['商务品数量'] > 0:
+            index_level = '八级'
+        else:
+            index_level = '九级'
 
         results.append({
             '跟踪指数代码': index_code,
-            '跟踪指数名称': group['跟踪指数名称'].iloc[0] if '跟踪指数名称' in group.columns else None,  # 新增：跟踪指数名称
+            '跟踪指数名称': group['跟踪指数名称'].iloc[0] if '跟踪指数名称' in group.columns else None,
+            '跟踪指数分级': index_level,  # 新增：跟踪指数分级
             '跟踪ETF数量': stats['跟踪ETF数量'],
             '商务品数量': stats['商务品数量'],
             '商务品合计规模': stats['商务品合计规模'],
-            '合计规模': stats['合计规模'],  # 确保 '合计规模' 列被添加
+            '合计规模': stats['合计规模'],
             '一级分类': group['一级分类'].iloc[0] if '一级分类' in group.columns else None,
             '二级分类': group['二级分类'].iloc[0] if '二级分类' in group.columns else None,
             '三级分类': group['三级分类'].iloc[0] if '三级分类' in group.columns else None,
             '综合费率最低的基金': lowest_fee_fund['证券简称'],
             '综合费率最低的基金代码': lowest_fee_fund['证券代码_处理'],
-            '综合费率最低的基金公司': simplify_fund_company_name(lowest_fee_fund['基金管理人']),  # 简化基金公司名称
+            '综合费率最低的基金公司': simplify_fund_company_name(lowest_fee_fund['基金管理人']),
             '日均交易量最大的基金': highest_volume_fund['证券简称'],
             '日均交易量最大的基金代码': highest_volume_fund['证券代码_处理'],
-            '日均交易量最大的基金公司': simplify_fund_company_name(highest_volume_fund['基金管理人']),  # 简化基金公司名称
+            '日均交易量最大的基金公司': simplify_fund_company_name(highest_volume_fund['基金管理人']),
             '规模合计最大的基金': largest_scale_fund['证券简称'],
             '规模合计最大的基金代码': largest_scale_fund['证券代码_处理'],
-            '规模合计最大的基金公司': simplify_fund_company_name(largest_scale_fund['基金管理人'])  # 简化基金公司名称
+            '规模合计最大的基金公司': simplify_fund_company_name(largest_scale_fund['基金管理人'])
         })
     except Exception as e:
         print(f"处理指数 {index_code} 时出错: {str(e)}")
@@ -163,7 +188,7 @@ results_df = calculate_category_totals(results_df)
 
 # 列顺序调整
 columns_order = [
-    '跟踪指数代码', '跟踪指数名称', '跟踪ETF数量', '商务品数量', '商务品合计规模', '合计规模', '一级分类', '二级分类', '二级分类合计',
+    '跟踪指数代码', '跟踪指数名称', '跟踪指数分级', '跟踪ETF数量', '商务品数量', '商务品合计规模', '合计规模', '一级分类', '二级分类', '二级分类合计',
     '三级分类', '三级分类合计', '综合费率最低的基金', '综合费率最低的基金代码',
     '综合费率最低的基金公司', '日均交易量最大的基金', '日均交易量最大的基金代码',
     '日均交易量最大的基金公司', '规模合计最大的基金', '规模合计最大的基金代码',

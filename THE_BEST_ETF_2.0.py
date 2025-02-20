@@ -4,7 +4,7 @@ from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 # 新增版本信息
-__version__ = "2.3.3"   
+__version__ = "2.5.0"   
 RELEASE_DATE = "2024-02-20"  # 请根据实际发布日期修改
 
 # 文件路径配置
@@ -319,3 +319,48 @@ with pd.ExcelWriter('THE_BEST_ETF_FINAL.xlsx', engine='openpyxl') as writer:
     apply_excel_styles(writer.sheets['优选ETF'], sorted_results)
 
 print("处理完成，结果已保存至 THE_BEST_ETF_FINAL.xlsx")
+
+# 规模分层与分级统计
+# 规模分层（从小到大排列）
+scale_bins = [0, 5, 10, 20, 50, 100, 300, 1000, float('inf')]
+scale_labels = ['<5亿', '5-10亿', '10-20亿', '20-50亿', '50-100亿', '100-300亿', '300-1000亿', '>=1000亿']
+
+# 添加规模分层列
+results_df['规模分层'] = pd.cut(
+    results_df['合计规模'],
+    bins=scale_bins,
+    labels=scale_labels,
+    right=False
+)
+
+# 确保从一级到九级的所有列都存在
+all_levels = ['一级', '二级', '三级', '四级', '五级', '六级', '七级', '八级', '九级']
+for level in all_levels:
+    if level not in results_df['跟踪指数分级'].unique():
+        # 如果某个级别不存在，则添加一个空行
+        results_df = results_df.append({'跟踪指数分级': level}, ignore_index=True)
+
+# 统计各规模层级下，一到九级跟踪指数分级的个数
+scale_quality_table = pd.crosstab(
+    results_df['规模分层'],
+    results_df['跟踪指数分级'],
+    margins=True,  # 添加行和列的合计
+    margins_name='合计'  # 合计列的名称
+)
+
+# 确保所有分级列都存在，即使某些分级的统计结果为 0
+for level in all_levels:
+    if level not in scale_quality_table.columns:
+        scale_quality_table[level] = 0
+
+# 按规模分层从小到大排列
+scale_quality_table = scale_quality_table.reindex(scale_labels + ['合计'])
+
+# 按跟踪指数分级从一级到九级排列
+scale_quality_table = scale_quality_table[all_levels + ['合计']]
+
+# 保存结果到 Sheet2
+with pd.ExcelWriter('THE_BEST_ETF_FINAL.xlsx', engine='openpyxl', mode='a') as writer:
+    scale_quality_table.to_excel(writer, sheet_name='Tracking_Index_Scale&Quality')
+
+print("规模与分级统计表已保存至 Sheet2: Tracking_Index_Scale&Quality")

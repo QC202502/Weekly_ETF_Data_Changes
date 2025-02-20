@@ -4,8 +4,8 @@ from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 # 新增版本信息
-__version__ = "2.3.1"   
-RELEASE_DATE = "2024-02-19"  # 请根据实际发布日期修改
+__version__ = "2.3.2"   
+RELEASE_DATE = "2024-02-20"  # 请根据实际发布日期修改
 
 # 文件路径配置
 etf_file_path = '/Users/admin/Downloads/ETF_DATA_20250214.xlsx'
@@ -131,6 +131,7 @@ for index_code, group in merged_data.groupby('跟踪指数代码'):
 
         results.append({
             '跟踪指数代码': index_code,
+            '跟踪指数名称': group['跟踪指数名称'].iloc[0] if '跟踪指数名称' in group.columns else None,  # 新增：跟踪指数名称
             '跟踪ETF数量': stats['跟踪ETF数量'],
             '商务品数量': stats['商务品数量'],
             '商务品合计规模': stats['商务品合计规模'],
@@ -162,7 +163,7 @@ results_df = calculate_category_totals(results_df)
 
 # 列顺序调整
 columns_order = [
-    '跟踪指数代码', '跟踪ETF数量', '商务品数量', '商务品合计规模', '合计规模', '一级分类', '二级分类', '二级分类合计',
+    '跟踪指数代码', '跟踪指数名称', '跟踪ETF数量', '商务品数量', '商务品合计规模', '合计规模', '一级分类', '二级分类', '二级分类合计',
     '三级分类', '三级分类合计', '综合费率最低的基金', '综合费率最低的基金代码',
     '综合费率最低的基金公司', '日均交易量最大的基金', '日均交易量最大的基金代码',
     '日均交易量最大的基金公司', '规模合计最大的基金', '规模合计最大的基金代码',

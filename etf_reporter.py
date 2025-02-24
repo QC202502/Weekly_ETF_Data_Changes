@@ -6,8 +6,8 @@ import glob
 from datetime import datetime, timedelta
 
 # 新增版本信息
-__version__ = "2.2.2"   
-RELEASE_DATE = "2024-02-19"  # 请根据实际发布日期修改
+__version__ = "2.6.0"   
+RELEASE_DATE = "2024-02-24"  # 请根据实际发布日期修改
 
 def show_version():
     """显示版本信息"""
@@ -325,6 +325,44 @@ class ETFReporter:
             cells[5].text = self._format_delta(row[f'{metric}变动'], '', metric)
             cells[6].text = row['是否商务品']
 
+            # 针对非商务品，生成描述信息
+            if row['是否商务品'] == '非商务':
+                self.doc.add_paragraph(f"{get_manager_short(row['基金管理人'])}基金的{row[f'证券名称（{self.end_date}）']}（代码{row['证券代码']}），月交易额{row['月成交额[交易日期]最新收盘日[单位]百万元']}，本周新增{row[f'{metric}变动']}关注数，管理费率{row['管理费率[单位]%']}，月交易额{row['月成交额[交易日期]最新收盘日[单位]百万元']}，非商务品。以下是同跟踪指数产品列表：")
+                self._add_alternative_etfs(row['跟踪指数代码'], metric)
+
+    def _add_alternative_etfs(self, tracking_index_code, metric):
+        # 获取同跟踪指数的所有ETF产品
+        alternative_etfs = self.data[self.data['跟踪指数代码'] == tracking_index_code]
+        
+        # 去重并排序
+        alternative_etfs = alternative_etfs.drop_duplicates(subset=['证券代码'])
+        alternative_etfs = alternative_etfs.sort_values(by='月成交额[交易日期]最新收盘日[单位]百万元', ascending=False)
+        
+        # 只展示前十个
+        alternative_etfs = alternative_etfs.head(10)
+        
+        # 生成表格
+        table = self.doc.add_table(rows=1, cols=10)
+        table.style = 'Light Shading Accent 1'
+        
+        headers = ['产品代码', '产品名称', '管理人', '关注数当前值', '关注数变动值', '规模', '管理费率', '月交易额', '商务属性']
+        for i, header in enumerate(headers):
+            cell = table.rows[0].cells[i]
+            cell.text = header
+            cell.paragraphs[0].runs[0].font.bold = True
+
+        for _, row in alternative_etfs.iterrows():
+            cells = table.add_row().cells
+            cells[0].text = str(row['证券代码'])
+            cells[1].text = row[f'证券名称（{self.end_date}）']
+            cells[2].text = get_manager_short(row['基金管理人'])
+            cells[3].text = self._format_value(row[f'{metric}（{self.end_date}）'], metric)
+            cells[4].text = self._format_delta(row[f'{metric}变动'], '', metric)
+            cells[5].text = self._format_value(row['规模:亿元'], '规模')
+            cells[6].text = str(row['管理费率[单位]%'])
+            cells[7].text = self._format_value(row['月成交额[交易日期]最新收盘日[单位]百万元'], '月交易额')            
+            cells[8].text = row['是否商务品']
+
     def add_classification_analysis(self):
         # 按分类统计
         for level in ['一级分类', '二级分类', '三级分类']:
@@ -366,6 +404,7 @@ class ETFReporter:
                 cells[4].text = str(int(row['持仓客户数变动']))  # 本周持仓数变化（取整数）
                 cells[5].text = self._format_value(row[f'保有金额（{self.end_date}）'], '保有金额')  # 总持仓市值（智能格式化）
                 cells[6].text = self._format_value(row['保有金额变动'], '保有金额')  # 本周持仓市值变化（智能格式化）
+
 if __name__ == "__main__":
     try:
         df, date_range = preprocess_data()

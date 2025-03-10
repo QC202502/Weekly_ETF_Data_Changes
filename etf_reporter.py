@@ -6,8 +6,8 @@ import glob
 from datetime import datetime, timedelta
 
 # 新增版本信息
-__version__ = "2.6.0"   
-RELEASE_DATE = "2024-02-24"  # 请根据实际发布日期修改
+__version__ = "2.7.0"   
+RELEASE_DATE = "2025-03-10"  # 请根据实际发布日期修改
 
 def show_version():
     """显示版本信息"""
@@ -138,6 +138,7 @@ class ETFReporter:
 
     def generate_report(self):
         self._add_cover()
+        self._add_business_analysis()
         self._add_combined_analysis('关注人数', '关注人次', {'total': '', 'delta': ''})
         self._add_combined_analysis('持仓客户数', '持仓客户数', {'total': '户', 'delta': '户'})
         self._add_combined_analysis('保有金额', '保有金额', {'total': '亿', 'delta': '百万'})
@@ -145,7 +146,7 @@ class ETFReporter:
         self._add_tracking_index_stats()
         self.add_classification_analysis()
         self._add_tables()
-        self.doc.save(f'/Users/admin/Downloads/ETF产品运营周报（{self.date_range}）.docx')
+        self.doc.save(f'ETF产品运营周报（{self.date_range}）.docx')
         print(f"周报生成完成：ETF产品运营周报（{self.date_range}）.docx")
 
     def _add_cover(self):
@@ -310,10 +311,14 @@ class ETFReporter:
         table.style = 'Light Shading Accent 1'
 
         headers = ['证券代码', '产品名称', '管理人', '当前值', '上周值', '变动值', '商务属性']
+        
         for i, header in enumerate(headers):
             cell = table.rows[0].cells[i]
             cell.text = header
             cell.paragraphs[0].runs[0].font.bold = True
+
+        # 初始化序号计数器 (修复点)
+        desc_counter = 1  # 在循环外部初始化
 
         for _, row in data.iterrows():
             cells = table.add_row().cells
@@ -326,9 +331,20 @@ class ETFReporter:
             cells[6].text = row['是否商务品']
 
             # 针对非商务品，生成描述信息
-            if row['是否商务品'] == '非商务':
-                self.doc.add_paragraph(f"{get_manager_short(row['基金管理人'])}基金的{row[f'证券名称（{self.end_date}）']}（代码{row['证券代码']}），月交易额{row['月成交额[交易日期]最新收盘日[单位]百万元']}，本周新增{row[f'{metric}变动']}关注数，管理费率{row['管理费率[单位]%']}，月交易额{row['月成交额[交易日期]最新收盘日[单位]百万元']}，非商务品。以下是同跟踪指数产品列表：")
+            if row['是否商务品'] == '非商务' and title == "关注人数增长Top20":
+                # 处理数值
+                month_avg = row['月成交额[交易日期]最新收盘日[单位]百万元']
+                rounded_month_avg = int(round(month_avg))
+                management_fee = row['管理费率[单位]%']
+                metric_change = int(row[f'{metric}变动'])
+
+                # 添加描述段落
+                para = self.doc.add_paragraph()
+                para.add_run(f"{desc_counter}. ").bold = True
+                para.add_run(f"{get_manager_short(row['基金管理人'])}基金的{row[f'证券名称（{self.end_date}）']}（代码{row['证券代码']}），月日均交易额{rounded_month_avg}，本周新增{metric_change}关注数，管理费率{management_fee}%，非商务品。以下是同跟踪指数产品列表：")
+                
                 self._add_alternative_etfs(row['跟踪指数代码'], metric)
+                desc_counter += 1
 
     def _add_alternative_etfs(self, tracking_index_code, metric):
         # 获取同跟踪指数的所有ETF产品
@@ -345,7 +361,7 @@ class ETFReporter:
         table = self.doc.add_table(rows=1, cols=10)
         table.style = 'Light Shading Accent 1'
         
-        headers = ['产品代码', '产品名称', '管理人', '关注数当前值', '关注数变动值', '规模', '管理费率', '月交易额', '商务属性']
+        headers = ['产品代码', '产品名称', '管理人', '关注数当前值', '关注数变动值', '规模', '管理费率', '月日均交易额', '商务属性']
         for i, header in enumerate(headers):
             cell = table.rows[0].cells[i]
             cell.text = header
@@ -358,9 +374,9 @@ class ETFReporter:
             cells[2].text = get_manager_short(row['基金管理人'])
             cells[3].text = self._format_value(row[f'{metric}（{self.end_date}）'], metric)
             cells[4].text = self._format_delta(row[f'{metric}变动'], '', metric)
-            cells[5].text = self._format_value(row['规模:亿元'], '规模')
+            cells[5].text = self._format_value(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'], '规模')
             cells[6].text = str(row['管理费率[单位]%'])
-            cells[7].text = self._format_value(row['月成交额[交易日期]最新收盘日[单位]百万元'], '月交易额')            
+            cells[7].text = self._format_value(row['月成交额[交易日期]最新收盘日[单位]百万元'], '月日均交易额')            
             cells[8].text = row['是否商务品']
 
     def add_classification_analysis(self):
@@ -404,6 +420,62 @@ class ETFReporter:
                 cells[4].text = str(int(row['持仓客户数变动']))  # 本周持仓数变化（取整数）
                 cells[5].text = self._format_value(row[f'保有金额（{self.end_date}）'], '保有金额')  # 总持仓市值（智能格式化）
                 cells[6].text = self._format_value(row['保有金额变动'], '保有金额')  # 本周持仓市值变化（智能格式化）
+
+# 新增商务品分析方法
+    def _add_business_analysis(self):
+        """添加商务品分析"""
+        self.doc.add_heading("商务品分析", level=2)
+        
+        # 获取商务品数据
+        biz_data = self.data[self.data['是否商务品'] == '商务']
+        total_count = len(biz_data['证券代码'].unique())
+        
+        # 计算商务品在我司的合计规模（使用持仓金额而非基金总规模）
+        total_scale = biz_data[f'保有金额（{self.end_date}）'].sum() / 1e8  # 转换为亿元
+        
+        # 计算所有ETF在我司的总规模
+        all_etf_scale = self.data[f'保有金额（{self.end_date}）'].sum() / 1e8  # 转换为亿元
+        
+        # 计算占比
+        percentage = (total_scale / all_etf_scale) * 100 if all_etf_scale > 0 else 0
+        
+        # 按基金公司分组统计商务品在我司的规模
+        company_stats = biz_data.groupby('基金管理人').agg({
+            f'保有金额（{self.end_date}）': 'sum',  # 使用我司持仓金额
+            f'关注人数（{self.end_date}）': 'sum',
+            f'持仓客户数（{self.end_date}）': 'sum'
+        }).reset_index()
+        
+        # 转换保有金额为亿元
+        company_stats[f'保有金额（{self.end_date}）'] = company_stats[f'保有金额（{self.end_date}）'] / 1e8
+        
+        # 按我司持仓规模排序并获取前三
+        top3_companies = company_stats.nlargest(3, f'保有金额（{self.end_date}）')
+        
+        # 生成描述文本
+        p = self.doc.add_paragraph()
+        summary_text = f"目前一共有 {int(total_count)} 只商务品，商务品在我司的合计规模为 {total_scale:.1f} 亿元，"
+        summary_text += f"占我司所有ETF规模的 {percentage:.1f}%。"
+        p.add_run(summary_text).bold = True
+        
+        # 生成前三基金公司描述
+        if not top3_companies.empty:
+            company_text = "我司商务品规模前三的基金公司是："
+            
+            for i, (_, row) in enumerate(top3_companies.iterrows()):
+                company_name = get_manager_short(row['基金管理人'])
+                scale = row[f'保有金额（{self.end_date}）']  # 已转换为亿元
+                attention = int(row[f'关注人数（{self.end_date}）'])
+                holders = int(row[f'持仓客户数（{self.end_date}）'])
+                
+                company_text += f"{company_name}（我司持仓 {scale:.1f}亿元，关注 {attention:,}人，持仓 {holders:,}人）"
+                
+                if i < len(top3_companies) - 1:
+                    company_text += "，"
+                else:
+                    company_text += "。"
+            
+            p.add_run(company_text)
 
 if __name__ == "__main__":
     try:

@@ -6,8 +6,8 @@ import glob
 from datetime import datetime, timedelta
 
 # 新增版本信息
-__version__ = "2.7.1"   
-RELEASE_DATE = "2025-03-10"  # 请根据实际发布日期修改
+__version__ = "2.7.2"   
+RELEASE_DATE = "2025-03-13"  # 请根据实际发布日期修改
 
 def show_version():
     """显示版本信息"""
@@ -208,6 +208,9 @@ class ETFReporter:
         self._add_tracking_index_stats()
         self.add_classification_analysis()
         self._add_tables()
+        
+        # 将基金公司商务品收入统计移到最后
+        self._add_company_income_stats()
         
         # 添加页码
         self._add_page_numbers()
@@ -555,24 +558,25 @@ class ETFReporter:
             # 计算年化管理费收入：规模(亿元) * 费率 * 40% * 100(转为万元)
             expected_income = fund_scale * management_fee_rate * 0.35 * 10000  # 转换为万元
             total_expected_income += expected_income
-        
-        # 按基金公司分组统计商务品在我司的规模和预期收入
+                       
+        # 计算每个基金公司的预期收入
+        # 修改基金公司预期收入计算方式（原代码572行附近）
         company_stats = biz_data.groupby('基金管理人').agg({
-            f'保有金额（{self.end_date}）': 'sum',  # 使用我司持仓金额
+            f'保有金额（{self.end_date}）': 'sum',
             f'关注人数（{self.end_date}）': 'sum',
-            f'持仓客户数（{self.end_date}）': 'sum',
-            '管理费率[单位]%': 'mean'  # 计算平均管理费率
+            f'持仓客户数（{self.end_date}）': 'sum'
         }).reset_index()
-        
+
         # 转换保有金额为亿元
         company_stats[f'保有金额（{self.end_date}）'] = company_stats[f'保有金额（{self.end_date}）'] / 1e8
-        
-        # 计算每个基金公司的预期收入
-        company_stats['预期收入'] = company_stats.apply(
-            lambda x: x[f'保有金额（{self.end_date}）'] * (x['管理费率[单位]%'] / 100) * 0.35 * 10000,  # 转换为万元
-            axis=1
-        )
-        
+
+        # 新增：逐个产品计算后汇总
+        product_income = biz_data[f'保有金额（{self.end_date}）'] * biz_data['管理费率[单位]%'] * 0.35 / 1e6  # 直接万元转换
+        company_income = biz_data.groupby('基金管理人')[f'保有金额（{self.end_date}）'].apply(
+            lambda x: (x * biz_data.loc[x.index, '管理费率[单位]%'] * 0.35 / 1e6).sum()
+        ).reset_index(name='预期收入')
+
+        company_stats = company_stats.merge(company_income, on='基金管理人')        
         # 按我司持仓规模排序并获取前三
         top3_companies = company_stats.nlargest(3, f'保有金额（{self.end_date}）')
         
@@ -646,6 +650,10 @@ class ETFReporter:
         
         p.add_run(summary_text).bold = True
         
+        # 在生成company_text前添加验证
+        print("\n基金公司规模验证:")
+        print(top3_companies[[f'保有金额（{self.end_date}）', '基金管理人']])
+
         # 生成前三基金公司描述
         if not top3_companies.empty:
             company_text = "目前，我司商务品规模前三的基金公司是："
@@ -665,7 +673,95 @@ class ETFReporter:
                     company_text += "。"
             
             p.add_run(company_text)
-    
+            
+        # 删除重复的描述和收入统计表部分
+        # ...
+
+    def _add_company_income_stats(self):
+        """添加基金公司商务品收入统计（作为单独章节放在最后）"""
+        self.doc.add_heading("基金公司商务品收入统计", level=2)
+        
+        # 获取商务品数据
+        biz_data = self.data[self.data['是否商务品'] == '商务']
+        
+        # 获取全量数据按公司分组
+        all_company = self.data.groupby('基金管理人').agg({
+            f'保有金额（{self.end_date}）': 'sum',
+            '证券代码': 'nunique'
+        }).rename(columns={'证券代码': '所有产品数量'})
+
+        # 商务品数据按公司分组
+        biz_company = biz_data.groupby('基金管理人').agg({
+            f'保有金额（{self.end_date}）': 'sum',
+            '证券代码': 'nunique',
+            '管理费率[单位]%': 'mean'
+        }).rename(columns={
+            '证券代码': '商务产品数量',
+            f'保有金额（{self.end_date}）': '商务规模'
+        })
+
+        # 合并数据
+        merged_stats = all_company.merge(biz_company, on='基金管理人', how='left').fillna(0)
+        
+        # 计算各项收入（单位：万元）
+        for idx, row in merged_stats.iterrows():
+            # 获取该基金公司的所有产品
+            company_products = self.data[self.data['基金管理人'] == idx]
+            # 获取该基金公司的商务品
+            company_biz = biz_data[biz_data['基金管理人'] == idx]
+            
+            # 计算总收入
+            total_income = 0
+            for _, prod in company_products.iterrows():
+                scale = prod[f'保有金额（{self.end_date}）'] / 1e8  # 转换为亿元
+                fee_rate = prod['管理费率[单位]%'] / 100  # 转换为小数
+                income = scale * fee_rate * 0.35 * 10000  # 转换为万元
+                total_income += income
+            
+            # 计算商务品收入
+            biz_income = 0
+            for _, prod in company_biz.iterrows():
+                scale = prod[f'保有金额（{self.end_date}）'] / 1e8  # 转换为亿元
+                fee_rate = prod['管理费率[单位]%'] / 100  # 转换为小数
+                income = scale * fee_rate * 0.35 * 10000  # 转换为万元
+                biz_income += income
+            
+            merged_stats.at[idx, '所有保有预计收入'] = total_income
+            merged_stats.at[idx, '商务品预计收入'] = biz_income
+            merged_stats.at[idx, '非商务品预计收入'] = total_income - biz_income
+        
+        # 格式化数值
+        merged_stats = merged_stats.reset_index()
+        merged_stats = merged_stats.sort_values('商务品预计收入', ascending=False)
+        merged_stats['所有保有规模'] = merged_stats[f'保有金额（{self.end_date}）'] / 1e8  # 转换为亿元
+        merged_stats['商务规模'] = merged_stats['商务规模'] / 1e8  # 转换为亿元
+        
+        # 新增：过滤掉规模小于1000万(0.1亿)的基金公司
+        merged_stats = merged_stats[merged_stats['所有保有规模'] >= 0.1]
+        
+        # 生成表格
+        table = self.doc.add_table(rows=1, cols=8)
+        table.style = 'Light Shading Accent 1'
+        
+        # 设置表头
+        headers = ['基金公司', '所有规模(亿)', '商务规模(亿)', '所有产品数', '商务产品数', 
+                 '总预计收入(万)', '商务收入(万)', '非商务收入(万)']
+        for i, header in enumerate(headers):
+            table.rows[0].cells[i].text = header
+            table.rows[0].cells[i].paragraphs[0].runs[0].font.bold = True
+
+        # 填充数据
+        for _, row in merged_stats.iterrows():
+            cells = table.add_row().cells
+            cells[0].text = get_manager_short(row['基金管理人'])
+            cells[1].text = f"{row['所有保有规模']:,.2f}"
+            cells[2].text = f"{row['商务规模']:,.2f}"
+            cells[3].text = f"{int(row['所有产品数量'])}"
+            cells[4].text = f"{int(row['商务产品数量'])}"
+            cells[5].text = f"{row['所有保有预计收入']:,.0f}"
+            cells[6].text = f"{row['商务品预计收入']:,.0f}"
+            cells[7].text = f"{row['非商务品预计收入']:,.0f}"
+
 if __name__ == "__main__":
     try:
         df, date_range = preprocess_data()

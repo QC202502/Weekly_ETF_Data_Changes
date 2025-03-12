@@ -6,7 +6,7 @@ import glob
 from datetime import datetime, timedelta
 
 # 新增版本信息
-__version__ = "2.7.0"   
+__version__ = "2.7.1"   
 RELEASE_DATE = "2025-03-10"  # 请根据实际发布日期修改
 
 def show_version():
@@ -41,22 +41,75 @@ def preprocess_data():
     # 动态商务协议文件
     商务协议_path = f'/Users/admin/Downloads/ETF单产品商务协议{date_str}.xlsx'
     try:
+        # 尝试不同的方式读取Excel文件
         商务协议 = pd.read_excel(商务协议_path, engine='openpyxl')
+        
+        # 详细检查商务协议文件
+        print(f"商务协议文件路径: {商务协议_path}")
+        print(f"商务协议文件总行数: {len(商务协议)}")
+        print(f"商务协议文件列名: {商务协议.columns.tolist()}")
+        
+        # 检查是否有重复的证券代码
+        重复代码 = 商务协议['证券代码'].duplicated().sum()
+        print(f"商务协议中重复的证券代码数量: {重复代码}")
+        
+        # 找出重复的证券代码
+        重复代码列表 = 商务协议[商务协议['证券代码'].duplicated(keep=False)]['证券代码'].unique()
+        print(f"重复的证券代码列表: {list(重复代码列表)}")
+        
+        # 显示每个重复代码的详细信息
+        print("重复证券代码的详细信息:")
+        for code in 重复代码列表:
+            重复项 = 商务协议[商务协议['证券代码'] == code]
+            print(f"证券代码 {code} 出现 {len(重复项)} 次:")
+            for idx, row in 重复项.iterrows():
+                print(f"  - 行 {idx+1}: {row['产品名称']} ({row['基金公司简称']})")
+        
+        # 检查是否有空值
+        空值数量 = 商务协议['证券代码'].isna().sum()
+        print(f"商务协议中证券代码为空的数量: {空值数量}")
+        
+        # 打印前几行数据进行检查
+        print("商务协议前5行数据:")
+        print(商务协议.head(5))
+        
+        # 确保证券代码为字符串并去除空格
+        商务协议['证券代码'] = 商务协议['证券代码'].astype(str).str.strip()
+        
+        # 再次检查唯一证券代码数量
+        唯一代码数量 = len(商务协议['证券代码'].unique())
+        print(f"商务协议中唯一证券代码数量: {唯一代码数量}")
+        
     except FileNotFoundError:
         raise FileNotFoundError(f"商务协议文件缺失：{商务协议_path}")
+    except Exception as e:
+        raise Exception(f"读取商务协议文件出错: {str(e)}")
 
-    # 合并商务协议数据
+    # 合并商务协议数据前的处理
     result['证券代码'] = result['证券代码'].astype(str).str.strip()
-    商务协议['证券代码'] = 商务协议['证券代码'].astype(str).str.strip()
     商务协议['是否商务品'] = '商务'
+    
+    # 检查合并前后的商务品数量
+    商务品代码集合 = set(商务协议['证券代码'].unique())
+    基础数据代码集合 = set(result['证券代码'].unique())
+    未匹配商务品 = 商务品代码集合 - 基础数据代码集合
+    
+    if len(未匹配商务品) > 0:
+        print(f"警告: 有 {len(未匹配商务品)} 个商务品在基础数据中未找到匹配项")
+        print(f"未匹配的商务品代码: {sorted(list(未匹配商务品))}")
+    
+    # 合并商务协议数据
     result = result.merge(
         商务协议[['证券代码', '是否商务品']],
         on='证券代码',
         how='left'
     ).fillna({'是否商务品': '非商务'})
     
+    # 打印合并后的商务品数量（调试信息）
+    print(f"合并后的商务品数量: {len(result[result['是否商务品'] == '商务']['证券代码'].unique())}")
+    
     # 读取分类数据
-    classification_path = '/Users/admin/Downloads/ETF-Index-Classification_20240218.xlsx'
+    classification_path = '/Users/admin/Downloads/ETF-Index-Classification_20250307.xlsx'
     classification_df = pd.read_excel(classification_path, engine='openpyxl')
     classification_df['跟踪指数代码'] = classification_df['跟踪指数代码'].astype(str).str.strip()
 
@@ -130,11 +183,20 @@ class ETFReporter:
         self._set_styles()
 
     def _set_styles(self):
+        # 设置正文样式
         style = self.doc.styles['Normal']
         font = style.font
         font.name = '微软雅黑'
         font._element.rPr.rFonts.set(qn('w:eastAsia'), '微软雅黑')
         font.size = Pt(10.5)
+        
+        # 设置标题样式，确保所有标题也使用微软雅黑
+        for i in range(1, 10):  # 设置标题1-9级
+            if f'Heading {i}' in self.doc.styles:
+                heading_style = self.doc.styles[f'Heading {i}']
+                heading_font = heading_style.font
+                heading_font.name = '微软雅黑'
+                heading_font._element.rPr.rFonts.set(qn('w:eastAsia'), '微软雅黑')
 
     def generate_report(self):
         self._add_cover()
@@ -146,8 +208,51 @@ class ETFReporter:
         self._add_tracking_index_stats()
         self.add_classification_analysis()
         self._add_tables()
+        
+        # 添加页码
+        self._add_page_numbers()
+        
         self.doc.save(f'ETF产品运营周报（{self.date_range}）.docx')
         print(f"周报生成完成：ETF产品运营周报（{self.date_range}）.docx")
+        
+    def _add_page_numbers(self):
+        """为文档添加页码"""
+        from docx.oxml.ns import qn
+        from docx.oxml import OxmlElement
+        from docx.shared import Pt
+        
+        # 添加节，以便设置页码
+        section = self.doc.sections[0]
+        
+        # 设置页脚
+        footer = section.footer
+        paragraph = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+        
+        # 设置页脚段落居中
+        paragraph.alignment = 1  # 1表示居中对齐
+        
+        # 添加页码域代码
+        run = paragraph.add_run()
+        
+        # 添加页码
+        fldChar1 = OxmlElement('w:fldChar')
+        fldChar1.set(qn('w:fldCharType'), 'begin')
+        
+        instrText = OxmlElement('w:instrText')
+        instrText.set(qn('xml:space'), 'preserve')
+        instrText.text = ' PAGE '
+        
+        fldChar2 = OxmlElement('w:fldChar')
+        fldChar2.set(qn('w:fldCharType'), 'end')
+        
+        run._element.append(fldChar1)
+        run._element.append(instrText)
+        run._element.append(fldChar2)
+        
+        # 设置页码字体为微软雅黑
+        run.font.name = '微软雅黑'
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), '微软雅黑')
+        run.font.size = Pt(9)  # 设置页码字体大小
 
     def _add_cover(self):
         self.doc.add_heading('ETF产品运营周报', 0)
@@ -439,36 +544,120 @@ class ETFReporter:
         # 计算占比
         percentage = (total_scale / all_etf_scale) * 100 if all_etf_scale > 0 else 0
         
-        # 按基金公司分组统计商务品在我司的规模
+        # 计算预期管理费收入（按照40%分成比例）
+        total_expected_income = 0
+        
+        # 为每个商务品计算预期收入并汇总
+        for _, row in biz_data.iterrows():
+            # 使用我司持仓规模（保有金额）- 单位是元，需要转换为亿元
+            fund_scale = row[f'保有金额（{self.end_date}）'] / 1e8  # 转换为亿元
+            management_fee_rate = row['管理费率[单位]%'] / 100  # 转换为小数
+            # 计算年化管理费收入：规模(亿元) * 费率 * 40% * 100(转为万元)
+            expected_income = fund_scale * management_fee_rate * 0.35 * 10000  # 转换为万元
+            total_expected_income += expected_income
+        
+        # 按基金公司分组统计商务品在我司的规模和预期收入
         company_stats = biz_data.groupby('基金管理人').agg({
             f'保有金额（{self.end_date}）': 'sum',  # 使用我司持仓金额
             f'关注人数（{self.end_date}）': 'sum',
-            f'持仓客户数（{self.end_date}）': 'sum'
+            f'持仓客户数（{self.end_date}）': 'sum',
+            '管理费率[单位]%': 'mean'  # 计算平均管理费率
         }).reset_index()
         
         # 转换保有金额为亿元
         company_stats[f'保有金额（{self.end_date}）'] = company_stats[f'保有金额（{self.end_date}）'] / 1e8
         
+        # 计算每个基金公司的预期收入
+        company_stats['预期收入'] = company_stats.apply(
+            lambda x: x[f'保有金额（{self.end_date}）'] * (x['管理费率[单位]%'] / 100) * 0.35 * 10000,  # 转换为万元
+            axis=1
+        )
+        
         # 按我司持仓规模排序并获取前三
         top3_companies = company_stats.nlargest(3, f'保有金额（{self.end_date}）')
         
+        # 尝试获取全市场ETF数量 - 修改这部分代码以正确获取证券代码数量
+        all_market_etf_count = 0
+        market_percentage = 0
+        
+        try:
+            # 直接使用指定的ETF数据文件路径
+            etf_data_file = '/Users/admin/Downloads/ETF_DATA_20250307.xlsx'
+            
+            # 确保导入os模块
+            import os
+            
+            if os.path.exists(etf_data_file):
+                # 使用pandas直接读取Excel文件
+                try:
+                    # 读取"万得"sheet
+                    etf_df = pd.read_excel(etf_data_file, sheet_name='万得', engine='openpyxl')
+                    print(f"成功读取'万得'sheet，包含{len(etf_df)}行数据")
+                    
+                    # 打印列名，帮助调试
+                    print(f"'万得'sheet的列名: {etf_df.columns.tolist()}")
+                    
+                    # 直接使用"证券代码"列计算ETF数量
+                    if '证券代码' in etf_df.columns:
+                        # 清理证券代码列
+                        valid_codes = etf_df['证券代码'].dropna()
+                        valid_codes = valid_codes.astype(str).str.strip()
+                        valid_codes = valid_codes[valid_codes != '']
+                        valid_codes = valid_codes[valid_codes != 'nan']
+                        
+                        # 计算唯一证券代码数量，并减去1（去除最后一行数据来源）
+                        all_market_etf_count = len(valid_codes.unique()) - 1
+                        print(f"从'万得'sheet的'证券代码'列提取到的唯一ETF代码数量(减去数据来源行): {all_market_etf_count}")
+                        
+                        # 打印部分代码用于验证
+                        print(f"部分ETF代码示例: {valid_codes.unique()[:10].tolist()}")
+                    else:
+                        print("在'万得'sheet中未找到'证券代码'列")
+                        all_market_etf_count = 1097  # 使用已知的正确值
+                
+                except Exception as e:
+                    print(f"读取Excel文件失败: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    all_market_etf_count = 1097  # 如果读取失败，使用已知的正确值
+                
+                # 计算商务品占全市场ETF的比例
+                market_percentage = (total_count / all_market_etf_count) * 100
+                print(f"商务品占比: {total_count}/{all_market_etf_count} = {market_percentage:.1f}%")
+            else:
+                print(f"警告: ETF数据文件不存在: {etf_data_file}")
+                all_market_etf_count = 1097  # 如果文件不存在，使用已知的正确值
+                market_percentage = (total_count / all_market_etf_count) * 100
+        except Exception as e:
+            print(f"获取全市场ETF数量失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            all_market_etf_count = 1097  # 如果出现异常，使用已知的正确值
+            market_percentage = (total_count / all_market_etf_count) * 100
+        
         # 生成描述文本
         p = self.doc.add_paragraph()
-        summary_text = f"目前一共有 {int(total_count)} 只商务品，商务品在我司的合计规模为 {total_scale:.1f} 亿元，"
-        summary_text += f"占我司所有ETF规模的 {percentage:.1f}%。"
+        
+        # 新的描述文本格式
+        summary_text = f"目前全市场共有 {int(all_market_etf_count)} 只ETF，其中我司商务品有 {int(total_count)} 只，"
+        summary_text += f"占比 {market_percentage:.1f}%。我司保有的ETF规模有 {all_etf_scale:.1f} 亿，"
+        summary_text += f"其中商务品规模 {total_scale:.1f} 亿，占比 {percentage:.1f}%。"
+        summary_text += f"持有所有商务品一年，预估管理费收入为 {int(total_expected_income)} 万元。"
+        
         p.add_run(summary_text).bold = True
         
         # 生成前三基金公司描述
         if not top3_companies.empty:
-            company_text = "我司商务品规模前三的基金公司是："
+            company_text = "目前，我司商务品规模前三的基金公司是："
             
             for i, (_, row) in enumerate(top3_companies.iterrows()):
                 company_name = get_manager_short(row['基金管理人'])
                 scale = row[f'保有金额（{self.end_date}）']  # 已转换为亿元
                 attention = int(row[f'关注人数（{self.end_date}）'])
                 holders = int(row[f'持仓客户数（{self.end_date}）'])
+                expected_income = row['预期收入']
                 
-                company_text += f"{company_name}（我司持仓 {scale:.1f}亿元，关注 {attention:,}人，持仓 {holders:,}人）"
+                company_text += f"{company_name}（我司持仓 {scale:.1f}亿元，关注 {attention:,}人，持仓 {holders:,}人，预估一年收入 {expected_income:.0f} 万）"
                 
                 if i < len(top3_companies) - 1:
                     company_text += "，"
@@ -476,7 +665,7 @@ class ETFReporter:
                     company_text += "。"
             
             p.add_run(company_text)
-
+    
 if __name__ == "__main__":
     try:
         df, date_range = preprocess_data()

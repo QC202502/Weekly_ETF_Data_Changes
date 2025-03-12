@@ -7,9 +7,9 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 __version__ = "2.5.0"   
 RELEASE_DATE = "2024-02-20"  # 请根据实际发布日期修改
 
-# 文件路径配置
-etf_file_path = '/Users/admin/Downloads/ETF_DATA_20250214.xlsx'
-classification_file_path = '/Users/admin/Downloads/ETF-Index-Classification_20240218.xlsx'
+这个数据# 文件路径配置
+etf_file_path = '/Users/admin/Downloads/ETF_DATA_20250307.xlsx'
+classification_file_path = '/Users/admin/Downloads/ETF-Index-Classification_20240307.xlsx'
 business_etf_path = '/Users/admin/Downloads/ETF单产品商务协议20250214.xlsx'
 
 # 分类排序规则

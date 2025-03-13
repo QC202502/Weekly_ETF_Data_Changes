@@ -6,7 +6,7 @@ import glob
 from datetime import datetime, timedelta
 
 # 新增版本信息
-__version__ = "2.7.2"   
+__version__ = "2.7.3"   
 RELEASE_DATE = "2025-03-13"  # 请根据实际发布日期修改
 
 def show_version():
@@ -679,7 +679,7 @@ class ETFReporter:
 
     def _add_company_income_stats(self):
         """添加基金公司商务品收入统计（作为单独章节放在最后）"""
-        self.doc.add_heading("基金公司商务品收入统计", level=2)
+        self.doc.add_heading("基金公司ETF商务品管理费预计收入统计", level=2)
         
         # 获取商务品数据
         biz_data = self.data[self.data['是否商务品'] == '商务']
@@ -761,6 +761,27 @@ class ETFReporter:
             cells[5].text = f"{row['所有保有预计收入']:,.0f}"
             cells[6].text = f"{row['商务品预计收入']:,.0f}"
             cells[7].text = f"{row['非商务品预计收入']:,.0f}"
+        
+        # 添加汇总行
+        total_row = table.add_row().cells
+        total_row[0].text = "总计"
+        total_row[0].paragraphs[0].runs[0].font.bold = True
+        
+        # 计算各列汇总值
+        total_row[1].text = f"{merged_stats['所有保有规模'].sum():,.2f}"
+        total_row[2].text = f"{merged_stats['商务规模'].sum():,.2f}"
+        total_row[3].text = f"{int(merged_stats['所有产品数量'].sum())}"
+        total_row[4].text = f"{int(merged_stats['商务产品数量'].sum())}"
+        total_row[5].text = f"{merged_stats['所有保有预计收入'].sum():,.0f}"
+        total_row[6].text = f"{merged_stats['商务品预计收入'].sum():,.0f}"
+        total_row[7].text = f"{merged_stats['非商务品预计收入'].sum():,.0f}"
+        
+        # 设置汇总行底色
+        from docx.oxml.ns import nsdecls
+        from docx.oxml import parse_xml
+        for cell in total_row:
+            shading_elm = parse_xml(r'<w:shd {} w:fill="D9D9D9"/>'.format(nsdecls('w')))
+            cell._tc.get_or_add_tcPr().append(shading_elm)
 
 if __name__ == "__main__":
     try:

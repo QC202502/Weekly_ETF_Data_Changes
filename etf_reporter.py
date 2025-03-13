@@ -6,7 +6,7 @@ import glob
 from datetime import datetime, timedelta
 
 # 新增版本信息
-__version__ = "2.7.3"   
+__version__ = "2.7.5"   
 RELEASE_DATE = "2025-03-13"  # 请根据实际发布日期修改
 
 def show_version():
@@ -362,6 +362,76 @@ class ETFReporter:
     def _add_tracking_index_stats(self):
         """新增跟踪指数统计模块"""
         self.doc.add_heading("跟踪指数统计", level=2)
+        
+        # 新增：读取THE_BEST_ETF_FINAL.xlsx文件获取指数分级数据
+        try:
+            best_etf_file = 'THE_BEST_ETF_FINAL.xlsx'
+            
+            # 确保安装了openpyxl
+            try:
+                import openpyxl
+                print(f"openpyxl版本: {openpyxl.__version__}")
+            except ImportError:
+                print("警告: openpyxl未安装，尝试使用其他引擎读取Excel")
+            
+            # 尝试不同的引擎读取Excel文件
+            try:
+                best_etf_data = pd.read_excel(best_etf_file, sheet_name='优选ETF', engine='openpyxl')
+                print(f"成功使用openpyxl引擎读取Excel文件，包含{len(best_etf_data)}行数据")
+            except Exception as e1:
+                print(f"使用openpyxl引擎读取失败: {str(e1)}")
+                try:
+                    best_etf_data = pd.read_excel(best_etf_file, sheet_name='优选ETF', engine='xlrd')
+                    print(f"成功使用xlrd引擎读取Excel文件，包含{len(best_etf_data)}行数据")
+                except Exception as e2:
+                    print(f"使用xlrd引擎读取失败: {str(e2)}")
+                    # 最后尝试不指定引擎
+                    best_etf_data = pd.read_excel(best_etf_file, sheet_name='优选ETF')
+                    print(f"成功使用默认引擎读取Excel文件，包含{len(best_etf_data)}行数据")
+            
+            # 打印列名，帮助调试
+            print(f"Excel文件的列名: {best_etf_data.columns.tolist()}")
+            
+            # 检查'跟踪指数分级'列是否存在
+            if '跟踪指数分级' not in best_etf_data.columns:
+                print(f"警告: '跟踪指数分级'列不存在，可用列: {best_etf_data.columns.tolist()}")
+                raise KeyError("'跟踪指数分级'列不存在")
+            
+            # 计算各级别指数数量
+            total_indices = len(best_etf_data)
+            
+            # 确保分级数据是字符串格式
+            best_etf_data['跟踪指数分级'] = best_etf_data['跟踪指数分级'].astype(str)
+            
+            # 打印分级数据的唯一值，帮助调试
+            print(f"分级数据的唯一值: {best_etf_data['跟踪指数分级'].unique().tolist()}")
+            
+            absolute_advantage = len(best_etf_data[best_etf_data['跟踪指数分级'].isin(['一级', '二级', '三级', '四级'])])
+            relative_advantage = len(best_etf_data[best_etf_data['跟踪指数分级'].isin(['五级', '六级', '七级'])])
+            only_business = len(best_etf_data[best_etf_data['跟踪指数分级'] == '八级'])
+            no_business = len(best_etf_data[best_etf_data['跟踪指数分级'] == '九级'])
+            
+            # 计算占比
+            absolute_percentage = (absolute_advantage / total_indices) * 100
+            relative_percentage = (relative_advantage / total_indices) * 100
+            only_business_percentage = (only_business / total_indices) * 100
+            no_business_percentage = (no_business / total_indices) * 100
+            
+            # 添加指数分级统计描述
+            p = self.doc.add_paragraph()
+            index_stats_text = f"目前全市场共有跟踪指数 {int(total_indices)} 个。其中，我司绝对占优（1-4级）指数有 {int(absolute_advantage)} 个，"
+            index_stats_text += f"占比 {absolute_percentage:.1f}%；相对占优（5-7级）指数有 {int(relative_advantage)} 个，"
+            index_stats_text += f"占比 {relative_percentage:.1f}%；剩余无优势仅有商务（8级）指数有 {int(only_business)} 个，"
+            index_stats_text += f"占比 {only_business_percentage:.1f}%；无商务指数有 {int(no_business)} 个，"
+            index_stats_text += f"占比 {no_business_percentage:.1f}%。"
+            
+            p.add_run(index_stats_text).bold = True
+            
+        except Exception as e:
+            print(f"读取THE_BEST_ETF_FINAL.xlsx文件失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            print("跳过指数分级统计部分")
         
         # 按跟踪指数分组计算各项指标
         grouped = self.data.groupby('跟踪指数名称').agg({

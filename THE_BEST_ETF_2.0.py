@@ -4,13 +4,13 @@ from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 # 新增版本信息
-__version__ = "2.5.0"   
-RELEASE_DATE = "2024-02-20"  # 请根据实际发布日期修改
+__version__ = "2.7.4"   
+RELEASE_DATE = "2025-03-13"  # 请根据实际发布日期修改
 
-这个数据# 文件路径配置
+# 文件路径配置
 etf_file_path = '/Users/admin/Downloads/ETF_DATA_20250307.xlsx'
-classification_file_path = '/Users/admin/Downloads/ETF-Index-Classification_20240307.xlsx'
-business_etf_path = '/Users/admin/Downloads/ETF单产品商务协议20250214.xlsx'
+classification_file_path = '/Users/admin/Downloads/ETF-Index-Classification_20250307.xlsx'
+business_etf_path = '/Users/admin/Downloads/ETF单产品商务协议20250307.xlsx'
 
 # 分类排序规则
 CATEGORY_ORDER = {
@@ -30,7 +30,7 @@ etf_data = etf_data.rename(columns={
     '管理费率\n[单位] %': '管理费率',
     '托管费率\n[单位] %': '托管费率',
     '月成交额\n[交易日期] 最新收盘日\n[单位] 百万元': '月成交额',
-    '规模:亿元': '规模'
+    '基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元': '规模'
 })
 etf_data['综合费率'] = etf_data['管理费率'] + etf_data['托管费率']
 
@@ -326,7 +326,7 @@ scale_bins = [0, 5, 10, 20, 50, 100, 300, 1000, float('inf')]
 scale_labels = ['<5亿', '5-10亿', '10-20亿', '20-50亿', '50-100亿', '100-300亿', '300-1000亿', '>=1000亿']
 
 # 添加规模分层列
-results_df['规模分层'] = pd.cut(
+results_df['指数规模分层'] = pd.cut(
     results_df['合计规模'],
     bins=scale_bins,
     labels=scale_labels,
@@ -342,7 +342,7 @@ for level in all_levels:
 
 # 统计各规模层级下，一到九级跟踪指数分级的个数
 scale_quality_table = pd.crosstab(
-    results_df['规模分层'],
+    results_df['指数规模分层'],
     results_df['跟踪指数分级'],
     margins=True,  # 添加行和列的合计
     margins_name='合计'  # 合计列的名称
@@ -362,5 +362,43 @@ scale_quality_table = scale_quality_table[all_levels + ['合计']]
 # 保存结果到 Sheet2
 with pd.ExcelWriter('THE_BEST_ETF_FINAL.xlsx', engine='openpyxl', mode='a') as writer:
     scale_quality_table.to_excel(writer, sheet_name='Tracking_Index_Scale&Quality')
+    
+    # 获取工作表对象
+    worksheet = writer.sheets['Tracking_Index_Scale&Quality']
+    
+    # 添加跟踪指数分级逻辑说明
+    row_offset = scale_quality_table.shape[0] + 3  # 在统计表下方留出空行
+    
+    # 添加标题
+    worksheet.cell(row=row_offset, column=1, value="跟踪指数分级逻辑说明")
+    worksheet.cell(row=row_offset, column=1).font = Font(bold=True, size=12)
+    
+    # 添加分级逻辑说明
+    level_descriptions = [
+        ["一级", "最高交易量基金、最低费率基金、最大规模基金均为商务品"],
+        ["二级", "最高交易量基金、最低费率基金为商务品，最大规模基金非商务品"],
+        ["三级", "最高交易量基金、最大规模基金为商务品，最低费率基金非商务品"],
+        ["四级", "最低费率基金、最大规模基金为商务品，最高交易量基金非商务品"],
+        ["五级", "仅最高交易量基金为商务品"],
+        ["六级", "仅最大规模基金为商务品"],
+        ["七级", "仅最低费率基金为商务品"],
+        ["八级", "有商务品，但不是最高交易量/最低费率/最大规模基金"],
+        ["九级", "无商务品"]
+    ]
+    
+    # 写入分级逻辑
+    for i, (level, description) in enumerate(level_descriptions):
+        worksheet.cell(row=row_offset + 2 + i, column=1, value=level)
+        worksheet.cell(row=row_offset + 2 + i, column=2, value=description)
+        worksheet.cell(row=row_offset + 2 + i, column=1).font = Font(bold=True)
 
-print("规模与分级统计表已保存至 Sheet2: Tracking_Index_Scale&Quality")
+    # 添加额外说明
+    extra_note_row = row_offset + 2 + len(level_descriptions) + 1
+    worksheet.cell(row=extra_note_row, column=1, value="注意事项")
+    worksheet.cell(row=extra_note_row, column=1).font = Font(bold=True)
+    
+    extra_note = "有些指数只有一个跟踪的ETF产品，如果该ETF是我司商务品，则会体现为一级。但跟踪少往往代表指数规模较小，这样的一级含金量不算高。比如小于5亿规模的指数往往是这种情况。"
+    worksheet.cell(row=extra_note_row, column=2, value=extra_note)
+    worksheet.cell(row=extra_note_row, column=2).font = Font(italic=True)
+
+print("规模与分级统计表已保存至 Sheet2: Tracking_Index_Scale&Quality，并添加了分级逻辑说明")

@@ -379,6 +379,38 @@
                     
                     // 遍历每个指数分组
                     data.index_groups.forEach(group => {
+                        // 按月日均交易额排序
+                        if (group.data && group.data.length > 0) {
+                            group.data.sort((a, b) => {
+                                // 尝试获取交易额数据
+                                let volumeA = 0;
+                                let volumeB = 0;
+                                
+                                for (const key in a) {
+                                    if (key.includes('交易额') || key.includes('日均')) {
+                                        const val = parseFloat(a[key]);
+                                        if (!isNaN(val)) {
+                                            volumeA = val;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                for (const key in b) {
+                                    if (key.includes('交易额') || key.includes('日均')) {
+                                        const val = parseFloat(b[key]);
+                                        if (!isNaN(val)) {
+                                            volumeB = val;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                // 降序排列
+                                return volumeB - volumeA;
+                            });
+                        }
+                        
                         html += `
                             <div class="card mb-4">
                                 <div class="card-header">
@@ -390,11 +422,11 @@
                                             <thead>
                                                 <tr>
                                                     <th>证券代码</th>
-                                                    <th>产品名称</th>
-                                                    <th>管理人</th>
-                                                    <th>规模(亿)</th>
+                                                    <th>证券名称</th>
+                                                    <th>基金管理人</th>
+                                                    <th>基金规模(亿)</th>
                                                     <th>管理费率(%)</th>
-                                                    <th>月日均交易额(百万)</th>
+                                                    <th>月日均交易额(亿)</th>
                                                     <th>是否商务品</th>
                                                 </tr>
                                             </thead>
@@ -404,63 +436,42 @@
                         group.data.forEach(item => {
                             const isBusinessClass = item['是否商务品'] === '商务' ? 'table-success' : '';
                             
-                            // 调试输出
-                            console.log("数据项:", item);
-                            
-                            // 尝试获取证券代码
+                            // 尝试获取不同可能的列名
                             const code = item['证券代码'] || '';
+                            const name = item['证券简称'] || item['证券名称'] || item['产品名称'] || item['基金名称'] || '未知';
                             
-                            // 尝试获取产品名称 - 检查多个可能的字段名
-                            let name = '未知';
-                            const nameFields = ['产品名称', '证券简称', '证券名称', '基金名称', 'ETF名称'];
-                            for (const field of nameFields) {
-                                if (item[field] && item[field] !== '') {
-                                    name = item[field];
-                                    break;
-                                }
-                            }
+                            // 使用管理人简称
+                            const manager = item['管理人简称'] || 
+                                           (item['基金管理人'] ? item['基金管理人'].replace(/基金管理.*公司|基金管理公司|基金|管理有限公司|股份有限公司/g, '') : '未知');
                             
-                            // 尝试获取管理人 - 检查多个可能的字段名
-                            let manager = '未知';
-                            const managerFields = ['管理人', '基金管理人', '管理公司'];
-                            for (const field of managerFields) {
-                                if (item[field] && item[field] !== '') {
-                                    manager = item[field];
-                                    break;
-                                }
-                            }
-                            
-                            // 尝试获取规模 - 检查包含"规模"和"亿"的字段
+                            // 查找规模列
                             let scale = '未知';
                             for (const key in item) {
-                                if ((key.includes('规模') || key.includes('基金规模')) && 
-                                    (key.includes('亿') || key.includes('亿元'))) {
-                                    if (item[key] && item[key] !== '') {
-                                        scale = item[key];
-                                        break;
-                                    }
+                                if (key.includes('基金规模') && key.includes('亿元')) {
+                                    scale = item[key];
+                                    break;
                                 }
                             }
                             
-                            // 尝试获取费率 - 检查包含"费率"的字段
+                            // 查找正确的管理费率列
                             let fee = '未知';
-                            for (const key in item) {
-                                if (key.includes('费率') || key.includes('管理费率')) {
-                                    if (item[key] && item[key] !== '') {
+                            if (item['正确管理费率']) {
+                                fee = item['正确管理费率'];
+                            } else {
+                                for (const key in item) {
+                                    if (key.includes('管理费率') && !key.includes('托管')) {
                                         fee = item[key];
                                         break;
                                     }
                                 }
                             }
                             
-                            // 尝试获取交易额 - 检查包含"交易额"或"日均"的字段
+                            // 查找交易额列
                             let volume = '未知';
                             for (const key in item) {
                                 if (key.includes('交易额') || key.includes('日均')) {
-                                    if (item[key] && item[key] !== '') {
-                                        volume = item[key];
-                                        break;
-                                    }
+                                    volume = item[key];
+                                    break;
                                 }
                             }
                             
@@ -469,24 +480,54 @@
                                     <td>${code}</td>
                                     <td>${name}</td>
                                     <td>${manager}</td>
-                                    <td>${scale}</td>
-                                    <td>${fee}</td>
-                                    <td>${volume}</td>
+                                    <td>${scale !== '未知' ? scale : '未知'}</td>
+                                    <td>${fee !== '未知' ? fee : '未知'}</td>
+                                    <td>${volume !== '未知' ? volume : '未知'}</td>
                                     <td>${item['是否商务品'] || '未知'}</td>
                                 </tr>`;
                         });
                         
                         html += `
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>`;
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>`;
                     });
                 } else if (data.data && data.data.length > 0) {
                     // 标准搜索结果格式
                     // 显示搜索类型
                     html += `<div class="alert alert-info">搜索类型: ${data.search_type} - 找到 ${data.data.length} 个结果</div>`;
+                    
+                    // 按月日均交易额排序
+                    data.data.sort((a, b) => {
+                        // 尝试获取交易额数据
+                        let volumeA = 0;
+                        let volumeB = 0;
+                        
+                        for (const key in a) {
+                            if (key.includes('交易额') || key.includes('日均')) {
+                                const val = parseFloat(a[key]);
+                                if (!isNaN(val)) {
+                                    volumeA = val;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        for (const key in b) {
+                            if (key.includes('交易额') || key.includes('日均')) {
+                                const val = parseFloat(b[key]);
+                                if (!isNaN(val)) {
+                                    volumeB = val;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // 降序排列
+                        return volumeB - volumeA;
+                    });
                     
                     // 创建结果表格
                     html += `
@@ -500,11 +541,11 @@
                                         <thead>
                                             <tr>
                                                 <th>证券代码</th>
-                                                <th>产品名称</th>
-                                                <th>管理人</th>
-                                                <th>规模(亿)</th>
+                                                <th>证券名称</th>
+                                                <th>基金管理人</th>
+                                                <th>基金规模(亿)</th>
                                                 <th>管理费率(%)</th>
-                                                <th>月日均交易额(百万)</th>
+                                                <th>月日均交易额(亿)</th>
                                                 <th>是否商务品</th>
                                             </tr>
                                         </thead>
@@ -514,63 +555,42 @@
                     data.data.forEach(item => {
                         const isBusinessClass = item['是否商务品'] === '商务' ? 'table-success' : '';
                         
-                        // 调试输出
-                        console.log("数据项:", item);
-                        
-                        // 尝试获取证券代码
+                        // 尝试获取不同可能的列名
                         const code = item['证券代码'] || '';
+                        const name = item['证券简称'] || item['证券名称'] || item['产品名称'] || item['基金名称'] || '未知';
                         
-                        // 尝试获取产品名称 - 检查多个可能的字段名
-                        let name = '未知';
-                        const nameFields = ['产品名称', '证券简称', '证券名称', '基金名称', 'ETF名称'];
-                        for (const field of nameFields) {
-                            if (item[field] && item[field] !== '') {
-                                name = item[field];
-                                break;
-                            }
-                        }
+                        // 使用管理人简称
+                        const manager = item['管理人简称'] || 
+                                       (item['基金管理人'] ? item['基金管理人'].replace(/基金管理.*公司|基金管理公司|基金|管理有限公司|股份有限公司/g, '') : '未知');
                         
-                        // 尝试获取管理人 - 检查多个可能的字段名
-                        let manager = '未知';
-                        const managerFields = ['管理人', '基金管理人', '管理公司'];
-                        for (const field of managerFields) {
-                            if (item[field] && item[field] !== '') {
-                                manager = item[field];
-                                break;
-                            }
-                        }
-                        
-                        // 尝试获取规模 - 检查包含"规模"和"亿"的字段
+                        // 查找规模列
                         let scale = '未知';
                         for (const key in item) {
-                            if ((key.includes('规模') || key.includes('基金规模')) && 
-                                (key.includes('亿') || key.includes('亿元'))) {
-                                if (item[key] && item[key] !== '') {
-                                    scale = item[key];
-                                    break;
-                                }
+                            if (key.includes('基金规模') && key.includes('亿元')) {
+                                scale = item[key];
+                                break;
                             }
                         }
                         
-                        // 尝试获取费率 - 检查包含"费率"的字段
+                        // 查找正确的管理费率列
                         let fee = '未知';
-                        for (const key in item) {
-                            if (key.includes('费率') || key.includes('管理费率')) {
-                                if (item[key] && item[key] !== '') {
+                        if (item['正确管理费率']) {
+                            fee = item['正确管理费率'];
+                        } else {
+                            for (const key in item) {
+                                if (key.includes('管理费率') && !key.includes('托管')) {
                                     fee = item[key];
                                     break;
                                 }
                             }
                         }
                         
-                        // 尝试获取交易额 - 检查包含"交易额"或"日均"的字段
+                        // 查找交易额列
                         let volume = '未知';
                         for (const key in item) {
                             if (key.includes('交易额') || key.includes('日均')) {
-                                if (item[key] && item[key] !== '') {
-                                    volume = item[key];
-                                    break;
-                                }
+                                volume = item[key];
+                                break;
                             }
                         }
                         
@@ -579,19 +599,19 @@
                                 <td>${code}</td>
                                 <td>${name}</td>
                                 <td>${manager}</td>
-                                <td>${scale}</td>
-                                <td>${fee}</td>
-                                <td>${volume}</td>
+                                <td>${scale !== '未知' ? scale : '未知'}</td>
+                                <td>${fee !== '未知' ? fee : '未知'}</td>
+                                <td>${volume !== '未知' ? volume : '未知'}</td>
                                 <td>${item['是否商务品'] || '未知'}</td>
                             </tr>`;
                     });
                     
                     html += `
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>`;
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
                 } else {
                     html = '<div class="alert alert-warning">未找到匹配的ETF产品</div>';
                 }

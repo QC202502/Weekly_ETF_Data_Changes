@@ -14,7 +14,7 @@ import base64
 from docx import Document
 
 # 新增版本信息
-__version__ = "2.8.0"   
+__version__ = "2.8.1"   
 RELEASE_DATE = "2025-03-14"  # 请根据实际发布日期修改
 
 # 导入项目中的其他模块
@@ -183,6 +183,7 @@ def index():
     return render_template('dashboard.html', search_code=code)
 
 # 搜索路由
+# 在搜索路由中添加管理人简称处理
 @app.route('/search', methods=['POST'])
 def search():
     """搜索ETF"""
@@ -318,13 +319,23 @@ def search():
             # 跳过NaN值
             if pd.notna(row[col]):
                 etf_dict[col] = row[col]
-                
-                # 对数值类型进行格式化
-                if isinstance(etf_dict[col], (int, float)):
-                    if '规模' in col or '亿' in col:
-                        etf_dict[col] = round(etf_dict[col], 2)
-                    elif '费率' in col:
-                        etf_dict[col] = round(etf_dict[col], 4)
+        
+        # 添加管理人简称
+        if '基金管理人' in etf_dict:
+            etf_dict['管理人简称'] = get_manager_short(etf_dict['基金管理人'])
+        
+        # 确保使用正确的管理费率数据
+        # 查找正确的管理费率列
+        management_fee = None
+        for col in row.index:
+            if '管理费率' in col and '托管' not in col:
+                if pd.notna(row[col]):
+                    management_fee = row[col]
+                    break
+        
+        if management_fee is not None:
+            etf_dict['正确管理费率'] = management_fee
+        
         result_list.append(etf_dict)
     
     return jsonify({

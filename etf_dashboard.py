@@ -14,7 +14,7 @@ import base64
 from docx import Document
 
 # 新增版本信息
-__version__ = "2.8.3"   
+__version__ = "2.8.4"   
 RELEASE_DATE = "2025-03-14"  # 请根据实际发布日期修改
 
 # 导入项目中的其他模块

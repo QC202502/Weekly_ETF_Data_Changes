@@ -14,7 +14,7 @@ import base64
 from docx import Document
 
 # 新增版本信息
-__version__ = "2.8.1"   
+__version__ = "2.8.3"   
 RELEASE_DATE = "2025-03-14"  # 请根据实际发布日期修改
 
 # 导入项目中的其他模块
@@ -183,7 +183,6 @@ def index():
     return render_template('dashboard.html', search_code=code)
 
 # 搜索路由
-# 在搜索路由中添加管理人简称处理
 @app.route('/search', methods=['POST'])
 def search():
     """搜索ETF"""
@@ -195,6 +194,9 @@ def search():
     if not code:
         return jsonify({"error": "请输入搜索关键词"})
     
+    # 打印数据列名，帮助调试
+    print(f"数据列名: {etf_data.columns.tolist()}")
+    
     # 尝试不同的搜索方式
     # 1. 首先尝试按证券代码精确匹配
     matching_etfs = etf_data[etf_data['证券代码'] == code]
@@ -205,7 +207,7 @@ def search():
         tracking_index_name = matching_etfs.iloc[0]['跟踪指数名称'] if '跟踪指数名称' in matching_etfs.columns else None
         
         # 查找同一指数的所有ETF
-        if tracking_index_code:
+        if tracking_index_code and pd.notna(tracking_index_code):
             result_etfs = etf_data[etf_data['跟踪指数代码'] == tracking_index_code]
         else:
             result_etfs = matching_etfs
@@ -213,102 +215,147 @@ def search():
         search_type = "证券代码"
     else:
         # 2. 尝试按跟踪指数代码精确匹配
-        matching_etfs = etf_data[etf_data['跟踪指数代码'] == code]
-        
-        if not matching_etfs.empty:
-            # 找到了匹配的跟踪指数代码
-            tracking_index_code = code
-            tracking_index_name = matching_etfs.iloc[0]['跟踪指数名称'] if '跟踪指数名称' in matching_etfs.columns else None
-            result_etfs = matching_etfs
-            search_type = "跟踪指数代码"
-        else:
-            # 3. 尝试按跟踪指数名称进行模糊匹配
-            if '跟踪指数名称' in etf_data.columns:
-                matching_indices = etf_data[etf_data['跟踪指数名称'].str.contains(code, na=False, case=False)]
-                
-                if not matching_indices.empty:
-                    # 找到了匹配的跟踪指数名称
-                    # 按跟踪指数分组，并按规模排序
-                    scale_col = '基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'
-                    if scale_col not in etf_data.columns:
-                        # 尝试查找替代列
-                        for col in etf_data.columns:
-                            if '基金规模' in col and '亿元' in col:
-                                scale_col = col
-                                break
+        if '跟踪指数代码' in etf_data.columns:
+            matching_etfs = etf_data[etf_data['跟踪指数代码'] == code]
+            
+            if not matching_etfs.empty:
+                # 找到了匹配的跟踪指数代码
+                tracking_index_code = code
+                tracking_index_name = matching_etfs.iloc[0]['跟踪指数名称'] if '跟踪指数名称' in matching_etfs.columns else None
+                result_etfs = matching_etfs
+                search_type = "跟踪指数代码"
+            else:
+                # 3. 尝试按跟踪指数名称进行模糊匹配
+                if '跟踪指数名称' in etf_data.columns:
+                    matching_etfs = etf_data[etf_data['跟踪指数名称'].str.contains(code, na=False)]
                     
-                    # 按跟踪指数分组并计算总规模
-                    if scale_col in etf_data.columns:
+                    if not matching_etfs.empty:
+                        # 按跟踪指数名称分组
                         index_groups = []
-                        # 获取匹配的跟踪指数列表
-                        unique_indices = matching_indices['跟踪指数代码'].unique()
                         
-                        for index_code in unique_indices:
-                            if pd.isna(index_code):
-                                continue
-                                
-                            index_etfs = etf_data[etf_data['跟踪指数代码'] == index_code]
-                            index_name = index_etfs.iloc[0]['跟踪指数名称'] if '跟踪指数名称' in index_etfs.columns else "未知"
-                            total_scale = index_etfs[scale_col].sum() if scale_col in index_etfs else 0
+                        # 获取唯一的跟踪指数
+                        unique_indices = matching_etfs['跟踪指数名称'].unique()
+                        
+                        for index_name in unique_indices:
+                            index_etfs = matching_etfs[matching_etfs['跟踪指数名称'] == index_name]
+                            index_code = index_etfs.iloc[0]['跟踪指数代码'] if '跟踪指数代码' in index_etfs.columns else None
                             
-                            index_groups.append({
-                                'index_code': index_code,
-                                'index_name': index_name,
-                                'total_scale': total_scale,
-                                'etfs': index_etfs
-                            })
-                        
-                        # 按总规模排序
-                        index_groups.sort(key=lambda x: x['total_scale'], reverse=True)
-                        
-                        # 构建结果
-                        result = {
-                            "success": True,
-                            "search_type": "跟踪指数名称",
-                            "keyword": code,
-                            "index_groups": []
-                        }
-                        
-                        for group in index_groups:
-                            # 转换ETF数据为字典列表
-                            etf_list = []
-                            for _, row in group['etfs'].iterrows():
+                            # 计算该指数下ETF的总规模
+                            total_scale = 0
+                            scale_col = None
+                            for col in index_etfs.columns:
+                                if '基金规模' in col and '亿元' in col:
+                                    scale_col = col
+                                    break
+                            
+                            if scale_col:
+                                # 确保规模值是数值型
+                                index_etfs[scale_col] = pd.to_numeric(index_etfs[scale_col], errors='coerce')
+                                total_scale = round(index_etfs[scale_col].sum(), 2)
+                            
+                            # 转换为字典列表
+                            etfs_list = []
+                            for _, row in index_etfs.iterrows():
                                 etf_dict = {}
                                 for col in row.index:
                                     # 跳过NaN值
                                     if pd.notna(row[col]):
                                         etf_dict[col] = row[col]
-                                etf_list.append(etf_dict)
+                                
+                                # 添加管理人简称
+                                if '基金管理人' in etf_dict:
+                                    etf_dict['管理人简称'] = get_manager_short(etf_dict['基金管理人'])
+                                
+                                # 确保使用正确的管理费率
+                                # 查找正确的管理费率列
+                                management_fee = None
+                                for col in row.index:
+                                    if '管理费率' in col and '托管' not in col:
+                                        if pd.notna(row[col]):
+                                            management_fee = row[col]
+                                            break
+                                
+                                if management_fee is not None:
+                                    etf_dict['正确管理费率'] = management_fee
+                                
+                                etfs_list.append(etf_dict)
                             
-                            result["index_groups"].append({
-                                "tracking_index_code": group['index_code'],
-                                "tracking_index_name": group['index_name'],
-                                "total_scale": round(group['total_scale'], 2),
-                                "data": etf_list
+                            index_groups.append({
+                                "tracking_index_name": index_name,
+                                "tracking_index_code": index_code,
+                                "total_scale": total_scale,
+                                "data": etfs_list
                             })
                         
-                        return jsonify(result)
+                        # 按总规模降序排序
+                        index_groups.sort(key=lambda x: x["total_scale"], reverse=True)
+                        
+                        return jsonify({
+                            "success": True,
+                            "search_type": "跟踪指数名称",
+                            "keyword": code,
+                            "index_groups": index_groups
+                        })
                     else:
-                        # 如果没有规模列，简单地按跟踪指数分组
-                        result_etfs = matching_indices
-                        tracking_index_code = None
-                        tracking_index_name = code
-                        search_type = "跟踪指数名称(无规模排序)"
+                        # 4. 新增：尝试按基金管理人名称或简称进行模糊匹配
+                        if '基金管理人' in etf_data.columns:
+                            # 先尝试完整名称匹配
+                            matching_etfs = etf_data[etf_data['基金管理人'].str.contains(code, na=False)]
+                            
+                            # 如果没有匹配，尝试使用简称匹配
+                            if matching_etfs.empty:
+                                # 为所有ETF创建管理人简称
+                                etf_data['管理人简称'] = etf_data['基金管理人'].apply(get_manager_short)
+                                matching_etfs = etf_data[etf_data['管理人简称'].str.contains(code, na=False)]
+                            
+                            if not matching_etfs.empty:
+                                # 找到了匹配的基金管理人
+                                # 获取管理人全称
+                                manager_name = matching_etfs.iloc[0]['基金管理人']
+                                manager_short = get_manager_short(manager_name)
+                                
+                                # 转换为字典列表
+                                result_list = []
+                                for _, row in matching_etfs.iterrows():
+                                    etf_dict = {}
+                                    for col in row.index:
+                                        # 跳过NaN值
+                                        if pd.notna(row[col]):
+                                            etf_dict[col] = row[col]
+                                    
+                                    # 添加管理人简称
+                                    etf_dict['管理人简称'] = manager_short
+                                    
+                                    # 确保使用正确的管理费率
+                                    # 查找正确的管理费率列
+                                    management_fee = None
+                                    for col in row.index:
+                                        if '管理费率' in col and '托管' not in col:
+                                            if pd.notna(row[col]):
+                                                management_fee = row[col]
+                                                break
+                                    
+                                    if management_fee is not None:
+                                        etf_dict['正确管理费率'] = management_fee
+                                    
+                                    result_list.append(etf_dict)
+                                
+                                return jsonify({
+                                    "success": True,
+                                    "search_type": "基金管理人",
+                                    "keyword": code,
+                                    "manager_name": manager_name,
+                                    "manager_short": manager_short,
+                                    "data": result_list
+                                })
+                            else:
+                                return jsonify({"error": f"未找到与 '{code}' 相关的ETF、指数或基金公司"})
+                        else:
+                            return jsonify({"error": f"未找到与 '{code}' 相关的ETF或指数，数据中缺少基金管理人列"})
                 else:
-                    # 4. 尝试按ETF产品名称进行模糊匹配
-                    matching_etfs = etf_data[etf_data['产品名称'].str.contains(code, na=False, case=False)]
-                    
-                    if not matching_etfs.empty:
-                        # 找到了匹配的ETF产品名称
-                        # 获取第一个匹配的ETF的跟踪指数
-                        tracking_index_code = matching_etfs.iloc[0]['跟踪指数代码'] if '跟踪指数代码' in matching_etfs.columns else None
-                        tracking_index_name = matching_etfs.iloc[0]['跟踪指数名称'] if '跟踪指数名称' in matching_etfs.columns else None
-                        result_etfs = matching_etfs
-                        search_type = "ETF产品名称"
-                    else:
-                        return jsonify({"error": f"未找到与 '{code}' 相关的ETF或指数"})
-            else:
-                return jsonify({"error": "数据中缺少跟踪指数名称列，无法进行名称搜索"})
+                    return jsonify({"error": "数据中缺少跟踪指数名称列，无法进行名称搜索"})
+        else:
+            return jsonify({"error": "数据中缺少跟踪指数代码列，无法进行指数代码搜索"})
     
     # 如果不是按跟踪指数名称分组的情况，使用标准返回格式
     # 转换为字典列表
@@ -324,7 +371,7 @@ def search():
         if '基金管理人' in etf_dict:
             etf_dict['管理人简称'] = get_manager_short(etf_dict['基金管理人'])
         
-        # 确保使用正确的管理费率数据
+        # 确保使用正确的管理费率
         # 查找正确的管理费率列
         management_fee = None
         for col in row.index:

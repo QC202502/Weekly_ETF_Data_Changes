@@ -439,38 +439,56 @@
                             // 尝试获取不同可能的列名
                             const code = item['证券代码'] || '';
                             const name = item['证券简称'] || item['证券名称'] || item['产品名称'] || item['基金名称'] || '未知';
-                            
-                            // 使用管理人简称
                             const manager = item['管理人简称'] || 
                                            (item['基金管理人'] ? item['基金管理人'].replace(/基金管理.*公司|基金管理公司|基金|管理有限公司|股份有限公司/g, '') : '未知');
                             
-                            // 查找规模列
+                            // 查找规模列并格式化为小数点后两位
                             let scale = '未知';
                             for (const key in item) {
                                 if (key.includes('基金规模') && key.includes('亿元')) {
-                                    scale = item[key];
+                                    const scaleValue = parseFloat(item[key]);
+                                    if (!isNaN(scaleValue)) {
+                                        scale = scaleValue.toFixed(2);
+                                    } else {
+                                        scale = item[key];
+                                    }
                                     break;
                                 }
                             }
                             
-                            // 查找正确的管理费率列
+                            // 查找正确的管理费率列并格式化为小数点后两位
                             let fee = '未知';
                             if (item['正确管理费率']) {
-                                fee = item['正确管理费率'];
+                                const feeValue = parseFloat(item['正确管理费率']);
+                                if (!isNaN(feeValue)) {
+                                    fee = feeValue.toFixed(2);
+                                } else {
+                                    fee = item['正确管理费率'];
+                                }
                             } else {
                                 for (const key in item) {
                                     if (key.includes('管理费率') && !key.includes('托管')) {
-                                        fee = item[key];
+                                        const feeValue = parseFloat(item[key]);
+                                        if (!isNaN(feeValue)) {
+                                            fee = feeValue.toFixed(2);
+                                        } else {
+                                            fee = item[key];
+                                        }
                                         break;
                                     }
                                 }
                             }
                             
-                            // 查找交易额列
+                            // 查找交易额列并格式化为小数点后两位
                             let volume = '未知';
                             for (const key in item) {
                                 if (key.includes('交易额') || key.includes('日均')) {
-                                    volume = item[key];
+                                    const volumeValue = parseFloat(item[key]);
+                                    if (!isNaN(volumeValue)) {
+                                        volume = volumeValue.toFixed(2);
+                                    } else {
+                                        volume = item[key];
+                                    }
                                     break;
                                 }
                             }
@@ -558,38 +576,56 @@
                         // 尝试获取不同可能的列名
                         const code = item['证券代码'] || '';
                         const name = item['证券简称'] || item['证券名称'] || item['产品名称'] || item['基金名称'] || '未知';
-                        
-                        // 使用管理人简称
                         const manager = item['管理人简称'] || 
                                        (item['基金管理人'] ? item['基金管理人'].replace(/基金管理.*公司|基金管理公司|基金|管理有限公司|股份有限公司/g, '') : '未知');
                         
-                        // 查找规模列
+                        // 查找规模列并格式化为小数点后两位
                         let scale = '未知';
                         for (const key in item) {
                             if (key.includes('基金规模') && key.includes('亿元')) {
-                                scale = item[key];
+                                const scaleValue = parseFloat(item[key]);
+                                if (!isNaN(scaleValue)) {
+                                    scale = scaleValue.toFixed(2);
+                                } else {
+                                    scale = item[key];
+                                }
                                 break;
                             }
                         }
                         
-                        // 查找正确的管理费率列
+                        // 查找正确的管理费率列并格式化为小数点后两位
                         let fee = '未知';
                         if (item['正确管理费率']) {
-                            fee = item['正确管理费率'];
+                            const feeValue = parseFloat(item['正确管理费率']);
+                            if (!isNaN(feeValue)) {
+                                fee = feeValue.toFixed(2);
+                            } else {
+                                fee = item['正确管理费率'];
+                            }
                         } else {
                             for (const key in item) {
                                 if (key.includes('管理费率') && !key.includes('托管')) {
-                                    fee = item[key];
+                                    const feeValue = parseFloat(item[key]);
+                                    if (!isNaN(feeValue)) {
+                                        fee = feeValue.toFixed(2);
+                                    } else {
+                                        fee = item[key];
+                                    }
                                     break;
                                 }
                             }
                         }
                         
-                        // 查找交易额列
+                        // 查找交易额列并格式化为小数点后两位
                         let volume = '未知';
                         for (const key in item) {
                             if (key.includes('交易额') || key.includes('日均')) {
-                                volume = item[key];
+                                const volumeValue = parseFloat(item[key]);
+                                if (!isNaN(volumeValue)) {
+                                    volume = volumeValue.toFixed(2);
+                                } else {
+                                    volume = item[key];
+                                }
                                 break;
                             }
                         }

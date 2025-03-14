@@ -13,6 +13,10 @@ import io
 import base64
 from docx import Document
 
+# 新增版本信息
+__version__ = "2.8.0"   
+RELEASE_DATE = "2025-03-14"  # 请根据实际发布日期修改
+
 # 导入项目中的其他模块
 try:
     from etf_reporter import ETFReporter, get_manager_short
@@ -178,178 +182,158 @@ def index():
     code = request.args.get('code', '')
     return render_template('dashboard.html', search_code=code)
 
-# 修改搜索路由，支持GET和POST请求
-@app.route('/search', methods=['GET', 'POST'])
+# 搜索路由
+@app.route('/search', methods=['POST'])
 def search():
-    """搜索ETF竞品"""
+    """搜索ETF"""
     if etf_data is None:
-        print("错误: 数据未加载")
         return jsonify({"error": "数据未加载，请先加载数据"})
     
-    # 获取请求参数
-    if request.method == 'POST':
-        code = request.form.get('code', '').strip()
-    else:
-        code = request.args.get('code', '').strip()
-    
-    print(f"搜索ETF代码: {code}")
+    code = request.form.get('code', '')
     
     if not code:
-        return jsonify({"error": "请输入ETF证券代码"})
+        return jsonify({"error": "请输入搜索关键词"})
     
-    try:
-        # 查找输入的ETF
-        target_etf = etf_data[etf_data['证券代码'] == code]
+    # 尝试不同的搜索方式
+    # 1. 首先尝试按证券代码精确匹配
+    matching_etfs = etf_data[etf_data['证券代码'] == code]
+    
+    if not matching_etfs.empty:
+        # 找到了匹配的ETF证券代码
+        tracking_index_code = matching_etfs.iloc[0]['跟踪指数代码'] if '跟踪指数代码' in matching_etfs.columns else None
+        tracking_index_name = matching_etfs.iloc[0]['跟踪指数名称'] if '跟踪指数名称' in matching_etfs.columns else None
         
-        if target_etf.empty:
-            print(f"未找到ETF: {code}")
-            return jsonify({"error": f"未找到证券代码为 {code} 的ETF"})
-        
-        print(f"找到ETF: {code}")
-        print(f"目标ETF列名: {list(target_etf.columns)}")
-        
-        # 检查必要的列是否存在
-        if '跟踪指数代码' not in target_etf.columns:
-            print("错误: 缺少'跟踪指数代码'列")
-            return jsonify({"error": "数据缺少'跟踪指数代码'列"})
-        
-        # 获取跟踪指数代码
-        tracking_index_code = target_etf['跟踪指数代码'].iloc[0]
-        tracking_index_name = target_etf['跟踪指数名称'].iloc[0] if '跟踪指数名称' in target_etf.columns else "未知指数"
-        
-        print(f"跟踪指数: {tracking_index_name} ({tracking_index_code})")
-        
-        # 查找同跟踪指数的所有ETF产品
-        alternative_etfs = etf_data[etf_data['跟踪指数代码'] == tracking_index_code]
-        print(f"找到 {len(alternative_etfs)} 个相同指数的ETF")
-        
-        # 去重并排序
-        alternative_etfs = alternative_etfs.drop_duplicates(subset=['证券代码'])
-        
-        # 确定排序列
-        sort_columns = [
-            '月成交额[交易日期]最新收盘日[单位]百万元',
-            '月日均交易额(百万)',
-            '基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'
-        ]
-        
-        sort_col = None
-        for col in sort_columns:
-            if col in alternative_etfs.columns:
-                sort_col = col
-                break
-        
-        if sort_col:
-            print(f"使用列 '{sort_col}' 排序")
-            alternative_etfs = alternative_etfs.sort_values(by=sort_col, ascending=False)
+        # 查找同一指数的所有ETF
+        if tracking_index_code:
+            result_etfs = etf_data[etf_data['跟踪指数代码'] == tracking_index_code]
         else:
-            print("警告: 未找到合适的排序列，将不进行排序")
+            result_etfs = matching_etfs
         
-        # 确定产品名称列
-        name_columns = []
-        for col in alternative_etfs.columns:
-            if any(term in col for term in ['证券名称', '证券简称', '产品名称']):
-                name_columns.append(col)
+        search_type = "证券代码"
+    else:
+        # 2. 尝试按跟踪指数代码精确匹配
+        matching_etfs = etf_data[etf_data['跟踪指数代码'] == code]
         
-        if name_columns:
-            name_col = name_columns[0]
-            print(f"使用列 '{name_col}' 作为产品名称")
+        if not matching_etfs.empty:
+            # 找到了匹配的跟踪指数代码
+            tracking_index_code = code
+            tracking_index_name = matching_etfs.iloc[0]['跟踪指数名称'] if '跟踪指数名称' in matching_etfs.columns else None
+            result_etfs = matching_etfs
+            search_type = "跟踪指数代码"
         else:
-            print("警告: 未找到产品名称列，将使用临时名称")
-            alternative_etfs['临时产品名称'] = "未知产品" + alternative_etfs['证券代码']
-            name_col = '临时产品名称'
-        
-        # 确定规模列
-        scale_columns = [
-            '基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元',
-            '基金规模(亿)'
-        ]
-        
-        scale_col = None
-        for col in scale_columns:
-            if col in alternative_etfs.columns:
-                scale_col = col
-                break
-        
-        if not scale_col:
-            print("警告: 未找到规模列，将使用默认值0")
-            alternative_etfs['临时规模列'] = 0
-            scale_col = '临时规模列'
-        
-        # 确定费率列
-        fee_columns = [
-            '管理费率[单位]%',
-            '管理费率(%)'
-        ]
-        
-        fee_col = None
-        for col in fee_columns:
-            if col in alternative_etfs.columns:
-                fee_col = col
-                break
-        
-        if not fee_col:
-            print("警告: 未找到费率列，将使用默认值0")
-            alternative_etfs['临时费率列'] = 0
-            fee_col = '临时费率列'
-        
-        # 确定交易额列
-        trade_columns = [
-            '月成交额[交易日期]最新收盘日[单位]百万元',
-            '月日均交易额(百万)'
-        ]
-        
-        trade_col = None
-        for col in trade_columns:
-            if col in alternative_etfs.columns:
-                trade_col = col
-                break
-        
-        if not trade_col:
-            print("警告: 未找到交易额列，将使用默认值0")
-            alternative_etfs['临时交易额列'] = 0
-            trade_col = '临时交易额列'
-        
-        # 构建结果
-        result = []
-        for _, row in alternative_etfs.iterrows():
-            try:
-                # 获取管理人
-                manager = "未知"
-                if '基金管理人' in row:
-                    manager = get_manager_short(row['基金管理人'])
-                elif '管理人' in row:
-                    manager = row['管理人']
+            # 3. 尝试按跟踪指数名称进行模糊匹配
+            if '跟踪指数名称' in etf_data.columns:
+                matching_indices = etf_data[etf_data['跟踪指数名称'].str.contains(code, na=False, case=False)]
                 
-                # 构建结果项
-                item = {
-                    "证券代码": row['证券代码'],
-                    "产品名称": row[name_col],
-                    "管理人": manager,
-                    "规模(亿)": round(float(row[scale_col]), 2),
-                    "管理费率(%)": float(row[fee_col]),
-                    "月日均交易额(百万)": round(float(row[trade_col]), 2),
-                    "是否商务品": row.get('是否商务品', '未知')
-                }
-                result.append(item)
-            except Exception as e:
-                print(f"处理行数据时出错: {str(e)}")
-                continue
-        
-        print(f"成功构建结果，共 {len(result)} 个ETF")
-        
-        return jsonify({
-            "success": True,
-            "tracking_index_code": tracking_index_code,
-            "tracking_index_name": tracking_index_name,
-            "data": result
-        })
+                if not matching_indices.empty:
+                    # 找到了匹配的跟踪指数名称
+                    # 按跟踪指数分组，并按规模排序
+                    scale_col = '基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'
+                    if scale_col not in etf_data.columns:
+                        # 尝试查找替代列
+                        for col in etf_data.columns:
+                            if '基金规模' in col and '亿元' in col:
+                                scale_col = col
+                                break
+                    
+                    # 按跟踪指数分组并计算总规模
+                    if scale_col in etf_data.columns:
+                        index_groups = []
+                        # 获取匹配的跟踪指数列表
+                        unique_indices = matching_indices['跟踪指数代码'].unique()
+                        
+                        for index_code in unique_indices:
+                            if pd.isna(index_code):
+                                continue
+                                
+                            index_etfs = etf_data[etf_data['跟踪指数代码'] == index_code]
+                            index_name = index_etfs.iloc[0]['跟踪指数名称'] if '跟踪指数名称' in index_etfs.columns else "未知"
+                            total_scale = index_etfs[scale_col].sum() if scale_col in index_etfs else 0
+                            
+                            index_groups.append({
+                                'index_code': index_code,
+                                'index_name': index_name,
+                                'total_scale': total_scale,
+                                'etfs': index_etfs
+                            })
+                        
+                        # 按总规模排序
+                        index_groups.sort(key=lambda x: x['total_scale'], reverse=True)
+                        
+                        # 构建结果
+                        result = {
+                            "success": True,
+                            "search_type": "跟踪指数名称",
+                            "keyword": code,
+                            "index_groups": []
+                        }
+                        
+                        for group in index_groups:
+                            # 转换ETF数据为字典列表
+                            etf_list = []
+                            for _, row in group['etfs'].iterrows():
+                                etf_dict = {}
+                                for col in row.index:
+                                    # 跳过NaN值
+                                    if pd.notna(row[col]):
+                                        etf_dict[col] = row[col]
+                                etf_list.append(etf_dict)
+                            
+                            result["index_groups"].append({
+                                "tracking_index_code": group['index_code'],
+                                "tracking_index_name": group['index_name'],
+                                "total_scale": round(group['total_scale'], 2),
+                                "data": etf_list
+                            })
+                        
+                        return jsonify(result)
+                    else:
+                        # 如果没有规模列，简单地按跟踪指数分组
+                        result_etfs = matching_indices
+                        tracking_index_code = None
+                        tracking_index_name = code
+                        search_type = "跟踪指数名称(无规模排序)"
+                else:
+                    # 4. 尝试按ETF产品名称进行模糊匹配
+                    matching_etfs = etf_data[etf_data['产品名称'].str.contains(code, na=False, case=False)]
+                    
+                    if not matching_etfs.empty:
+                        # 找到了匹配的ETF产品名称
+                        # 获取第一个匹配的ETF的跟踪指数
+                        tracking_index_code = matching_etfs.iloc[0]['跟踪指数代码'] if '跟踪指数代码' in matching_etfs.columns else None
+                        tracking_index_name = matching_etfs.iloc[0]['跟踪指数名称'] if '跟踪指数名称' in matching_etfs.columns else None
+                        result_etfs = matching_etfs
+                        search_type = "ETF产品名称"
+                    else:
+                        return jsonify({"error": f"未找到与 '{code}' 相关的ETF或指数"})
+            else:
+                return jsonify({"error": "数据中缺少跟踪指数名称列，无法进行名称搜索"})
     
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print(f"搜索出错: {str(e)}")
-        return jsonify({"error": f"查询出错：{str(e)}"})
+    # 如果不是按跟踪指数名称分组的情况，使用标准返回格式
+    # 转换为字典列表
+    result_list = []
+    for _, row in result_etfs.iterrows():
+        etf_dict = {}
+        for col in row.index:
+            # 跳过NaN值
+            if pd.notna(row[col]):
+                etf_dict[col] = row[col]
+                
+                # 对数值类型进行格式化
+                if isinstance(etf_dict[col], (int, float)):
+                    if '规模' in col or '亿' in col:
+                        etf_dict[col] = round(etf_dict[col], 2)
+                    elif '费率' in col:
+                        etf_dict[col] = round(etf_dict[col], 4)
+        result_list.append(etf_dict)
+    
+    return jsonify({
+        "success": True,
+        "search_type": search_type,
+        "tracking_index_code": tracking_index_code,
+        "tracking_index_name": tracking_index_name,
+        "data": result_list
+    })
 
 # 添加缺失的路由
 
@@ -735,14 +719,6 @@ def load_etf_data():
         import traceback
         traceback.print_exc()
         return False, f"加载数据出错：{str(e)}"
-
-# 删除这个重复的函数定义
-# @app.route('/load_data')
-# def load_data():
-#     """加载数据接口"""
-#     message = load_latest_data()
-#     success = "未找到" not in message and "出错" not in message
-#     return jsonify({"success": success, "message": message})
 
 if __name__ == '__main__':
     # 确保目录存在

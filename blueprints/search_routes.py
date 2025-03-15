@@ -131,8 +131,10 @@ def search_by_etf_code(keyword, etf_data, business_etfs, current_date_str):
     same_index_etfs = etf_data[etf_data['跟踪指数代码'] == index_code]
     
     # 按月日均交易量从大到小排序 - 修正列名
-    # 使用正确的列名 '月成交额[交易日期]最新收盘日[单位]百万元'
     same_index_etfs = same_index_etfs.sort_values(by='月成交额[交易日期]最新收盘日[单位]百万元', ascending=False)
+    
+    # 从data_service导入当前和上周日期
+    from services.data_service import current_date_str, previous_date_str
     
     # 格式化结果
     results = []
@@ -142,6 +144,14 @@ def search_by_etf_code(keyword, etf_data, business_etfs, current_date_str):
         
         # 使用带日期的列名
         name_col = f'证券名称（{current_date_str}）'
+        
+        # 添加新增字段
+        attention_current = f'关注人数（{current_date_str}）'
+        attention_previous = f'关注人数（{previous_date_str}）'
+        holders_current = f'持仓客户数（{current_date_str}）'
+        holders_previous = f'持仓客户数（{previous_date_str}）'
+        amount_current = f'保有金额（{current_date_str}）'
+        amount_previous = f'保有金额（{previous_date_str}）'
         
         results.append({
             'code': etf_code,
@@ -153,7 +163,14 @@ def search_by_etf_code(keyword, etf_data, business_etfs, current_date_str):
             'is_business': is_business,
             'business_text': "商务品" if is_business else "非商务品",
             'index_code': row['跟踪指数代码'],
-            'index_name': row['跟踪指数名称']
+            'index_name': row['跟踪指数名称'],
+            # 新增字段
+            'attention_count': int(row[attention_current]) if pd.notna(row[attention_current]) else 0,
+            'attention_change': int(row[attention_current] - row[attention_previous]) if pd.notna(row[attention_current]) and pd.notna(row[attention_previous]) else 0,
+            'holders_count': int(row[holders_current]) if pd.notna(row[holders_current]) else 0,
+            'holders_change': int(row[holders_current] - row[holders_previous]) if pd.notna(row[holders_current]) and pd.notna(row[holders_previous]) else 0,
+            'amount': round(float(row[amount_current]) / 1e8 if pd.notna(row[amount_current]) else 0, 2),  # 转换为亿元
+            'amount_change': round(float(row[amount_current] - row[amount_previous]) / 1e8 if pd.notna(row[amount_current]) and pd.notna(row[amount_previous]) else 0, 2)  # 转换为亿元
         })
     
     return results
@@ -185,6 +202,9 @@ def search_by_index_name(keyword, etf_data, business_etfs, current_date_str):
                            key=lambda x: index_scales.get(x['跟踪指数代码'], 0), 
                            reverse=True)
     
+    # 从data_service导入当前和上周日期
+    from services.data_service import current_date_str, previous_date_str
+    
     # 为每个指数创建一个组
     for index_info in sorted_indices:
         index_code = index_info['跟踪指数代码']
@@ -205,6 +225,14 @@ def search_by_index_name(keyword, etf_data, business_etfs, current_date_str):
             # 使用带日期的列名
             name_col = f'证券名称（{current_date_str}）'
             
+            # 添加新增字段
+            attention_current = f'关注人数（{current_date_str}）'
+            attention_previous = f'关注人数（{previous_date_str}）'
+            holders_current = f'持仓客户数（{current_date_str}）'
+            holders_previous = f'持仓客户数（{previous_date_str}）'
+            amount_current = f'保有金额（{current_date_str}）'
+            amount_previous = f'保有金额（{previous_date_str}）'
+            
             etf_results.append({
                 'code': etf_code,
                 'name': row[name_col] if name_col in row else row['证券代码'],  # 如果列名不存在，使用证券代码作为备用
@@ -213,7 +241,14 @@ def search_by_index_name(keyword, etf_data, business_etfs, current_date_str):
                 'fee_rate': round(float(row['管理费率[单位]%']) if pd.notna(row['管理费率[单位]%']) else 0, 2),
                 'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
                 'is_business': is_business,
-                'business_text': "商务品" if is_business else "非商务品"
+                'business_text': "商务品" if is_business else "非商务品",
+                # 新增字段
+                'attention_count': int(row[attention_current]) if pd.notna(row[attention_current]) else 0,
+                'attention_change': int(row[attention_current] - row[attention_previous]) if pd.notna(row[attention_current]) and pd.notna(row[attention_previous]) else 0,
+                'holders_count': int(row[holders_current]) if pd.notna(row[holders_current]) else 0,
+                'holders_change': int(row[holders_current] - row[holders_previous]) if pd.notna(row[holders_current]) and pd.notna(row[holders_previous]) else 0,
+                'amount': round(float(row[amount_current]) / 1e8 if pd.notna(row[amount_current]) else 0, 2),  # 转换为亿元
+                'amount_change': round(float(row[amount_current] - row[amount_previous]) / 1e8 if pd.notna(row[amount_current]) and pd.notna(row[amount_previous]) else 0, 2)  # 转换为亿元
             })
         
         # 添加到指数组
@@ -242,6 +277,9 @@ def search_by_index_code(keyword, etf_data, business_etfs, current_date_str):
     # 按月日均交易量从大到小排序 - 修正列名
     matching_etfs = matching_etfs.sort_values(by='月成交额[交易日期]最新收盘日[单位]百万元', ascending=False)
     
+    # 从data_service导入当前和上周日期
+    from services.data_service import current_date_str, previous_date_str
+    
     # 格式化结果
     results = []
     for _, row in matching_etfs.iterrows():
@@ -250,6 +288,14 @@ def search_by_index_code(keyword, etf_data, business_etfs, current_date_str):
         
         # 使用带日期的列名
         name_col = f'证券名称（{current_date_str}）'
+        
+        # 添加新增字段
+        attention_current = f'关注人数（{current_date_str}）'
+        attention_previous = f'关注人数（{previous_date_str}）'
+        holders_current = f'持仓客户数（{current_date_str}）'
+        holders_previous = f'持仓客户数（{previous_date_str}）'
+        amount_current = f'保有金额（{current_date_str}）'
+        amount_previous = f'保有金额（{previous_date_str}）'
         
         results.append({
             'code': etf_code,
@@ -261,7 +307,14 @@ def search_by_index_code(keyword, etf_data, business_etfs, current_date_str):
             'is_business': is_business,
             'business_text': "商务品" if is_business else "非商务品",
             'index_code': row['跟踪指数代码'],
-            'index_name': row['跟踪指数名称']
+            'index_name': row['跟踪指数名称'],
+            # 新增字段
+            'attention_count': int(row[attention_current]) if pd.notna(row[attention_current]) else 0,
+            'attention_change': int(row[attention_current] - row[attention_previous]) if pd.notna(row[attention_current]) and pd.notna(row[attention_previous]) else 0,
+            'holders_count': int(row[holders_current]) if pd.notna(row[holders_current]) else 0,
+            'holders_change': int(row[holders_current] - row[holders_previous]) if pd.notna(row[holders_current]) and pd.notna(row[holders_previous]) else 0,
+            'amount': round(float(row[amount_current]) / 1e8 if pd.notna(row[amount_current]) else 0, 2),  # 转换为亿元
+            'amount_change': round(float(row[amount_current] - row[amount_previous]) / 1e8 if pd.notna(row[amount_current]) and pd.notna(row[amount_previous]) else 0, 2)  # 转换为亿元
         })
     
     return results
@@ -277,6 +330,9 @@ def search_by_company(keyword, etf_data, business_etfs, current_date_str):
     # 按月日均交易量从大到小排序 - 修正列名
     matching_etfs = matching_etfs.sort_values(by='月成交额[交易日期]最新收盘日[单位]百万元', ascending=False)
     
+    # 从data_service导入当前和上周日期
+    from services.data_service import current_date_str, previous_date_str
+    
     # 格式化结果
     results = []
     for _, row in matching_etfs.iterrows():
@@ -285,6 +341,14 @@ def search_by_company(keyword, etf_data, business_etfs, current_date_str):
         
         # 使用带日期的列名
         name_col = f'证券名称（{current_date_str}）'
+        
+        # 添加新增字段
+        attention_current = f'关注人数（{current_date_str}）'
+        attention_previous = f'关注人数（{previous_date_str}）'
+        holders_current = f'持仓客户数（{current_date_str}）'
+        holders_previous = f'持仓客户数（{previous_date_str}）'
+        amount_current = f'保有金额（{current_date_str}）'
+        amount_previous = f'保有金额（{previous_date_str}）'
         
         results.append({
             'code': etf_code,
@@ -295,7 +359,14 @@ def search_by_company(keyword, etf_data, business_etfs, current_date_str):
             'fee_rate': round(float(row['管理费率[单位]%']) if pd.notna(row['管理费率[单位]%']) else 0, 2),
             'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
             'is_business': is_business,
-            'business_text': "商务品" if is_business else "非商务品"
+            'business_text': "商务品" if is_business else "非商务品",
+            # 新增字段
+            'attention_count': int(row[attention_current]) if pd.notna(row[attention_current]) else 0,
+            'attention_change': int(row[attention_current] - row[attention_previous]) if pd.notna(row[attention_current]) and pd.notna(row[attention_previous]) else 0,
+            'holders_count': int(row[holders_current]) if pd.notna(row[holders_current]) else 0,
+            'holders_change': int(row[holders_current] - row[holders_previous]) if pd.notna(row[holders_current]) and pd.notna(row[holders_previous]) else 0,
+            'amount': round(float(row[amount_current]) / 1e8 if pd.notna(row[amount_current]) else 0, 2),  # 转换为亿元
+            'amount_change': round(float(row[amount_current] - row[amount_previous]) / 1e8 if pd.notna(row[amount_current]) and pd.notna(row[amount_previous]) else 0, 2)  # 转换为亿元
         })
     
     return results
@@ -318,6 +389,9 @@ def general_search(keyword, etf_data, business_etfs, current_date_str):
     # 按月日均交易量从大到小排序 - 修正列名
     matching_etfs = matching_etfs.sort_values(by='月成交额[交易日期]最新收盘日[单位]百万元', ascending=False)
     
+    # 从data_service导入当前和上周日期
+    from services.data_service import current_date_str, previous_date_str
+    
     # 格式化结果
     for _, row in matching_etfs.iterrows():
         etf_code = row['证券代码']
@@ -325,6 +399,14 @@ def general_search(keyword, etf_data, business_etfs, current_date_str):
         
         # 使用带日期的列名
         name_col = f'证券名称（{current_date_str}）'
+        
+        # 添加新增字段
+        attention_current = f'关注人数（{current_date_str}）'
+        attention_previous = f'关注人数（{previous_date_str}）'
+        holders_current = f'持仓客户数（{current_date_str}）'
+        holders_previous = f'持仓客户数（{previous_date_str}）'
+        amount_current = f'保有金额（{current_date_str}）'
+        amount_previous = f'保有金额（{previous_date_str}）'
         
         results.append({
             'code': etf_code,
@@ -336,7 +418,14 @@ def general_search(keyword, etf_data, business_etfs, current_date_str):
             'is_business': is_business,
             'business_text': "商务品" if is_business else "非商务品",
             'index_code': row['跟踪指数代码'],
-            'index_name': row['跟踪指数名称']
+            'index_name': row['跟踪指数名称'],
+            # 新增字段
+            'attention_count': int(row[attention_current]) if pd.notna(row[attention_current]) else 0,
+            'attention_change': int(row[attention_current] - row[attention_previous]) if pd.notna(row[attention_current]) and pd.notna(row[attention_previous]) else 0,
+            'holders_count': int(row[holders_current]) if pd.notna(row[holders_current]) else 0,
+            'holders_change': int(row[holders_current] - row[holders_previous]) if pd.notna(row[holders_current]) and pd.notna(row[holders_previous]) else 0,
+            'amount': round(float(row[amount_current]) / 1e8 if pd.notna(row[amount_current]) else 0, 2),  # 转换为亿元
+            'amount_change': round(float(row[amount_current] - row[amount_previous]) / 1e8 if pd.notna(row[amount_current]) and pd.notna(row[amount_previous]) else 0, 2)  # 转换为亿元
         })
     
     return results

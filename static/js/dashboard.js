@@ -124,6 +124,12 @@ function handleSearchResult(data) {
                                         <th>管理费率(%)</th>
                                         <th>规模(亿元)</th>
                                         <th>是否为商务品</th>
+                                        <th>关注人数</th>
+                                        <th>本周新增关注</th>
+                                        <th>持仓人数</th>
+                                        <th>本周新增持仓</th>
+                                        <th>保有规模(亿元)</th>
+                                        <th>本周新增保有(亿元)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -132,6 +138,9 @@ function handleSearchResult(data) {
             // 添加ETF行
             group.etfs.forEach(etf => {
                 const businessClass = etf.is_business ? 'table-danger' : '';
+                const attentionChangeClass = etf.attention_change > 0 ? 'text-success' : (etf.attention_change < 0 ? 'text-danger' : '');
+                const holdersChangeClass = etf.holders_change > 0 ? 'text-success' : (etf.holders_change < 0 ? 'text-danger' : '');
+                const amountChangeClass = etf.amount_change > 0 ? 'text-success' : (etf.amount_change < 0 ? 'text-danger' : '');
                 
                 html += `
                     <tr class="${businessClass}">
@@ -142,6 +151,12 @@ function handleSearchResult(data) {
                         <td>${etf.fee_rate.toFixed(2)}%</td>
                         <td>${etf.scale.toFixed(2)}</td>
                         <td>${etf.business_text}</td>
+                        <td>${etf.attention_count.toLocaleString()}</td>
+                        <td class="${attentionChangeClass}">${etf.attention_change > 0 ? '+' : ''}${etf.attention_change.toLocaleString()}</td>
+                        <td>${etf.holders_count.toLocaleString()}</td>
+                        <td class="${holdersChangeClass}">${etf.holders_change > 0 ? '+' : ''}${etf.holders_change.toLocaleString()}</td>
+                        <td>${etf.amount.toFixed(2)}</td>
+                        <td class="${amountChangeClass}">${etf.amount_change > 0 ? '+' : ''}${etf.amount_change.toFixed(2)}</td>
                     </tr>
                 `;
             });
@@ -171,6 +186,12 @@ function handleSearchResult(data) {
                             <th>管理费率(%)</th>
                             <th>规模(亿元)</th>
                             <th>是否为商务品</th>
+                            <th>关注人数</th>
+                            <th>本周新增关注</th>
+                            <th>持仓人数</th>
+                            <th>本周新增持仓</th>
+                            <th>保有规模(亿元)</th>
+                            <th>本周新增保有(亿元)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -179,6 +200,9 @@ function handleSearchResult(data) {
         // 添加ETF行
         data.results.forEach(etf => {
             const businessClass = etf.is_business ? 'table-danger' : '';
+            const attentionChangeClass = etf.attention_change > 0 ? 'text-success' : (etf.attention_change < 0 ? 'text-danger' : '');
+            const holdersChangeClass = etf.holders_change > 0 ? 'text-success' : (etf.holders_change < 0 ? 'text-danger' : '');
+            const amountChangeClass = etf.amount_change > 0 ? 'text-success' : (etf.amount_change < 0 ? 'text-danger' : '');
             
             html += `
                 <tr class="${businessClass}">
@@ -189,6 +213,12 @@ function handleSearchResult(data) {
                     <td>${etf.fee_rate.toFixed(2)}%</td>
                     <td>${etf.scale.toFixed(2)}</td>
                     <td>${etf.business_text}</td>
+                    <td>${etf.attention_count.toLocaleString()}</td>
+                    <td class="${attentionChangeClass}">${etf.attention_change > 0 ? '+' : ''}${etf.attention_change.toLocaleString()}</td>
+                    <td>${etf.holders_count.toLocaleString()}</td>
+                    <td class="${holdersChangeClass}">${etf.holders_change > 0 ? '+' : ''}${etf.holders_change.toLocaleString()}</td>
+                    <td>${etf.amount.toFixed(2)}</td>
+                    <td class="${amountChangeClass}">${etf.amount_change > 0 ? '+' : ''}${etf.amount_change.toFixed(2)}</td>
                 </tr>
             `;
         });
@@ -216,6 +246,12 @@ function handleSearchResult(data) {
                             <th>管理费率(%)</th>
                             <th>规模(亿元)</th>
                             <th>是否为商务品</th>
+                            <th>关注人数</th>
+                            <th>本周新增关注</th>
+                            <th>持仓人数</th>
+                            <th>本周新增持仓</th>
+                            <th>保有规模(亿元)</th>
+                            <th>本周新增保有(亿元)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -224,6 +260,9 @@ function handleSearchResult(data) {
         // 添加ETF行
         data.results.forEach(etf => {
             const businessClass = etf.is_business ? 'table-danger' : '';
+            const attentionChangeClass = etf.attention_change > 0 ? 'text-success' : (etf.attention_change < 0 ? 'text-danger' : '');
+            const holdersChangeClass = etf.holders_change > 0 ? 'text-success' : (etf.holders_change < 0 ? 'text-danger' : '');
+            const amountChangeClass = etf.amount_change > 0 ? 'text-success' : (etf.amount_change < 0 ? 'text-danger' : '');
             
             html += `
                 <tr class="${businessClass}">
@@ -234,6 +273,12 @@ function handleSearchResult(data) {
                     <td>${etf.fee_rate.toFixed(2)}%</td>
                     <td>${etf.scale.toFixed(2)}</td>
                     <td>${etf.business_text}</td>
+                    <td>${etf.attention_count.toLocaleString()}</td>
+                    <td class="${attentionChangeClass}">${etf.attention_change > 0 ? '+' : ''}${etf.attention_change.toLocaleString()}</td>
+                    <td>${etf.holders_count.toLocaleString()}</td>
+                    <td class="${holdersChangeClass}">${etf.holders_change > 0 ? '+' : ''}${etf.holders_change.toLocaleString()}</td>
+                    <td>${etf.amount.toFixed(2)}</td>
+                    <td class="${amountChangeClass}">${etf.amount_change > 0 ? '+' : ''}${etf.amount_change.toFixed(2)}</td>
                 </tr>
             `;
         });

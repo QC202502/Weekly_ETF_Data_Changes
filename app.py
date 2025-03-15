@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use('Agg')  # 非交互式后端
 
 # 版本信息
-__version__ = "2.9.0"   
+__version__ = "2.9.1"   
 RELEASE_DATE = "2025-03-15"
 
 # 创建Flask应用

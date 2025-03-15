@@ -1,0 +1,16 @@
+<!-- ETF竞品查询 -->
+<div class="content-section" id="section-search">
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-search"></i> ETF竞品查询</h5>
+        </div>
+        <div class="card-body">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="search-input" placeholder="输入ETF代码、名称或指数" value="{{ search_code }}">
+                <button class="btn btn-primary" type="button" id="search-button">查询</button>
+            </div>
+            <div class="form-text text-muted mb-3">可输入ETF代码(如560050)、ETF名称(如红利)或指数代码(如000300)</div>
+            <div id="search-results" class="mt-3"></div>
+        </div>
+    </div>
+</div>

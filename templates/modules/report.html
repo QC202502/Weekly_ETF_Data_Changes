@@ -1,0 +1,18 @@
+<!-- 报告生成 -->
+<div class="content-section" id="section-report" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-file-earmark-text"></i> 生成报告</h5>
+        </div>
+        <div class="card-body">
+            <p>点击下方按钮生成ETF市场周报，包含市场概览和商务品分析。</p>
+            <button class="btn btn-primary" onclick="generateReport()">生成报告</button>
+            
+            <div id="report-result" style="display: none; margin-top: 20px;">
+                <div class="alert alert-success">
+                    报告已生成，<a id="download-report-link" href="#" class="alert-link">点击此处下载</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

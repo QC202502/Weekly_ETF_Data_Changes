@@ -91,34 +91,159 @@ function handleSearchResult(data) {
     }
     
     // 检查是否有结果
-    if (!data.results || data.results.length === 0) {
+    if ((data.results && data.results.length === 0) || 
+        (data.index_groups && data.index_groups.length === 0)) {
         resultsContainer.innerHTML = `<div class="alert alert-warning">未找到匹配"${data.keyword}"的ETF产品</div>`;
         return;
     }
     
-    // 显示搜索结果
-    let html = `<div class="alert alert-success">找到 ${data.count} 个匹配"${data.keyword}"的ETF</div>`;
+    let html = '';
     
-    html += '<div class="list-group">';
-    
-    data.results.forEach(etf => {
-        const businessBadge = etf.is_business 
-            ? '<span class="badge bg-danger ms-2">商务品</span>' 
-            : '';
+    // 根据搜索类型展示不同的结果
+    if (data.search_type === "跟踪指数名称" && data.index_groups) {
+        // 显示搜索关键词和结果数量
+        html += `<div class="alert alert-success">找到 ${data.count} 个匹配"${data.keyword}"的ETF，按跟踪指数分组</div>`;
+        
+        // 为每个指数创建一个表格
+        data.index_groups.forEach(group => {
+            html += `
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>${group.index_name} (${group.index_code})</h5>
+                        <div class="small text-muted">总规模: ${group.total_scale}亿元 | ETF数量: ${group.etf_count}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>基金代码</th>
+                                        <th>基金简称</th>
+                                        <th>管理人简称</th>
+                                        <th>月日均交易量(亿元)</th>
+                                        <th>管理费率(%)</th>
+                                        <th>规模(亿元)</th>
+                                        <th>是否为商务品</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
             
-        html += `
-            <div class="list-group-item">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-1">${etf.code} ${etf.name}${businessBadge}</h5>
-                    <small>规模: ${etf.scale}亿元</small>
+            // 添加ETF行
+            group.etfs.forEach(etf => {
+                const businessClass = etf.is_business ? 'table-danger' : '';
+                
+                html += `
+                    <tr class="${businessClass}">
+                        <td>${etf.code}</td>
+                        <td>${etf.name}</td>
+                        <td>${etf.manager}</td>
+                        <td>${etf.volume.toFixed(2)}</td>
+                        <td>${etf.fee_rate.toFixed(2)}%</td>
+                        <td>${etf.scale.toFixed(2)}</td>
+                        <td>${etf.business_text}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <p class="mb-1">管理人: ${etf.manager} | 管理费率: ${etf.fee_rate}%</p>
-                <small>跟踪指数: ${etf.index_code} ${etf.index_name}</small>
+            `;
+        });
+    } else if (data.search_type === "基金公司名称") {
+        // 显示搜索关键词和结果数量
+        html += `<div class="alert alert-success">找到 ${data.count} 个匹配"${data.keyword}"的ETF产品</div>`;
+        
+        // 创建表格
+        html += `
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>产品代码</th>
+                            <th>产品简称</th>
+                            <th>跟踪指数代码</th>
+                            <th>月日均交易量(亿元)</th>
+                            <th>管理费率(%)</th>
+                            <th>规模(亿元)</th>
+                            <th>是否为商务品</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        // 添加ETF行
+        data.results.forEach(etf => {
+            const businessClass = etf.is_business ? 'table-danger' : '';
+            
+            html += `
+                <tr class="${businessClass}">
+                    <td>${etf.code}</td>
+                    <td>${etf.name}</td>
+                    <td>${etf.index_code}</td>
+                    <td>${etf.volume.toFixed(2)}</td>
+                    <td>${etf.fee_rate.toFixed(2)}%</td>
+                    <td>${etf.scale.toFixed(2)}</td>
+                    <td>${etf.business_text}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
             </div>
         `;
-    });
-    
-    html += '</div>';
+    } else {
+        // ETF基金代码、跟踪指数代码或通用搜索
+        // 显示搜索关键词和结果数量
+        html += `<div class="alert alert-success">找到 ${data.count} 个匹配"${data.keyword}"的ETF产品</div>`;
+        
+        // 创建表格
+        html += `
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>基金代码</th>
+                            <th>基金简称</th>
+                            <th>管理人简称</th>
+                            <th>月日均交易量(亿元)</th>
+                            <th>管理费率(%)</th>
+                            <th>规模(亿元)</th>
+                            <th>是否为商务品</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        // 添加ETF行
+        data.results.forEach(etf => {
+            const businessClass = etf.is_business ? 'table-danger' : '';
+            
+            html += `
+                <tr class="${businessClass}">
+                    <td>${etf.code}</td>
+                    <td>${etf.name}</td>
+                    <td>${etf.manager}</td>
+                    <td>${etf.volume.toFixed(2)}</td>
+                    <td>${etf.fee_rate.toFixed(2)}%</td>
+                    <td>${etf.scale.toFixed(2)}</td>
+                    <td>${etf.business_text}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
     
     resultsContainer.innerHTML = html;
 }

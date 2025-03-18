@@ -4,8 +4,8 @@ import matplotlib
 matplotlib.use('Agg')  # 非交互式后端
 
 # 版本信息
-__version__ = "2.9.6"   
-RELEASE_DATE = "2025-03-23"
+__version__ = "2.9.7"   
+RELEASE_DATE = "2025-03-18"
 
 # 创建Flask应用
 app = Flask(__name__)

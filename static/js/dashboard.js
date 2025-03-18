@@ -101,8 +101,8 @@ function handleSearchResult(data) {
     
     // 根据搜索类型展示不同的结果
     if (data.search_type === "跟踪指数名称" && data.index_groups) {
-        // 显示搜索关键词和结果数量
-        html += `<div class="alert alert-success">找到 ${data.count} 个匹配"${data.keyword}"的ETF，按跟踪指数分组</div>`;
+        // 显示搜索关键词和结果数量 - 新格式
+        html += `<div class="alert alert-success">找到${data.index_count}个匹配的指数，共有${data.count}个ETF，按跟踪指数分组</div>`;
         
         // 为每个指数创建一个表格
         data.index_groups.forEach(group => {
@@ -326,8 +326,116 @@ function handleSearchResult(data) {
                 </table>
             </div>
         `;
+    } else if (data.search_type === "ETF基金代码" && data.index_name && data.index_code) {
+        // ETF基金代码搜索 - 新格式
+        html += `<div class="alert alert-success">该ETF跟踪「${data.index_name}」（${data.index_code}），指数总规模 ${data.total_scale}（单位：亿元），跟踪ETF数量${data.etf_count}</div>`;
+        
+        // 创建表格
+        html += `
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>基金代码</th>
+                            <th>基金简称</th>
+                            <th>管理人简称</th>
+                            <th>月日均交易量(亿元)</th>
+                            <th>管理费率(%)</th>
+                            <th>规模(亿元)</th>
+                            <th>是否为商务品</th>
+                            <th>关注人数</th>
+                            <th>本周新增关注</th>
+                            <th>持仓人数</th>
+                            <th>本周新增持仓</th>
+                            <th>保有规模(亿元)</th>
+                            <th>本周新增保有(亿元)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        // 添加ETF行
+        let totalVolume = 0;
+        let totalFeeRate = 0;
+        let totalScale = 0;
+        let totalAttentionCount = 0;
+        let totalAttentionChange = 0;
+        let totalHoldersCount = 0;
+        let totalHoldersChange = 0;
+        let totalAmount = 0;
+        let totalAmountChange = 0;
+        let businessCount = 0;
+        
+        data.results.forEach(etf => {
+            const businessClass = etf.is_business ? 'table-danger' : '';
+            const attentionChangeClass = etf.attention_change > 0 ? 'text-success' : (etf.attention_change < 0 ? 'text-danger' : '');
+            const holdersChangeClass = etf.holders_change > 0 ? 'text-success' : (etf.holders_change < 0 ? 'text-danger' : '');
+            const amountChangeClass = etf.amount_change > 0 ? 'text-success' : (etf.amount_change < 0 ? 'text-danger' : '');
+            
+            // 累加汇总数据
+            totalVolume += etf.volume;
+            totalFeeRate += etf.fee_rate;
+            totalScale += etf.scale;
+            totalAttentionCount += etf.attention_count;
+            totalAttentionChange += etf.attention_change;
+            totalHoldersCount += etf.holders_count;
+            totalHoldersChange += etf.holders_change;
+            totalAmount += etf.amount;
+            totalAmountChange += etf.amount_change;
+            if (etf.is_business) businessCount++;
+            
+            html += `
+                <tr class="${businessClass}">
+                    <td>${etf.code}</td>
+                    <td>${etf.name}</td>
+                    <td>${etf.manager}</td>
+                    <td>${etf.volume.toFixed(2)}</td>
+                    <td>${etf.fee_rate.toFixed(2)}%</td>
+                    <td>${etf.scale.toFixed(2)}</td>
+                    <td>${etf.business_text}</td>
+                    <td>${etf.attention_count.toLocaleString()}</td>
+                    <td class="${attentionChangeClass}">${etf.attention_change > 0 ? '+' : ''}${etf.attention_change.toLocaleString()}</td>
+                    <td>${etf.holders_count.toLocaleString()}</td>
+                    <td class="${holdersChangeClass}">${etf.holders_change > 0 ? '+' : ''}${etf.holders_change.toLocaleString()}</td>
+                    <td>${etf.amount.toFixed(2)}</td>
+                    <td class="${amountChangeClass}">${etf.amount_change > 0 ? '+' : ''}${etf.amount_change.toFixed(2)}</td>
+                </tr>
+            `;
+        });
+        
+        // 计算平均管理费率
+        const avgFeeRate = data.results.length > 0 ? totalFeeRate / data.results.length : 0;
+        
+        // 添加汇总行
+        const totalAttentionChangeClass = totalAttentionChange > 0 ? 'text-success' : (totalAttentionChange < 0 ? 'text-danger' : '');
+        const totalHoldersChangeClass = totalHoldersChange > 0 ? 'text-success' : (totalHoldersChange < 0 ? 'text-danger' : '');
+        const totalAmountChangeClass = totalAmountChange > 0 ? 'text-success' : (totalAmountChange < 0 ? 'text-danger' : '');
+        
+        html += `
+            <tr class="table-secondary font-weight-bold">
+                <td>汇总</td>
+                <td>${data.results.length}只ETF</td>
+                <td>-</td>
+                <td>${totalVolume.toFixed(2)}</td>
+                <td>${avgFeeRate.toFixed(2)}%</td>
+                <td>${totalScale.toFixed(2)}</td>
+                <td>${businessCount}只商务品</td>
+                <td>${totalAttentionCount.toLocaleString()}</td>
+                <td class="${totalAttentionChangeClass}">${totalAttentionChange > 0 ? '+' : ''}${totalAttentionChange.toLocaleString()}</td>
+                <td>${totalHoldersCount.toLocaleString()}</td>
+                <td class="${totalHoldersChangeClass}">${totalHoldersChange > 0 ? '+' : ''}${totalHoldersChange.toLocaleString()}</td>
+                <td>${totalAmount.toFixed(2)}</td>
+                <td class="${totalAmountChangeClass}">${totalAmountChange > 0 ? '+' : ''}${totalAmountChange.toFixed(2)}</td>
+            </tr>
+        `;
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
     } else {
-        // ETF基金代码、跟踪指数代码或通用搜索
+        // 跟踪指数代码或通用搜索
         // 显示搜索关键词和结果数量
         html += `<div class="alert alert-success">找到 ${data.count} 个匹配"${data.keyword}"的ETF产品</div>`;
         

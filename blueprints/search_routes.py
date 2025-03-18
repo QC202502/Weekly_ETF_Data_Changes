@@ -38,13 +38,37 @@ def search():
         # 根据不同搜索类型处理结果
         if search_type == "ETF基金代码":
             results = search_by_etf_code(keyword, etf_data, business_etfs, current_date_str)
-            return jsonify({
-                "success": True,
-                "search_type": search_type,
-                "count": len(results),
-                "results": results,
-                "keyword": keyword
-            })
+            
+            # 获取该ETF的跟踪指数信息
+            if results and len(results) > 0:
+                # 获取第一个结果的指数信息
+                index_name = results[0]['index_name']
+                index_code = results[0]['index_code']
+                
+                # 计算该指数的总规模和ETF数量
+                index_etfs = etf_data[etf_data['跟踪指数代码'] == index_code]
+                total_scale = index_etfs['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'].sum()
+                etf_count = len(index_etfs)
+                
+                return jsonify({
+                    "success": True,
+                    "search_type": search_type,
+                    "count": len(results),
+                    "results": results,
+                    "keyword": keyword,
+                    "index_name": index_name,
+                    "index_code": index_code,
+                    "total_scale": round(total_scale, 2),
+                    "etf_count": etf_count
+                })
+            else:
+                return jsonify({
+                    "success": True,
+                    "search_type": search_type,
+                    "count": 0,
+                    "results": [],
+                    "keyword": keyword
+                })
             
         elif search_type == "跟踪指数名称":
             index_groups = search_by_index_name(keyword, etf_data, business_etfs, current_date_str)
@@ -52,6 +76,7 @@ def search():
                 "success": True,
                 "search_type": search_type,
                 "count": sum(len(group['etfs']) for group in index_groups),
+                "index_count": len(index_groups),  # 匹配的指数数量
                 "index_groups": index_groups,
                 "keyword": keyword
             })

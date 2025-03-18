@@ -490,10 +490,10 @@ function loadRecommendations() {
     console.log('加载推荐数据');
     const recommendationContainer = document.getElementById('recommendation-container');
     
-    // 如果推荐容器已经显示，则不重复加载
-    if (recommendationContainer.style.display === 'block') {
-        return;
-    }
+    // 移除对推荐容器已显示的检查，确保每次调用都能正确加载推荐数据
+    // if (recommendationContainer.style.display === 'block') {
+    //     return;
+    // }
     
     // 显示推荐容器
     recommendationContainer.style.display = 'block';
@@ -606,15 +606,15 @@ function handleRecommendationClick(item) {
     // 触发搜索
     searchETF();
     
-    // 淡出推荐栏
-    const recommendationContainer = document.getElementById('recommendation-container');
-    recommendationContainer.classList.add('fade-out');
-    
-    // 3秒后隐藏并移除淡出类
-    setTimeout(() => {
-        recommendationContainer.style.display = 'none';
-        recommendationContainer.classList.remove('fade-out');
-    }, 3000);
+    // 移除淡出和隐藏推荐栏的代码，保持推荐栏一直显示
+    // const recommendationContainer = document.getElementById('recommendation-container');
+    // recommendationContainer.classList.add('fade-out');
+    // 
+    // // 3秒后隐藏并移除淡出类
+    // setTimeout(() => {
+    //     recommendationContainer.style.display = 'none';
+    //     recommendationContainer.classList.remove('fade-out');
+    // }, 3000);
 }
 
 // 显示推荐项悬浮卡片
@@ -687,16 +687,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // 获取焦点时显示推荐栏
-        searchInput.addEventListener('focus', function() {
-            loadRecommendations();
-        });
+        // 移除获取焦点时显示推荐栏的事件，因为我们会在页面加载时就显示推荐栏
+        // searchInput.addEventListener('focus', function() {
+        //     loadRecommendations();
+        // });
     } else {
         console.error('未找到搜索输入框');
     }
     
     // 初始化推荐栏
     initRecommendations();
+    
+    // 加载推荐数据
+    loadRecommendations();
     
     // 绑定导航事件
     document.getElementById('nav-search').addEventListener('click', function(e) {

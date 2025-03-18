@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use('Agg')  # 非交互式后端
 
 # 版本信息
-__version__ = "2.9.7"   
+__version__ = "2.9.8"   
 RELEASE_DATE = "2025-03-18"
 
 # 创建Flask应用
@@ -49,4 +49,4 @@ if __name__ == '__main__':
     print(f"数据加载结果: {load_result}")
     
     # 启动应用
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(debug=True, host='0.0.0.0', port=5002)

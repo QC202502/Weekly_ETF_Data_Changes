@@ -136,11 +136,34 @@ function handleSearchResult(data) {
             `;
             
             // 添加ETF行
+            let totalVolume = 0;
+            let totalFeeRate = 0;
+            let totalScale = 0;
+            let totalAttentionCount = 0;
+            let totalAttentionChange = 0;
+            let totalHoldersCount = 0;
+            let totalHoldersChange = 0;
+            let totalAmount = 0;
+            let totalAmountChange = 0;
+            let businessCount = 0;
+            
             group.etfs.forEach(etf => {
                 const businessClass = etf.is_business ? 'table-danger' : '';
                 const attentionChangeClass = etf.attention_change > 0 ? 'text-success' : (etf.attention_change < 0 ? 'text-danger' : '');
                 const holdersChangeClass = etf.holders_change > 0 ? 'text-success' : (etf.holders_change < 0 ? 'text-danger' : '');
                 const amountChangeClass = etf.amount_change > 0 ? 'text-success' : (etf.amount_change < 0 ? 'text-danger' : '');
+                
+                // 累加汇总数据
+                totalVolume += etf.volume;
+                totalFeeRate += etf.fee_rate;
+                totalScale += etf.scale;
+                totalAttentionCount += etf.attention_count;
+                totalAttentionChange += etf.attention_change;
+                totalHoldersCount += etf.holders_count;
+                totalHoldersChange += etf.holders_change;
+                totalAmount += etf.amount;
+                totalAmountChange += etf.amount_change;
+                if (etf.is_business) businessCount++;
                 
                 html += `
                     <tr class="${businessClass}">
@@ -160,6 +183,32 @@ function handleSearchResult(data) {
                     </tr>
                 `;
             });
+            
+            // 计算平均管理费率
+            const avgFeeRate = group.etfs.length > 0 ? totalFeeRate / group.etfs.length : 0;
+            
+            // 添加汇总行
+            const totalAttentionChangeClass = totalAttentionChange > 0 ? 'text-success' : (totalAttentionChange < 0 ? 'text-danger' : '');
+            const totalHoldersChangeClass = totalHoldersChange > 0 ? 'text-success' : (totalHoldersChange < 0 ? 'text-danger' : '');
+            const totalAmountChangeClass = totalAmountChange > 0 ? 'text-success' : (totalAmountChange < 0 ? 'text-danger' : '');
+            
+            html += `
+                <tr class="table-secondary font-weight-bold">
+                    <td>汇总</td>
+                    <td>${group.etfs.length}只ETF</td>
+                    <td>-</td>
+                    <td>${totalVolume.toFixed(2)}</td>
+                    <td>${avgFeeRate.toFixed(2)}%</td>
+                    <td>${totalScale.toFixed(2)}</td>
+                    <td>${businessCount}只商务品</td>
+                    <td>${totalAttentionCount.toLocaleString()}</td>
+                    <td class="${totalAttentionChangeClass}">${totalAttentionChange > 0 ? '+' : ''}${totalAttentionChange.toLocaleString()}</td>
+                    <td>${totalHoldersCount.toLocaleString()}</td>
+                    <td class="${totalHoldersChangeClass}">${totalHoldersChange > 0 ? '+' : ''}${totalHoldersChange.toLocaleString()}</td>
+                    <td>${totalAmount.toFixed(2)}</td>
+                    <td class="${totalAmountChangeClass}">${totalAmountChange > 0 ? '+' : ''}${totalAmountChange.toFixed(2)}</td>
+                </tr>
+            `;
             
             html += `
                                 </tbody>
@@ -198,11 +247,34 @@ function handleSearchResult(data) {
         `;
         
         // 添加ETF行
+        let totalVolume = 0;
+        let totalFeeRate = 0;
+        let totalScale = 0;
+        let totalAttentionCount = 0;
+        let totalAttentionChange = 0;
+        let totalHoldersCount = 0;
+        let totalHoldersChange = 0;
+        let totalAmount = 0;
+        let totalAmountChange = 0;
+        let businessCount = 0;
+        
         data.results.forEach(etf => {
             const businessClass = etf.is_business ? 'table-danger' : '';
             const attentionChangeClass = etf.attention_change > 0 ? 'text-success' : (etf.attention_change < 0 ? 'text-danger' : '');
             const holdersChangeClass = etf.holders_change > 0 ? 'text-success' : (etf.holders_change < 0 ? 'text-danger' : '');
             const amountChangeClass = etf.amount_change > 0 ? 'text-success' : (etf.amount_change < 0 ? 'text-danger' : '');
+            
+            // 累加汇总数据
+            totalVolume += etf.volume;
+            totalFeeRate += etf.fee_rate;
+            totalScale += etf.scale;
+            totalAttentionCount += etf.attention_count;
+            totalAttentionChange += etf.attention_change;
+            totalHoldersCount += etf.holders_count;
+            totalHoldersChange += etf.holders_change;
+            totalAmount += etf.amount;
+            totalAmountChange += etf.amount_change;
+            if (etf.is_business) businessCount++;
             
             html += `
                 <tr class="${businessClass}">
@@ -222,6 +294,32 @@ function handleSearchResult(data) {
                 </tr>
             `;
         });
+        
+        // 计算平均管理费率
+        const avgFeeRate = data.results.length > 0 ? totalFeeRate / data.results.length : 0;
+        
+        // 添加汇总行
+        const totalAttentionChangeClass = totalAttentionChange > 0 ? 'text-success' : (totalAttentionChange < 0 ? 'text-danger' : '');
+        const totalHoldersChangeClass = totalHoldersChange > 0 ? 'text-success' : (totalHoldersChange < 0 ? 'text-danger' : '');
+        const totalAmountChangeClass = totalAmountChange > 0 ? 'text-success' : (totalAmountChange < 0 ? 'text-danger' : '');
+        
+        html += `
+            <tr class="table-secondary font-weight-bold">
+                <td>汇总</td>
+                <td>${data.results.length}只ETF</td>
+                <td>-</td>
+                <td>${totalVolume.toFixed(2)}</td>
+                <td>${avgFeeRate.toFixed(2)}%</td>
+                <td>${totalScale.toFixed(2)}</td>
+                <td>${businessCount}只商务品</td>
+                <td>${totalAttentionCount.toLocaleString()}</td>
+                <td class="${totalAttentionChangeClass}">${totalAttentionChange > 0 ? '+' : ''}${totalAttentionChange.toLocaleString()}</td>
+                <td>${totalHoldersCount.toLocaleString()}</td>
+                <td class="${totalHoldersChangeClass}">${totalHoldersChange > 0 ? '+' : ''}${totalHoldersChange.toLocaleString()}</td>
+                <td>${totalAmount.toFixed(2)}</td>
+                <td class="${totalAmountChangeClass}">${totalAmountChange > 0 ? '+' : ''}${totalAmountChange.toFixed(2)}</td>
+            </tr>
+        `;
         
         html += `
                     </tbody>
@@ -258,11 +356,34 @@ function handleSearchResult(data) {
         `;
         
         // 添加ETF行
+        let totalVolume = 0;
+        let totalFeeRate = 0;
+        let totalScale = 0;
+        let totalAttentionCount = 0;
+        let totalAttentionChange = 0;
+        let totalHoldersCount = 0;
+        let totalHoldersChange = 0;
+        let totalAmount = 0;
+        let totalAmountChange = 0;
+        let businessCount = 0;
+        
         data.results.forEach(etf => {
             const businessClass = etf.is_business ? 'table-danger' : '';
             const attentionChangeClass = etf.attention_change > 0 ? 'text-success' : (etf.attention_change < 0 ? 'text-danger' : '');
             const holdersChangeClass = etf.holders_change > 0 ? 'text-success' : (etf.holders_change < 0 ? 'text-danger' : '');
             const amountChangeClass = etf.amount_change > 0 ? 'text-success' : (etf.amount_change < 0 ? 'text-danger' : '');
+            
+            // 累加汇总数据
+            totalVolume += etf.volume;
+            totalFeeRate += etf.fee_rate;
+            totalScale += etf.scale;
+            totalAttentionCount += etf.attention_count;
+            totalAttentionChange += etf.attention_change;
+            totalHoldersCount += etf.holders_count;
+            totalHoldersChange += etf.holders_change;
+            totalAmount += etf.amount;
+            totalAmountChange += etf.amount_change;
+            if (etf.is_business) businessCount++;
             
             html += `
                 <tr class="${businessClass}">
@@ -282,6 +403,32 @@ function handleSearchResult(data) {
                 </tr>
             `;
         });
+        
+        // 计算平均管理费率
+        const avgFeeRate = data.results.length > 0 ? totalFeeRate / data.results.length : 0;
+        
+        // 添加汇总行
+        const totalAttentionChangeClass = totalAttentionChange > 0 ? 'text-success' : (totalAttentionChange < 0 ? 'text-danger' : '');
+        const totalHoldersChangeClass = totalHoldersChange > 0 ? 'text-success' : (totalHoldersChange < 0 ? 'text-danger' : '');
+        const totalAmountChangeClass = totalAmountChange > 0 ? 'text-success' : (totalAmountChange < 0 ? 'text-danger' : '');
+        
+        html += `
+            <tr class="table-secondary font-weight-bold">
+                <td>汇总</td>
+                <td>${data.results.length}只ETF</td>
+                <td>-</td>
+                <td>${totalVolume.toFixed(2)}</td>
+                <td>${avgFeeRate.toFixed(2)}%</td>
+                <td>${totalScale.toFixed(2)}</td>
+                <td>${businessCount}只商务品</td>
+                <td>${totalAttentionCount.toLocaleString()}</td>
+                <td class="${totalAttentionChangeClass}">${totalAttentionChange > 0 ? '+' : ''}${totalAttentionChange.toLocaleString()}</td>
+                <td>${totalHoldersCount.toLocaleString()}</td>
+                <td class="${totalHoldersChangeClass}">${totalHoldersChange > 0 ? '+' : ''}${totalHoldersChange.toLocaleString()}</td>
+                <td>${totalAmount.toFixed(2)}</td>
+                <td class="${totalAmountChangeClass}">${totalAmountChange > 0 ? '+' : ''}${totalAmountChange.toFixed(2)}</td>
+            </tr>
+        `;
         
         html += `
                     </tbody>

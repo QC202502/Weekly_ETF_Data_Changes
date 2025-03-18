@@ -243,7 +243,8 @@ def search_by_index_name(keyword, etf_data, business_etfs, current_date_str):
                 'code': etf_code,
                 'name': row[name_col] if name_col in row else row['证券代码'],  # 如果列名不存在，使用证券代码作为备用
                 'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
-                'volume': round(float(row['月成交额[交易日期]最新收盘日[单位]百万元']) / 100 if pd.notna(row['月成交额[交易日期]最新收盘日[单位]百万元']) else 0, 2),  # 百万转亿
+                # 使用新的交易量字段
+                'volume': round(float(row[volume_col]) if pd.notna(row[volume_col]) else 0, 2),  # 已经是亿元单位
                 'fee_rate': round(float(row['管理费率[单位]%']) if pd.notna(row['管理费率[单位]%']) else 0, 2),
                 'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
                 'is_business': is_business,

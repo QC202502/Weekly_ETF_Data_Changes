@@ -1,0 +1,70 @@
+/* 推荐栏样式 */
+.recommendation-scroll {
+    overflow-x: auto;
+    padding: 5px 0;
+}
+
+/* 推荐项卡片样式 */
+.recommendation-item {
+    min-width: 150px;
+    margin-right: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #fff;
+}
+
+.recommendation-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.recommendation-item.selected {
+    border: 2px solid #1890FF;
+}
+
+.recommendation-item .etf-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recommendation-item .etf-code {
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* 悬浮卡片样式 */
+#recommendation-tooltip {
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #eee;
+}
+
+#recommendation-tooltip .badge {
+    font-size: 0.8em;
+}
+
+#recommendation-tooltip .badge-business {
+    background-color: #dc3545;
+    color: white;
+}
+
+#recommendation-tooltip .badge-non-business {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* 淡出动画 */
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.fade-out {
+    animation: fadeOut 3s forwards;
+}

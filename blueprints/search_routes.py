@@ -451,3 +451,102 @@ def safe_float(value, default=0.0):
         return float(value)
     except (ValueError, TypeError):
         return default
+
+@search_bp.route('/recommendations', methods=['GET'])
+def get_recommendations():
+    """获取ETF推荐数据"""
+    # 从data_service导入数据
+    from services.data_service import etf_data, business_etfs, current_date_str, previous_date_str
+    
+    if etf_data is None:
+        return jsonify({"error": "数据未加载，请先加载数据"})
+    
+    try:
+        # 准备三种推荐榜单数据
+        recommendations = {
+            "attention": [],  # 本周新增关注TOP20
+            "holders": [],   # 本周新增持仓客户TOP20
+            "amount": []     # 本周新增保有金额TOP20
+        }
+        
+        # 获取列名
+        attention_current = f'关注人数（{current_date_str}）'
+        attention_previous = f'关注人数（{previous_date_str}）'
+        holders_current = f'持仓客户数（{current_date_str}）'
+        holders_previous = f'持仓客户数（{previous_date_str}）'
+        amount_current = f'保有金额（{current_date_str}）'
+        amount_previous = f'保有金额（{previous_date_str}）'
+        name_col = f'证券名称（{current_date_str}）'
+        
+        # 确保所有必要的列都存在
+        required_columns = [attention_current, attention_previous, holders_current, 
+                          holders_previous, amount_current, amount_previous]
+        
+        # 检查列是否存在
+        missing_columns = [col for col in required_columns if col not in etf_data.columns]
+        if missing_columns:
+            print(f"警告：缺少以下列：{missing_columns}")
+            return jsonify({"error": "数据列不完整，无法生成推荐"})
+        
+        # 计算变化值
+        etf_data['attention_change'] = etf_data[attention_current] - etf_data[attention_previous]
+        etf_data['holders_change'] = etf_data[holders_current] - etf_data[holders_previous]
+        etf_data['amount_change'] = (etf_data[amount_current] - etf_data[amount_previous]) / 1e8  # 转换为亿元
+        
+        # 获取本周新增关注TOP20
+        attention_top = etf_data.sort_values(by='attention_change', ascending=False).head(20)
+        for _, row in attention_top.iterrows():
+            etf_code = row['证券代码']
+            is_business = etf_code in business_etfs
+            recommendations["attention"].append({
+                'code': etf_code,
+                'name': row[name_col] if name_col in row else row['证券代码'],
+                'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
+                'is_business': is_business,
+                'business_text': "商务品" if is_business else "非商务品",
+                'index_code': row['跟踪指数代码'],
+                'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
+                'attention_change': int(row['attention_change']) if pd.notna(row['attention_change']) else 0
+            })
+        
+        # 获取本周新增持仓客户TOP20
+        holders_top = etf_data.sort_values(by='holders_change', ascending=False).head(20)
+        for _, row in holders_top.iterrows():
+            etf_code = row['证券代码']
+            is_business = etf_code in business_etfs
+            recommendations["holders"].append({
+                'code': etf_code,
+                'name': row[name_col] if name_col in row else row['证券代码'],
+                'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
+                'is_business': is_business,
+                'business_text': "商务品" if is_business else "非商务品",
+                'index_code': row['跟踪指数代码'],
+                'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
+                'holders_change': int(row['holders_change']) if pd.notna(row['holders_change']) else 0
+            })
+        
+        # 获取本周新增保有金额TOP20
+        amount_top = etf_data.sort_values(by='amount_change', ascending=False).head(20)
+        for _, row in amount_top.iterrows():
+            etf_code = row['证券代码']
+            is_business = etf_code in business_etfs
+            recommendations["amount"].append({
+                'code': etf_code,
+                'name': row[name_col] if name_col in row else row['证券代码'],
+                'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
+                'is_business': is_business,
+                'business_text': "商务品" if is_business else "非商务品",
+                'index_code': row['跟踪指数代码'],
+                'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
+                'amount_change': round(float(row['amount_change']) if pd.notna(row['amount_change']) else 0, 2)
+            })
+        
+        return jsonify({
+            "success": True,
+            "recommendations": recommendations
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"获取推荐数据出错：{str(e)}"})

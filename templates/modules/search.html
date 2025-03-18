@@ -10,7 +10,67 @@
                 <button class="btn btn-primary" type="button" id="search-button">查询</button>
             </div>
             <div class="form-text text-muted mb-3">可输入ETF代码(如560050)、ETF名称(如红利)或指数代码(如000300)</div>
+            
+            <!-- 智能推荐栏 -->
+            <div id="recommendation-container" class="mb-3" style="display: none;">
+                <div class="card">
+                    <div class="card-header p-2">
+                        <ul class="nav nav-tabs card-header-tabs" id="recommendation-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#attention-tab" data-bs-toggle="tab">本週新增关注TOP20</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#holders-tab" data-bs-toggle="tab">本週新增持仓客户TOP20</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#amount-tab" data-bs-toggle="tab">本週新增保有金额TOP20</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="attention-tab">
+                                <div class="recommendation-scroll">
+                                    <div id="attention-recommendations" class="d-flex flex-nowrap overflow-auto py-2"></div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="holders-tab">
+                                <div class="recommendation-scroll">
+                                    <div id="holders-recommendations" class="d-flex flex-nowrap overflow-auto py-2"></div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="amount-tab">
+                                <div class="recommendation-scroll">
+                                    <div id="amount-recommendations" class="d-flex flex-nowrap overflow-auto py-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="search-results" class="mt-3"></div>
         </div>
+    </div>
+</div>
+
+<!-- 推荐项悬浮卡片模板 -->
+<div id="recommendation-tooltip" class="position-absolute bg-white shadow rounded p-2" style="display: none; z-index: 1000; width: 300px;">
+    <div class="d-flex justify-content-between">
+        <span id="tooltip-manager" class="text-muted"></span>
+        <span id="tooltip-business" class="badge"></span>
+    </div>
+    <div class="mt-1">
+        <small class="text-muted">跟踪指数: </small>
+        <span id="tooltip-index"></span>
+    </div>
+    <div class="mt-1">
+        <small class="text-muted">当前规模: </small>
+        <span id="tooltip-scale"></span>
+        <small>亿元</small>
+    </div>
+    <div class="mt-1" id="tooltip-change-container">
+        <small class="text-muted">本周新增: </small>
+        <span id="tooltip-change"></span>
     </div>
 </div>

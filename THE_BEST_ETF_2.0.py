@@ -8,9 +8,9 @@ __version__ = "2.7.4"
 RELEASE_DATE = "2025-03-13"  # 请根据实际发布日期修改
 
 # 文件路径配置
-etf_file_path = '/Users/admin/Downloads/ETF_DATA_20250307.xlsx'
-classification_file_path = '/Users/admin/Downloads/ETF-Index-Classification_20250307.xlsx'
-business_etf_path = '/Users/admin/Downloads/ETF单产品商务协议20250307.xlsx'
+etf_file_path = '/Users/admin/Downloads/ETF_DATA_20250314.xlsx'
+classification_file_path = '/Users/admin/Downloads/ETF-Index-Classification_20250314.xlsx'
+business_etf_path = '/Users/admin/Downloads/ETF单产品商务协议20250314.xlsx'
 
 # 分类排序规则
 CATEGORY_ORDER = {

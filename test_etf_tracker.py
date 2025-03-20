@@ -6,7 +6,7 @@
 
 这个脚本用于测试ETF价格追踪器的功能，获取ETF价格数据并保存到CSV文件。
 使用方法：
-python test_etf_tracker.py YOUR_TUSHARE_TOKEN
+python test_etf_tracker.py
 """
 
 import sys
@@ -14,22 +14,10 @@ import os
 from etf_price_tracker import ETFPriceTracker
 
 def main():
-    # 获取命令行参数中的token
-    if len(sys.argv) > 1:
-        token = sys.argv[1]
-    else:
-        # 尝试从环境变量获取token
-        token = os.environ.get('TUSHARE_TOKEN')
-        if not token:
-            print("错误: 未提供tushare API令牌")
-            print("使用方法: python test_etf_tracker.py YOUR_TUSHARE_TOKEN")
-            print("或者设置环境变量: export TUSHARE_TOKEN=YOUR_TUSHARE_TOKEN")
-            return 1
-    
     try:
         # 初始化ETF价格追踪器
-        print(f"正在使用提供的token初始化ETF价格追踪器...")
-        tracker = ETFPriceTracker(token)
+        print(f"正在初始化ETF价格追踪器...")
+        tracker = ETFPriceTracker()
         
         # 获取所有ETF基金列表
         print("\n正在获取ETF基金列表...")

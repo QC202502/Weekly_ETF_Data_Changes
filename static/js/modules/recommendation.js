@@ -78,6 +78,9 @@ function renderRecommendations(recommendations) {
     
     // 渲染保有金额推荐
     renderRecommendationList('amount', recommendations.amount);
+    
+    // 渲染价格涨幅推荐
+    renderRecommendationList('price-return', recommendations.price_return);
 }
 
 // 渲染推荐列表
@@ -106,7 +109,7 @@ function renderRecommendationList(type, items) {
         itemElement.dataset.business = item.is_business ? 'true' : 'false';
         itemElement.dataset.businessText = item.business_text;
         itemElement.dataset.index = item.index_code;
-        itemElement.dataset.scale = item.scale;
+        itemElement.dataset.scale = item.scale || '0';
         
         // 根据推荐类型设置不同的变化值
         if (type === 'attention') {
@@ -115,6 +118,8 @@ function renderRecommendationList(type, items) {
             itemElement.dataset.change = `+${item.holders_change.toLocaleString()} 人`;
         } else if (type === 'amount') {
             itemElement.dataset.change = `+${item.amount_change.toFixed(2)} 亿元`;
+        } else if (type === 'price-return') {
+            itemElement.dataset.change = `${item.daily_return.toFixed(2)}%`;
         }
         
         // 绑定点击事件
@@ -184,6 +189,8 @@ function showRecommendationTooltip(item) {
         changeTitle.textContent = '本周新增持仓: ';
     } else if (type === 'amount') {
         changeTitle.textContent = '本周新增保有: ';
+    } else if (type === 'price-return') {
+        changeTitle.textContent = '当日涨幅: ';
     }
     
     tooltipChange.textContent = item.dataset.change;

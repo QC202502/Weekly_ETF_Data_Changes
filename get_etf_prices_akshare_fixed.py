@@ -2,18 +2,24 @@
 # -*- coding: utf-8 -*-
 
 """
-ETF价格数据获取工具 (使用AKShare替代方案)
+ETF价格数据获取工具 (使用AKShare替代方案) - 修复版
 
 由于Tushare API需要特定权限才能访问ETF数据，本脚本使用AKShare库作为替代方案获取ETF数据。
 AKShare是一个开源的金融数据接口库，可以免费获取ETF数据。
 
 使用方法：
 1. 安装依赖: pip install akshare pandas matplotlib
-2. 直接运行此脚本: python get_etf_prices_akshare.py
+2. 直接运行此脚本: python get_etf_prices_akshare_fixed.py
 3. 可选参数:
    -s, --start: 指定开始日期(格式:YYYY-MM-DD)
    -e, --end: 指定结束日期(格式:YYYY-MM-DD)
    -o, --output: 指定输出文件名
+   -n, --number: 要获取的ETF数量，默认为5
+   -a, --all: 获取所有ETF数据
+   -p, --proxy: 启用代理功能
+   -r, --retries: 最大重试次数，默认为3
+   --no-proxy: 禁用所有代理设置
+   -d, --debug: 启用调试模式
 """
 
 import os
@@ -23,9 +29,10 @@ import datetime
 import time
 import pandas as pd
 import akshare as ak
+import traceback
 
 class ETFPriceTrackerAKShare:
-    def __init__(self, use_proxy=False, proxy_list=None, max_retries=3):
+    def __init__(self, use_proxy=False, proxy_list=None, max_retries=3, debug=False):
         """
         初始化ETF价格追踪器
         
@@ -33,6 +40,7 @@ class ETFPriceTrackerAKShare:
             use_proxy: 是否使用代理
             proxy_list: 代理列表，格式为["http://ip:port", ...]
             max_retries: 最大重试次数
+            debug: 是否启用调试模式
         """
         # 创建数据目录
         self.data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
@@ -43,6 +51,7 @@ class ETFPriceTrackerAKShare:
         self.use_proxy = use_proxy
         self.proxy_list = proxy_list or []
         self.max_retries = max_retries
+        self.debug = debug
         
         # 如果启用代理但没有提供代理列表，使用默认设置
         if self.use_proxy and not self.proxy_list:
@@ -54,6 +63,10 @@ class ETFPriceTrackerAKShare:
         # 设置AKShare的HTTP请求超时时间
         if hasattr(ak, "set_http_timeout"):
             ak.set_http_timeout(20)  # 设置超时时间为20秒
+            
+        if self.debug:
+            print("调试模式已启用")
+            print(f"AKShare版本: {ak.__version__ if hasattr(ak, '__version__') else '未知'}")
     
     def _set_proxy(self):
         """
@@ -90,6 +103,13 @@ class ETFPriceTrackerAKShare:
             
             # 获取所有ETF基金列表
             etfs = ak.fund_etf_category_sina(symbol="ETF基金")
+            
+            if self.debug:
+                print("\nETF列表原始列名:")
+                print(etfs.columns.tolist())
+                print("\nETF列表数据预览:")
+                print(etfs.head())
+            
             # 重命名列以匹配原有格式
             etfs = etfs.rename(columns={
                 "代码": "symbol",
@@ -103,6 +123,8 @@ class ETFPriceTrackerAKShare:
             return etfs
         except Exception as e:
             print(f"获取ETF列表失败: {str(e)}")
+            if self.debug:
+                traceback.print_exc()
             # 如果使用代理失败，尝试不使用代理
             if self.use_proxy and ('http_proxy' in os.environ or 'https_proxy' in os.environ):
                 print("尝试不使用代理重新获取...")
@@ -125,6 +147,8 @@ class ETFPriceTrackerAKShare:
                     return etfs
                 except Exception as inner_e:
                     print(f"不使用代理获取ETF列表也失败: {str(inner_e)}")
+                    if self.debug:
+                        traceback.print_exc()
             return pd.DataFrame()
     
     def get_etf_daily_price(self, symbol, start_date=None, end_date=None):
@@ -151,7 +175,27 @@ class ETFPriceTrackerAKShare:
                 start_date = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
             
             # 获取ETF每日价格
+            if self.debug:
+                print(f"\n尝试获取ETF {symbol}的历史数据...")
+                
             df = ak.fund_etf_hist_sina(symbol=symbol)
+            
+            if self.debug:
+                print(f"获取到的数据行数: {len(df)}")
+                print(f"数据列名: {df.columns.tolist()}")
+                print(f"数据预览:\n{df.head() if not df.empty else '空DataFrame'}")
+            
+            # 检查返回的DataFrame是否为空
+            if df.empty:
+                print(f"获取ETF {symbol}价格数据失败: 返回空DataFrame")
+                return pd.DataFrame()
+                
+            # 检查是否包含必要的列
+            required_columns = ['date', 'open', 'high', 'low', 'close', 'volume']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                print(f"获取ETF {symbol}价格数据失败: 缺少必要的列 {missing_columns}")
+                return pd.DataFrame()
             
             # 重命名列以匹配原有格式
             df = df.rename(columns={
@@ -164,13 +208,20 @@ class ETFPriceTrackerAKShare:
             })
             
             # 转换日期格式为YYYYMMDD
-            df['trade_date'] = pd.to_datetime(df['date']).dt.strftime('%Y%m%d')
+            df['trade_date'] = pd.to_datetime(df['trade_date']).dt.strftime('%Y%m%d')
+            
+            # 筛选日期范围
+            start_date_fmt = datetime.datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y%m%d')
+            end_date_fmt = datetime.datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y%m%d')
+            df = df[(df['trade_date'] >= start_date_fmt) & (df['trade_date'] <= end_date_fmt)]
             
             # 按日期升序排序
             df = df.sort_values('trade_date')
             return df
         except Exception as e:
             print(f"获取ETF {symbol} 价格数据失败: {str(e)}")
+            if self.debug:
+                traceback.print_exc()
             # 如果使用代理失败，尝试不使用代理
             if self.use_proxy and ('http_proxy' in os.environ or 'https_proxy' in os.environ):
                 print("尝试不使用代理重新获取...")
@@ -181,6 +232,18 @@ class ETFPriceTrackerAKShare:
                 try:
                     # 重新获取ETF每日价格
                     df = ak.fund_etf_hist_sina(symbol=symbol)
+                    
+                    # 检查返回的DataFrame是否为空
+                    if df.empty:
+                        print(f"不使用代理获取ETF {symbol}价格数据也失败: 返回空DataFrame")
+                        return pd.DataFrame()
+                        
+                    # 检查是否包含必要的列
+                    required_columns = ['date', 'open', 'high', 'low', 'close', 'volume']
+                    missing_columns = [col for col in required_columns if col not in df.columns]
+                    if missing_columns:
+                        print(f"不使用代理获取ETF {symbol}价格数据也失败: 缺少必要的列 {missing_columns}")
+                        return pd.DataFrame()
                     
                     # 重命名列以匹配原有格式
                     df = df.rename(columns={
@@ -193,13 +256,20 @@ class ETFPriceTrackerAKShare:
                     })
                     
                     # 转换日期格式为YYYYMMDD
-                    df['trade_date'] = pd.to_datetime(df['date']).dt.strftime('%Y%m%d')
+                    df['trade_date'] = pd.to_datetime(df['trade_date']).dt.strftime('%Y%m%d')
+                    
+                    # 筛选日期范围
+                    start_date_fmt = datetime.datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y%m%d')
+                    end_date_fmt = datetime.datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y%m%d')
+                    df = df[(df['trade_date'] >= start_date_fmt) & (df['trade_date'] <= end_date_fmt)]
                     
                     # 按日期升序排序
                     df = df.sort_values('trade_date')
                     return df
                 except Exception as inner_e:
                     print(f"不使用代理获取ETF {symbol} 价格数据也失败: {str(inner_e)}")
+                    if self.debug:
+                        traceback.print_exc()
             # 添加延迟以避免频繁请求
             time.sleep(1)
             return pd.DataFrame()
@@ -438,7 +508,7 @@ def parse_args():
     """
     解析命令行参数
     """
-    parser = argparse.ArgumentParser(description='获取ETF价格数据 (AKShare版)')
+    parser = argparse.ArgumentParser(description='获取ETF价格数据 (AKShare版) - 修复版')
     parser.add_argument('-s', '--start', help='开始日期(格式:YYYY-MM-DD)')
     parser.add_argument('-e', '--end', help='结束日期(格式:YYYY-MM-DD)')
     parser.add_argument('-o', '--output', help='输出文件名')
@@ -447,6 +517,7 @@ def parse_args():
     parser.add_argument('-p', '--proxy', action='store_true', help='启用代理功能')
     parser.add_argument('-r', '--retries', type=int, default=3, help='最大重试次数，默认为3')
     parser.add_argument('--no-proxy', action='store_true', help='禁用所有代理设置')
+    parser.add_argument('-d', '--debug', action='store_true', help='启用调试模式')
     return parser.parse_args()
 
 def main():
@@ -469,7 +540,7 @@ def main():
             print("已禁用所有代理设置")
         
         # 初始化ETF价格追踪器
-        tracker = ETFPriceTrackerAKShare(use_proxy=use_proxy, max_retries=args.retries)
+        tracker = ETFPriceTrackerAKShare(use_proxy=use_proxy, max_retries=args.retries, debug=args.debug)
         
         # 获取ETF价格数据
         if args.all:

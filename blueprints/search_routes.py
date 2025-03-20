@@ -483,16 +483,20 @@ def get_recommendations():
     """获取ETF推荐数据"""
     # 从data_service导入数据
     from services.data_service import etf_data, business_etfs, current_date_str, previous_date_str
+    import os
+    import json
+    from datetime import datetime
     
     if etf_data is None:
         return jsonify({"error": "数据未加载，请先加载数据"})
     
     try:
-        # 准备三种推荐榜单数据
+        # 准备推荐榜单数据
         recommendations = {
             "attention": [],  # 本周新增关注TOP20
             "holders": [],   # 本周新增持仓客户TOP20
-            "amount": []     # 本周新增保有金额TOP20
+            "amount": [],    # 本周新增保有金额TOP20
+            "price_return": [] # 最新交易日涨幅最大的ETF
         }
         
         # 获取列名
@@ -566,6 +570,30 @@ def get_recommendations():
                 'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
                 'amount_change': round(float(row['amount_change']) if pd.notna(row['amount_change']) else 0, 2)
             })
+        
+        # 尝试加载ETF价格推荐数据
+        try:
+            # 查找最新的ETF价格推荐数据文件
+            data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+            today = datetime.now().strftime('%Y%m%d')
+            price_recommendation_file = os.path.join(data_dir, f"etf_price_recommendations_{today}.json")
+            
+            # 如果文件不存在，尝试生成
+            if not os.path.exists(price_recommendation_file):
+                print("ETF价格推荐数据文件不存在，尝试生成...")
+                from etf_price_recommendation import main as generate_price_recommendations
+                generate_price_recommendations()
+            
+            # 读取ETF价格推荐数据
+            if os.path.exists(price_recommendation_file):
+                with open(price_recommendation_file, 'r', encoding='utf-8') as f:
+                    price_data = json.load(f)
+                    recommendations["price_return"] = price_data.get("price_return", [])
+                    print(f"成功加载ETF价格推荐数据，共{len(recommendations['price_return'])}条记录")
+        except Exception as e:
+            print(f"加载ETF价格推荐数据出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
         
         return jsonify({
             "success": True,

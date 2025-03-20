@@ -1,30 +1,91 @@
 import pandas as pd
-import tushare as ts
 import os
 import datetime
 import time
+import akshare as ak
+import requests
+import random
+from functools import wraps
+
+def retry_on_exception(max_retries=3, delay=2):
+    """
+    重试装饰器，用于在发生异常时自动重试函数
+    
+    参数:
+        max_retries: 最大重试次数
+        delay: 重试间隔（秒）
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    retries += 1
+                    if retries >= max_retries:
+                        print(f"达到最大重试次数 {max_retries}，操作失败: {str(e)}")
+                        raise
+                    print(f"发生错误: {str(e)}，{delay}秒后进行第{retries}次重试...")
+                    time.sleep(delay * retries)  # 指数退避策略
+        return wrapper
+    return decorator
 
 class ETFPriceTracker:
-    def __init__(self, token=None):
+    def __init__(self, token=None, use_proxy=False, proxy_list=None, max_retries=3):
         """
         初始化ETF价格追踪器
         
         参数:
-            token: tushare API令牌，如果为None，则尝试从环境变量获取
+            token: 为了保持与原接口兼容，保留此参数，但AKShare不需要token
+            use_proxy: 是否使用代理
+            proxy_list: 代理列表，格式为["http://ip:port", ...]
+            max_retries: 最大重试次数
         """
-        self.token = token or os.environ.get('TUSHARE_TOKEN')
-        if not self.token:
-            raise ValueError("请提供tushare API令牌，或设置TUSHARE_TOKEN环境变量")
-        
-        # 初始化tushare
-        ts.set_token(self.token)
-        self.pro = ts.pro_api()
-        
         # 创建数据目录
         self.data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir)
+            
+        # 代理设置
+        self.use_proxy = use_proxy
+        self.proxy_list = proxy_list or []
+        self.max_retries = max_retries
+        
+        # 如果启用代理但没有提供代理列表，使用默认免费代理
+        if self.use_proxy and not self.proxy_list:
+            self.proxy_list = [
+                None,  # 无代理选项
+                # 可以在这里添加可靠的代理服务器
+            ]
+        
+        # 设置AKShare的HTTP请求超时时间
+        if hasattr(ak, "set_http_timeout"):
+            ak.set_http_timeout(20)  # 设置超时时间为20秒
     
+    def _set_proxy(self):
+        """
+        设置代理
+        """
+        if not self.use_proxy or not self.proxy_list:
+            return
+            
+        # 随机选择一个代理
+        proxy = random.choice(self.proxy_list)
+        if proxy:
+            os.environ['http_proxy'] = proxy
+            os.environ['https_proxy'] = proxy
+            print(f"使用代理: {proxy}")
+        else:
+            # 清除代理设置
+            if 'http_proxy' in os.environ:
+                del os.environ['http_proxy']
+            if 'https_proxy' in os.environ:
+                del os.environ['https_proxy']
+            print("不使用代理")
+    
+    @retry_on_exception(max_retries=3, delay=2)
     def get_all_etfs(self):
         """
         获取所有ETF基金列表
@@ -33,16 +94,57 @@ class ETFPriceTracker:
             pandas.DataFrame: 包含所有ETF基金的基本信息
         """
         try:
-            # 获取所有基金列表
-            funds = self.pro.fund_basic(market='E')
-            # 筛选ETF基金
-            etfs = funds[funds['fund_type'].str.contains('ETF', na=False)]
+            # 设置代理
+            self._set_proxy()
+            
+            # 获取所有ETF基金列表
+            etfs = ak.fund_etf_category_sina(symbol="ETF基金")
+            # 重命名列以匹配原有格式
+            etfs = etfs.rename(columns={
+                "代码": "symbol",
+                "名称": "name",
+            })
+            # 添加ts_code列，格式为代码.交易所
+            etfs['ts_code'] = etfs['symbol'] + '.SH'
+            etfs.loc[etfs['symbol'].str.startswith('1') | etfs['symbol'].str.startswith('5'), 'ts_code'] = etfs.loc[etfs['symbol'].str.startswith('1') | etfs['symbol'].str.startswith('5'), 'symbol'] + '.SZ'
+            
+            # 添加其他必要的列
+            etfs['fund_type'] = 'ETF'
+            etfs['management'] = ''
+            
             print(f"成功获取{len(etfs)}只ETF基金信息")
             return etfs
         except Exception as e:
             print(f"获取ETF列表失败: {str(e)}")
+            # 如果使用代理失败，尝试不使用代理
+            if self.use_proxy and 'http_proxy' in os.environ:
+                print("尝试不使用代理重新获取...")
+                if 'http_proxy' in os.environ:
+                    del os.environ['http_proxy']
+                if 'https_proxy' in os.environ:
+                    del os.environ['https_proxy']
+                try:
+                    etfs = ak.fund_etf_category_sina(symbol="ETF基金")
+                    # 重命名列以匹配原有格式
+                    etfs = etfs.rename(columns={
+                        "代码": "symbol",
+                        "名称": "name",
+                    })
+                    # 添加ts_code列，格式为代码.交易所
+                    etfs['ts_code'] = etfs['symbol'] + '.SH'
+                    etfs.loc[etfs['symbol'].str.startswith('1') | etfs['symbol'].str.startswith('5'), 'ts_code'] = etfs.loc[etfs['symbol'].str.startswith('1') | etfs['symbol'].str.startswith('5'), 'symbol'] + '.SZ'
+                    
+                    # 添加其他必要的列
+                    etfs['fund_type'] = 'ETF'
+                    etfs['management'] = ''
+                    
+                    print(f"成功获取{len(etfs)}只ETF基金信息")
+                    return etfs
+                except Exception as inner_e:
+                    print(f"不使用代理获取ETF列表也失败: {str(inner_e)}")
             return pd.DataFrame()
     
+    @retry_on_exception(max_retries=3, delay=2)
     def get_etf_daily_price(self, ts_code, start_date=None, end_date=None):
         """
         获取单个ETF的每日价格数据
@@ -56,25 +158,86 @@ class ETFPriceTracker:
             pandas.DataFrame: 包含ETF每日价格数据
         """
         try:
+            # 设置代理
+            self._set_proxy()
+            
+            # 从ts_code中提取代码
+            symbol = ts_code.split('.')[0]
+            
             # 如果未指定日期，默认获取最近30个交易日数据
             if not end_date:
-                end_date = datetime.datetime.now().strftime('%Y%m%d')
+                end_date = datetime.datetime.now().strftime('%Y-%m-%d')
+            else:
+                # 转换日期格式从YYYYMMDD到YYYY-MM-DD
+                end_date = f"{end_date[:4]}-{end_date[4:6]}-{end_date[6:8]}"
+                
             if not start_date:
                 # 获取近30个交易日的数据
-                cal_df = self.pro.trade_cal(exchange='SSE', start_date=(datetime.datetime.now() - datetime.timedelta(days=60)).strftime('%Y%m%d'), end_date=end_date)
-                trade_dates = cal_df[cal_df['is_open'] == 1]['cal_date'].values
-                if len(trade_dates) >= 30:
-                    start_date = trade_dates[-30]
-                else:
-                    start_date = trade_dates[0] if len(trade_dates) > 0 else (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y%m%d')
+                start_date = (datetime.datetime.now() - datetime.timedelta(days=60)).strftime('%Y-%m-%d')
+            else:
+                # 转换日期格式从YYYYMMDD到YYYY-MM-DD
+                start_date = f"{start_date[:4]}-{start_date[4:6]}-{start_date[6:8]}"
             
             # 获取ETF每日价格
-            df = self.pro.fund_daily(ts_code=ts_code, start_date=start_date, end_date=end_date)
+            df = ak.fund_etf_hist_sina(symbol=symbol)
+            
+            # 转换日期格式
+            df['trade_date'] = pd.to_datetime(df['date']).dt.strftime('%Y%m%d')
+            
+            # 重命名列以匹配原有格式
+            df = df.rename(columns={
+                "open": "open",
+                "high": "high",
+                "low": "low",
+                "close": "close",
+                "volume": "vol"
+            })
+            
+            # 筛选日期范围
+            start_date_fmt = datetime.datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y%m%d')
+            end_date_fmt = datetime.datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y%m%d')
+            df = df[(df['trade_date'] >= start_date_fmt) & (df['trade_date'] <= end_date_fmt)]
+            
             # 按日期升序排序
             df = df.sort_values('trade_date')
+            
             return df
         except Exception as e:
             print(f"获取ETF {ts_code} 价格数据失败: {str(e)}")
+            # 如果使用代理失败，尝试不使用代理
+            if self.use_proxy and 'http_proxy' in os.environ:
+                print("尝试不使用代理重新获取...")
+                if 'http_proxy' in os.environ:
+                    del os.environ['http_proxy']
+                if 'https_proxy' in os.environ:
+                    del os.environ['https_proxy']
+                try:
+                    # 重新获取ETF每日价格
+                    df = ak.fund_etf_hist_sina(symbol=symbol)
+                    
+                    # 转换日期格式
+                    df['trade_date'] = pd.to_datetime(df['date']).dt.strftime('%Y%m%d')
+                    
+                    # 重命名列以匹配原有格式
+                    df = df.rename(columns={
+                        "open": "open",
+                        "high": "high",
+                        "low": "low",
+                        "close": "close",
+                        "volume": "vol"
+                    })
+                    
+                    # 筛选日期范围
+                    start_date_fmt = datetime.datetime.strptime(start_date, '%Y-%m-%d').strftime('%Y%m%d')
+                    end_date_fmt = datetime.datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y%m%d')
+                    df = df[(df['trade_date'] >= start_date_fmt) & (df['trade_date'] <= end_date_fmt)]
+                    
+                    # 按日期升序排序
+                    df = df.sort_values('trade_date')
+                    
+                    return df
+                except Exception as inner_e:
+                    print(f"不使用代理获取ETF {ts_code} 价格数据也失败: {str(inner_e)}")
             # 添加延迟以避免频繁请求
             time.sleep(1)
             return pd.DataFrame()
@@ -113,6 +276,31 @@ class ETFPriceTracker:
         
         return price_data
     
+    def get_limited_etf_prices(self, limit=5, start_date=None, end_date=None):
+        """
+        获取指定数量ETF的价格数据并计算涨跌幅
+        
+        参数:
+            limit: 要获取的ETF数量，默认为5
+            start_date: 开始日期，格式YYYYMMDD
+            end_date: 结束日期，格式YYYYMMDD
+            
+        返回:
+            pandas.DataFrame: 包含指定数量ETF最新价格和涨跌幅的汇总数据
+        """
+        # 获取所有ETF列表
+        etfs = self.get_all_etfs()
+        if etfs.empty:
+            return pd.DataFrame()
+        
+        # 限制ETF数量
+        if limit > 0 and limit < len(etfs):
+            etfs = etfs.head(limit)
+            print(f"已限制获取前{limit}只ETF数据")
+        
+        # 调用通用方法处理ETF数据
+        return self._process_etf_prices(etfs, start_date, end_date)
+    
     def get_all_etf_prices(self, start_date=None, end_date=None):
         """
         获取所有ETF的价格数据并计算涨跌幅
@@ -129,6 +317,21 @@ class ETFPriceTracker:
         if etfs.empty:
             return pd.DataFrame()
         
+        # 调用通用方法处理ETF数据
+        return self._process_etf_prices(etfs, start_date, end_date)
+    
+    def _process_etf_prices(self, etfs, start_date=None, end_date=None):
+        """
+        处理ETF价格数据的通用方法
+        
+        参数:
+            etfs: 包含ETF基本信息的DataFrame
+            start_date: 开始日期，格式YYYYMMDD
+            end_date: 结束日期，格式YYYYMMDD
+            
+        返回:
+            pandas.DataFrame: 包含ETF最新价格和涨跌幅的汇总数据
+        """
         # 存储所有ETF的最新数据
         results = []
         
@@ -198,17 +401,16 @@ class ETFPriceTracker:
         保存ETF价格数据到CSV文件
         
         参数:
-            data: 要保存的DataFrame
-            filename: 文件名，如果为None，则使用当前日期生成文件名
+            data: 包含ETF价格数据的DataFrame
+            filename: 输出文件名，如果为None，则使用默认文件名
             
         返回:
             str: 保存的文件路径
         """
         if data.empty:
-            print("没有数据可保存")
             return None
         
-        # 如果未指定文件名，使用当前日期
+        # 如果未指定文件名，使用默认文件名
         if not filename:
             today = datetime.datetime.now().strftime('%Y%m%d')
             filename = f"ETF_价格数据_{today}.csv"
@@ -217,46 +419,7 @@ class ETFPriceTracker:
         if not filename.endswith('.csv'):
             filename += '.csv'
         
-        # 完整文件路径
+        # 保存文件
         file_path = os.path.join(self.data_dir, filename)
-        
-        # 保存数据
         data.to_csv(file_path, index=False, encoding='utf-8-sig')
-        print(f"数据已保存至: {file_path}")
-        
         return file_path
-
-def main():
-    """
-    主函数，用于测试ETF价格追踪器
-    """
-    # 从环境变量获取token，或者直接在这里设置
-    token = os.environ.get('TUSHARE_TOKEN')
-    
-    try:
-        # 初始化追踪器
-        tracker = ETFPriceTracker(token)
-        
-        # 获取所有ETF的价格数据
-        print("正在获取所有ETF的价格数据...")
-        etf_prices = tracker.get_all_etf_prices()
-        
-        if not etf_prices.empty:
-            # 显示数据概览
-            print(f"\n成功获取{len(etf_prices)}只ETF的价格数据")
-            print("\n数据预览:")
-            print(etf_prices.head())
-            
-            # 保存数据
-            file_path = tracker.save_data(etf_prices)
-            print(f"\n数据已保存至: {file_path}")
-        else:
-            print("未能获取ETF价格数据")
-    
-    except Exception as e:
-        print(f"错误: {str(e)}")
-        import traceback
-        traceback.print_exc()
-
-if __name__ == "__main__":
-    main()

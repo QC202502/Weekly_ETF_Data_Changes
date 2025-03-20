@@ -120,8 +120,13 @@ def search():
 def determine_search_type(keyword, etf_data):
     """判断搜索类型"""
     # 判断是否为ETF基金代码
-    if keyword.isdigit() and len(keyword) == 6:
-        if any(etf_data['证券代码'].str.contains(keyword, na=False)):
+    # 处理可能带有sh/sz前缀的ETF代码
+    etf_code = keyword
+    if keyword.startswith('sh') or keyword.startswith('sz'):
+        etf_code = keyword[2:]
+    
+    if etf_code.isdigit() and len(etf_code) == 6:
+        if any(etf_data['证券代码'].str.contains(etf_code, na=False)):
             return "ETF基金代码"
     
     # 判断是否为跟踪指数代码
@@ -143,8 +148,14 @@ def determine_search_type(keyword, etf_data):
 
 def search_by_etf_code(keyword, etf_data, business_etfs, current_date_str):
     """按ETF基金代码搜索"""
+    # 处理可能带有sh/sz前缀的ETF代码
+    etf_code = keyword
+    if keyword.startswith('sh') or keyword.startswith('sz'):
+        etf_code = keyword[2:]
+        print(f"处理带前缀的ETF代码: {keyword} -> {etf_code}")
+    
     # 精确匹配ETF代码
-    target_etf = etf_data[etf_data['证券代码'] == keyword]
+    target_etf = etf_data[etf_data['证券代码'] == etf_code]
     
     if target_etf.empty:
         return []
@@ -411,9 +422,15 @@ def general_search(keyword, etf_data, business_etfs, current_date_str):
     """通用搜索"""
     results = []
     
+    # 处理可能带有sh/sz前缀的ETF代码
+    search_keyword = keyword
+    if keyword.startswith('sh') or keyword.startswith('sz'):
+        search_keyword = keyword[2:]
+        print(f"通用搜索处理带前缀的ETF代码: {keyword} -> {search_keyword}")
+    
     # 尝试多种匹配方式
     matching_etfs = etf_data[
-        etf_data['证券代码'].str.contains(keyword, na=False) |
+        etf_data['证券代码'].str.contains(search_keyword, na=False) |
         etf_data['跟踪指数名称'].str.contains(keyword, na=False) |
         etf_data['跟踪指数代码'].str.contains(keyword, na=False) |
         etf_data['基金管理人'].str.contains(keyword, na=False)

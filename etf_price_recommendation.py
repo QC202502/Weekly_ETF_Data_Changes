@@ -62,13 +62,24 @@ def get_top_etfs_by_return(df, top_n=20):
         # 筛选最新交易日的数据
         latest_data = df[df['交易日期'] == latest_date].copy()
         
+        # 处理ETF代码格式，移除可能存在的交易所后缀（如.SH或.SZ）
+        if '代码' in latest_data.columns:
+            # 检查代码格式，如果包含点号，则只保留点号前的部分（6位数字代码）
+            latest_data['代码'] = latest_data['代码'].astype(str).apply(lambda x: x.split('.')[0] if '.' in x else x)
+            print("已处理ETF代码格式，移除交易所后缀")
+        
         # 添加跟踪指数列（如果不存在）
         if '跟踪指数代码' not in latest_data.columns:
-            # 尝试从TS代码中提取跟踪指数信息
-            # 这里假设TS代码的格式可以用来识别跟踪指数
-            # 实际应用中可能需要更复杂的逻辑或外部数据源
-            latest_data['跟踪指数代码'] = latest_data['TS代码'].apply(lambda x: x.split('.')[0][:6])
+            # 从TS代码中提取跟踪指数信息，确保只获取数字部分
+            latest_data['跟踪指数代码'] = latest_data['TS代码'].astype(str).apply(
+                lambda x: x.split('.')[0] if '.' in x else x
+            )
             print("警告：数据中缺少'跟踪指数代码'列，已根据TS代码生成临时列")
+        else:
+            # 确保跟踪指数代码格式正确（只保留数字部分）
+            latest_data['跟踪指数代码'] = latest_data['跟踪指数代码'].astype(str).apply(
+                lambda x: x.split('.')[0] if '.' in x else x
+            )
         
         # 按跟踪指数分组，每组取涨幅最大的一只ETF
         top_etfs_by_index = latest_data.sort_values('当日涨跌幅(%)', ascending=False).groupby('跟踪指数代码').first().reset_index()
@@ -98,22 +109,49 @@ def format_recommendations(top_etfs):
         "price_return": []  # 按涨幅排序的ETF
     }
     
-    for _, row in top_etfs.iterrows():
-        etf_code = row['代码']
-        etf_name = row['场内简称']
-        daily_return = row['当日涨跌幅(%)']
+    try:
+        print(f"开始格式化推荐数据，共{len(top_etfs)}条记录")
+        print(f"数据列名: {top_etfs.columns.tolist()}")
         
-        # 添加到推荐列表
-        recommendations["price_return"].append({
-            'code': etf_code,
-            'name': etf_name,
-            'manager': row.get('基金管理人', '未知'),
-            'is_business': False,  # 默认为非商务品，实际应用中可能需要从其他数据源获取
-            'business_text': "非商务品",
-            'index_code': row.get('跟踪指数代码', ''),
-            'index_name': row.get('跟踪指数名称', ''),
-            'daily_return': round(float(daily_return), 2) if pd.notna(daily_return) else 0
-        })
+        for _, row in top_etfs.iterrows():
+            try:
+                # 确保ETF代码格式正确（只保留数字部分，移除可能的交易所后缀）
+                etf_code = str(row['代码']).split('.')[0] if '.' in str(row['代码']) else str(row['代码'])
+                etf_name = row['场内简称'] if '场内简称' in row else row.get('名称', f"ETF{etf_code}")
+                daily_return = row['当日涨跌幅(%)']
+                
+                # 获取跟踪指数代码，确保格式正确
+                index_code = ''
+                if '跟踪指数代码' in row and pd.notna(row['跟踪指数代码']):
+                    index_code = str(row['跟踪指数代码']).split('.')[0] if '.' in str(row['跟踪指数代码']) else str(row['跟踪指数代码'])
+                
+                # 获取基金管理人信息
+                manager = '未知'
+                for manager_col in ['基金管理人', '基金管理人简称', '管理人']:
+                    if manager_col in row and pd.notna(row[manager_col]):
+                        manager = row[manager_col]
+                        break
+                
+                # 添加到推荐列表
+                recommendations["price_return"].append({
+                    'code': etf_code,
+                    'name': etf_name,
+                    'manager': manager,
+                    'is_business': False,  # 默认为非商务品，实际应用中可能需要从其他数据源获取
+                    'business_text': "非商务品",
+                    'index_code': index_code,
+                    'index_name': row.get('跟踪指数名称', ''),
+                    'daily_return': round(float(daily_return), 2) if pd.notna(daily_return) else 0
+                })
+            except Exception as row_e:
+                print(f"处理ETF记录时出错: {str(row_e)}")
+                continue
+        
+        print(f"成功格式化{len(recommendations['price_return'])}条ETF推荐数据")
+    except Exception as e:
+        print(f"格式化推荐数据出错: {str(e)}")
+        import traceback
+        traceback.print_exc()
     
     return recommendations
 

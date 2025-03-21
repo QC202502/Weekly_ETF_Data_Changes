@@ -26,12 +26,12 @@ export function generateMarkdown(data) {
         tags.push(data.index_name);
     } else if (data.search_type === "跟踪指数名称" && data.index_groups) {
         // 输入关键词时
-        title = `${data.keyword}类ETF，有那些选择？`;
+        title = `${data.keyword}相关ETF，有哪些选择？`;
         description = `目前，全市场共有相关的${data.index_count}个指数和${data.count}只ETF。哪只规模大？哪只交易量大？哪只费率便宜？这就为你揭晓！`;
         tags.push(data.keyword);
     } else {
         // 其他搜索类型
-        title = `${data.keyword}相关ETF，有那些选择？`;
+        title = `${data.keyword}相关ETF，有哪些选择？`;
         description = `目前，全市场共有相关的${data.count}只ETF。哪只规模大？哪只交易量大？哪只费率便宜？这就为你揭晓！`;
         tags.push(data.keyword);
     }
@@ -60,7 +60,7 @@ function generateIndexGroupsMarkdown(indexGroups) {
     
     // 为每个指数创建一个部分
     indexGroups.forEach((group, index) => {
-        markdown += `# ${group.index_name}\n\n`;
+        // 移除一级标题
         markdown += `## **${index + 1}. ${group.index_name} (${group.index_code})**\n`;
         markdown += `|**总规模: ${group.total_scale}亿元 , ETF数量: ${group.etf_count}**|\n`;
         markdown += `|:-----|\n`;
@@ -76,8 +76,8 @@ function generateIndexGroupsMarkdown(indexGroups) {
 
 // 生成ETF代码搜索的Markdown
 function generateETFCodeMarkdown(data) {
-    let markdown = `# ${data.index_name}\n\n`;
-    markdown += `## **1. ${data.index_name} (${data.index_code})**\n`;
+    // 移除一级标题，直接从二级标题开始
+    let markdown = `## **1. ${data.index_name} (${data.index_code})**\n`;
     markdown += `|**总规模: ${data.total_scale}亿元 , ETF数量: ${data.etf_count}**|\n`;
     markdown += `|:-----|\n`;
     markdown += `|${getIndexDescription(data.index_code)}|\n\n`;
@@ -90,8 +90,8 @@ function generateETFCodeMarkdown(data) {
 
 // 生成通用搜索的Markdown
 function generateGeneralMarkdown(data) {
-    let markdown = `# ${data.keyword}\n\n`;
-    markdown += `## **相关ETF产品**\n`;
+    // 移除一级标题，直接从二级标题开始
+    let markdown = `## **相关ETF产品**\n`;
     markdown += `|**总数量: ${data.count}只**|\n`;
     markdown += `|:-----|\n`;
     markdown += `|以下是与"${data.keyword}"相关的ETF产品|\n\n`;
@@ -125,14 +125,21 @@ function generateETFTableMarkdown(etfs) {
         }
     });
     
+    // 确定需要高亮的ETF
     // 在交易量最大、规模最大和费率最低中选择交易量最大的作为高亮ETF
-    let highlightETFs = [maxVolumeETF.code];
-    if (maxScaleETF.volume > maxVolumeETF.volume && !highlightETFs.includes(maxScaleETF.code)) {
-        highlightETFs.push(maxScaleETF.code);
+    let volumeRank = [maxVolumeETF];
+    if (maxScaleETF.volume > 0 && maxScaleETF !== maxVolumeETF) {
+        volumeRank.push(maxScaleETF);
     }
-    if (minFeeRateETF.volume > maxVolumeETF.volume && !highlightETFs.includes(minFeeRateETF.code)) {
-        highlightETFs.push(minFeeRateETF.code);
+    if (minFeeRateETF.volume > 0 && minFeeRateETF !== maxVolumeETF && minFeeRateETF !== maxScaleETF) {
+        volumeRank.push(minFeeRateETF);
     }
+    
+    // 按交易量排序
+    volumeRank.sort((a, b) => b.volume - a.volume);
+    
+    // 交易量最大的ETF作为高亮ETF
+    let highlightETF = volumeRank[0];
     
     // 创建表格头部
     let markdown = '|产品代码|产品简称|管理人|月日均交易量|总规模|管理费率|\n';
@@ -140,12 +147,16 @@ function generateETFTableMarkdown(etfs) {
     
     // 添加ETF行
     etfs.forEach(etf => {
-        let code = highlightETFs.includes(etf.code) ? `==${etf.code}==` : etf.code;
+        // 处理管理人名称，移除"基金"后缀
+        let manager = etf.manager.replace(/基金(管理有限)?公司$|基金$|资产管理$|证券$/, '');
+        
+        // 使用下划线标记高亮ETF
+        let code = etf === highlightETF ? `==${etf.code}==` : etf.code;
         let volume = etf === maxVolumeETF ? `==${etf.volume.toFixed(2)}==` : etf.volume.toFixed(2);
         let scale = etf === maxScaleETF ? `==${etf.scale.toFixed(2)}==` : etf.scale.toFixed(2);
         let feeRate = etf === minFeeRateETF ? `==${etf.fee_rate.toFixed(2)}%==` : `${etf.fee_rate.toFixed(2)}%`;
         
-        markdown += `|${code}|${etf.name}|${etf.manager}|${volume}|${scale}|${feeRate}|\n`;
+        markdown += `|${code}|${etf.name}|${manager}|${volume}|${scale}|${feeRate}|\n`;
     });
     
     return markdown;

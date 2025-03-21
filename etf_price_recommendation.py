@@ -95,28 +95,71 @@ def get_top_etfs_by_return(df, top_n=20):
         traceback.print_exc()
         return pd.DataFrame()
 
-def format_recommendations(top_etfs):
+def format_recommendations(top_etfs, etf_base_data=None):
     """
     格式化推荐数据，用于前端展示
     
     参数:
         top_etfs: 包含涨幅最高的ETF数据的DataFrame
+        etf_base_data: 包含ETF基础数据的DataFrame，用于匹配ETF信息
         
     返回:
         dict: 包含推荐数据的字典
     """
     recommendations = {
-        "price_return": []  # 按涨幅排序的ETF
+        "price_return": [],  # 按涨幅排序的ETF
+        "trade_date": ""    # 交易日期
     }
     
     try:
         print(f"开始格式化推荐数据，共{len(top_etfs)}条记录")
         print(f"数据列名: {top_etfs.columns.tolist()}")
         
+        # 获取交易日期
+        if '交易日期' in top_etfs.columns and not top_etfs.empty:
+            trade_date = top_etfs['交易日期'].iloc[0]
+            # 格式化日期为"M月D日"格式
+            try:
+                if isinstance(trade_date, str):
+                    # 尝试解析日期字符串
+                    if '-' in trade_date:
+                        # 格式如 "2025-03-19"
+                        year, month, day = trade_date.split('-')
+                        recommendations["trade_date"] = f"{int(month)}月{int(day)}日"
+                    elif '/' in trade_date:
+                        # 格式如 "2025/03/19"
+                        year, month, day = trade_date.split('/')
+                        recommendations["trade_date"] = f"{int(month)}月{int(day)}日"
+                    else:
+                        # 格式如 "20250319"
+                        if len(trade_date) == 8:
+                            month = trade_date[4:6]
+                            day = trade_date[6:8]
+                            recommendations["trade_date"] = f"{int(month)}月{int(day)}日"
+            except Exception as date_e:
+                print(f"格式化交易日期出错: {str(date_e)}")
+                # 使用默认日期
+                recommendations["trade_date"] = "3月19日"
+        else:
+            # 使用默认日期
+            recommendations["trade_date"] = "3月19日"
+            
         for _, row in top_etfs.iterrows():
             try:
-                # 确保ETF代码格式正确（只保留数字部分，移除可能的交易所后缀）
+                # 确保ETF代码格式正确，添加sh/sz前缀
                 etf_code = str(row['代码']).split('.')[0] if '.' in str(row['代码']) else str(row['代码'])
+                
+                # 添加交易所前缀（如果没有）
+                if not (etf_code.startswith('sh') or etf_code.startswith('sz')):
+                    # 根据代码规则添加前缀：5开头或6开头的是上交所，其他是深交所
+                    if etf_code.startswith('5') or etf_code.startswith('6'):
+                        etf_code = 'sh' + etf_code
+                    else:
+                        etf_code = 'sz' + etf_code
+                
+                # 保存不带前缀的ETF代码，用于匹配基础数据
+                etf_code_no_prefix = etf_code[2:] if etf_code.startswith('sh') or etf_code.startswith('sz') else etf_code
+                
                 etf_name = row['场内简称'] if '场内简称' in row else row.get('名称', f"ETF{etf_code}")
                 daily_return = row['当日涨跌幅(%)']
                 
@@ -124,6 +167,14 @@ def format_recommendations(top_etfs):
                 index_code = ''
                 if '跟踪指数代码' in row and pd.notna(row['跟踪指数代码']):
                     index_code = str(row['跟踪指数代码']).split('.')[0] if '.' in str(row['跟踪指数代码']) else str(row['跟踪指数代码'])
+                    
+                    # 添加交易所前缀（如果没有）
+                    if not (index_code.startswith('sh') or index_code.startswith('sz')):
+                        # 根据代码规则添加前缀：5开头或6开头的是上交所，其他是深交所
+                        if index_code.startswith('5') or index_code.startswith('6'):
+                            index_code = 'sh' + index_code
+                        else:
+                            index_code = 'sz' + index_code
                 
                 # 获取基金管理人信息
                 manager = '未知'
@@ -132,6 +183,57 @@ def format_recommendations(top_etfs):
                         manager = row[manager_col]
                         break
                 
+                # 尝试从基础数据中获取更多信息
+                scale = 0
+                index_name = row.get('跟踪指数名称', '')
+                index_code_display = index_code
+                
+                if etf_base_data is not None and not etf_base_data.empty:
+                    # 在基础数据中查找匹配的ETF - 尝试多种匹配方式
+                    matched_etf = etf_base_data[etf_base_data['证券代码'] == etf_code_no_prefix]
+                    
+                    # 如果没找到，尝试不同格式的代码匹配
+                    if matched_etf.empty and len(etf_code_no_prefix) == 6:
+                        # 尝试不同格式的代码
+                        for code_format in [etf_code_no_prefix, f"{etf_code_no_prefix}.SH", f"{etf_code_no_prefix}.SZ"]:
+                            temp_match = etf_base_data[etf_base_data['证券代码'].str.contains(code_format, na=False)]
+                            if not temp_match.empty:
+                                matched_etf = temp_match
+                                print(f"找到ETF匹配: {code_format}")
+                                break
+                    
+                    if not matched_etf.empty:
+                        # 优先使用基金管理人简称
+                        if '基金管理人简称' in matched_etf.columns and pd.notna(matched_etf['基金管理人简称'].iloc[0]):
+                            manager = matched_etf['基金管理人简称'].iloc[0]
+                        elif '基金管理人' in matched_etf.columns and pd.notna(matched_etf['基金管理人'].iloc[0]):
+                            # 如果没有简称，尝试从完整名称提取简称
+                            full_name = matched_etf['基金管理人'].iloc[0]
+                            # 移除常见后缀
+                            short_name = full_name.replace("基金管理有限公司", "")
+                            short_name = short_name.replace("基金管理股份有限公司", "")
+                            short_name = short_name.replace("基金管理有限责任公司", "")
+                            short_name = short_name.replace("基金管理公司", "")
+                            short_name = short_name.replace("基金", "")
+                            short_name = short_name.replace("股份有限公司", "")
+                            short_name = short_name.replace("有限公司", "")
+                            short_name = short_name.replace("有限责任公司", "")
+                            manager = short_name
+                        
+                        # 获取基金规模 - 确保正确匹配列名
+                        scale_col = '基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'
+                        if scale_col in matched_etf.columns and pd.notna(matched_etf[scale_col].iloc[0]):
+                            scale_value = matched_etf[scale_col].iloc[0]
+                            if pd.notna(scale_value):
+                                scale = round(float(scale_value), 2)
+                        
+                        # 获取跟踪指数信息 - 优先使用基础数据中的信息
+                        if '跟踪指数名称' in matched_etf.columns and pd.notna(matched_etf['跟踪指数名称'].iloc[0]):
+                            index_name = matched_etf['跟踪指数名称'].iloc[0]
+                        
+                        if '跟踪指数代码' in matched_etf.columns and pd.notna(matched_etf['跟踪指数代码'].iloc[0]):
+                            index_code_display = matched_etf['跟踪指数代码'].iloc[0]
+                
                 # 添加到推荐列表
                 recommendations["price_return"].append({
                     'code': etf_code,
@@ -139,8 +241,9 @@ def format_recommendations(top_etfs):
                     'manager': manager,
                     'is_business': False,  # 默认为非商务品，实际应用中可能需要从其他数据源获取
                     'business_text': "非商务品",
-                    'index_code': index_code,
-                    'index_name': row.get('跟踪指数名称', ''),
+                    'index_code': index_code_display,  # 使用正确的指数代码
+                    'index_name': index_name,
+                    'scale': scale,
                     'daily_return': round(float(daily_return), 2) if pd.notna(daily_return) else 0
                 })
             except Exception as row_e:
@@ -182,6 +285,38 @@ def save_recommendations(recommendations, output_file=None):
     print(f"推荐数据已保存至: {output_file}")
     return output_file
 
+def load_etf_base_data(file_path=None):
+    """
+    加载ETF基础数据
+    
+    参数:
+        file_path: CSV文件路径，如果为None，则尝试查找默认文件
+        
+    返回:
+        pandas.DataFrame: 包含ETF基础数据的DataFrame
+    """
+    try:
+        if file_path is None:
+            # 尝试查找默认文件
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            # 查找最新的ETF基础数据文件
+            for file in os.listdir(base_dir):
+                if file.startswith('ETF_基础数据合并_') and file.endswith('.csv'):
+                    file_path = os.path.join(base_dir, file)
+                    break
+        
+        if file_path and os.path.exists(file_path):
+            # 读取CSV文件
+            df = pd.read_csv(file_path, encoding='utf-8-sig')
+            print(f"成功读取ETF基础数据，共{len(df)}条记录")
+            return df
+        else:
+            print("未找到ETF基础数据文件")
+            return pd.DataFrame()
+    except Exception as e:
+        print(f"读取ETF基础数据失败: {str(e)}")
+        return pd.DataFrame()
+
 def main():
     """
     主函数
@@ -190,9 +325,51 @@ def main():
     if len(sys.argv) > 1:
         file_path = sys.argv[1]
     else:
-        # 尝试查找默认文件
+        # 尝试查找最新的ETF价格数据文件
         data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
-        file_path = os.path.join(data_dir, "etf_prices_20250319.csv")
+        # 查找匹配模式的最新文件
+        latest_file = None
+        latest_date = None
+        
+        # 首先在data目录中查找
+        if os.path.exists(data_dir):
+            for file in os.listdir(data_dir):
+                if file.startswith("etf_prices_") and file.endswith(".csv"):
+                    try:
+                        # 从文件名中提取日期
+                        date_str = file.replace("etf_prices_", "").replace(".csv", "")
+                        file_date = datetime.strptime(date_str, "%Y%m%d")
+                        if latest_date is None or file_date > latest_date:
+                            latest_date = file_date
+                            latest_file = os.path.join(data_dir, file)
+                    except Exception as e:
+                        print(f"解析文件日期出错: {file}, {str(e)}")
+        
+        # 如果data目录中没找到，在根目录中查找
+        if latest_file is None:
+            root_dir = os.path.dirname(os.path.abspath(__file__))
+            for file in os.listdir(root_dir):
+                if file.startswith("etf_prices_") and file.endswith(".csv"):
+                    try:
+                        # 从文件名中提取日期
+                        date_str = file.replace("etf_prices_", "").replace(".csv", "")
+                        file_date = datetime.strptime(date_str, "%Y%m%d")
+                        if latest_date is None or file_date > latest_date:
+                            latest_date = file_date
+                            latest_file = os.path.join(root_dir, file)
+                    except Exception as e:
+                        print(f"解析文件日期出错: {file}, {str(e)}")
+        
+        # 如果找到了最新文件，使用它
+        if latest_file:
+            file_path = latest_file
+            print(f"使用最新的ETF价格数据文件: {file_path}")
+        else:
+            # 如果没找到任何匹配的文件，返回错误
+            print("错误: 未找到任何ETF价格数据文件")
+            print("请先运行 get_latest_etf_data.py 获取最新ETF价格数据")
+            return 1
+        
         if not os.path.exists(file_path):
             print(f"错误: 未找到ETF价格数据文件 {file_path}")
             print("使用方法: python etf_price_recommendation.py [csv文件路径]")
@@ -204,13 +381,16 @@ def main():
         if df.empty:
             return 1
         
+        # 加载ETF基础数据
+        etf_base_data = load_etf_base_data()
+        
         # 获取涨幅最高的ETF
         top_etfs = get_top_etfs_by_return(df)
         if top_etfs.empty:
             return 1
         
         # 格式化推荐数据
-        recommendations = format_recommendations(top_etfs)
+        recommendations = format_recommendations(top_etfs, etf_base_data)
         
         # 保存推荐数据
         save_recommendations(recommendations)

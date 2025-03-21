@@ -8,6 +8,7 @@
 - 获取ETF每日价格数据
 - 计算当日涨跌幅、近五日涨跌幅、年初至今涨跌幅
 - 将数据保存为CSV文件
+- 支持获取特定日期的ETF数据
 
 ## 使用方法
 
@@ -21,43 +22,40 @@
 ### 使用命令行工具
 
 ```bash
-# 基本用法
-python get_etf_prices.py
+# 基本用法 - 获取ETF数据
+python get_etf_prices_akshare_fixed.py
 
 # 指定日期范围
-python get_etf_prices.py -s 20250101 -e 20251231
+python get_etf_prices_akshare_fixed.py -s 2025-01-01 -e 2025-12-31
 
 # 指定输出文件名
-python get_etf_prices.py -o my_etf_data.csv
+python get_etf_prices_akshare_fixed.py -o my_etf_data.csv
 
-# 使用AKShare版本获取所有ETF数据
-python get_etf_prices_akshare.py -a
+# 获取所有ETF数据
+python get_etf_prices_akshare_fixed.py -a
 
-# 使用AKShare版本获取指定数量的ETF数据
-python get_etf_prices_akshare.py -n 10
+# 获取指定数量的ETF数据
+python get_etf_prices_akshare_fixed.py -n 10
+
+# 获取特定日期的ETF数据
+python get_etf_data_20250319.py
 ```
 
 ### 参数说明
 
-#### get_etf_prices.py
-- `-s, --start`: 指定开始日期(格式:YYYYMMDD)
-- `-e, --end`: 指定结束日期(格式:YYYYMMDD)
-- `-o, --output`: 指定输出文件名
-
-#### get_etf_prices_akshare.py
+#### get_etf_prices_akshare_fixed.py
 - `-s, --start`: 指定开始日期(格式:YYYY-MM-DD)
 - `-e, --end`: 指定结束日期(格式:YYYY-MM-DD)
 - `-o, --output`: 指定输出文件名
 - `-n, --number`: 要获取的ETF数量，默认为5
 - `-a, --all`: 获取所有ETF数据
+- `-p, --proxy`: 启用代理功能
+- `-r, --retries`: 最大重试次数，默认为3
+- `--no-proxy`: 禁用所有代理设置
+- `-d, --debug`: 启用调试模式
 
-### 测试脚本
-
-还提供了一个测试脚本，可以用来测试ETF价格追踪器的功能：
-
-```bash
-python test_etf_tracker_akshare.py
-```
+#### get_etf_data_20250319.py
+这个脚本专门用于获取2025年3月19日的ETF数据，不需要额外参数。
 
 ## 数据说明
 

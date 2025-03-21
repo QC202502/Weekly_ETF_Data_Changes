@@ -595,18 +595,60 @@ def get_recommendations():
             today = datetime.now().strftime('%Y%m%d')
             price_recommendation_file = os.path.join(data_dir, f"etf_price_recommendations_{today}.json")
             
-            # 如果文件不存在，尝试生成
+            # 如果当天的文件不存在，尝试查找最新的推荐数据文件
             if not os.path.exists(price_recommendation_file):
-                print("ETF价格推荐数据文件不存在，尝试生成...")
-                from etf_price_recommendation import main as generate_price_recommendations
-                generate_price_recommendations()
+                print(f"当天的ETF价格推荐数据文件不存在: {price_recommendation_file}")
+                # 查找匹配模式的最新文件
+                latest_file = None
+                latest_date = None
+                
+                for file in os.listdir(data_dir):
+                    if file.startswith("etf_price_recommendations_") and file.endswith(".json"):
+                        try:
+                            # 从文件名中提取日期
+                            date_str = file.replace("etf_price_recommendations_", "").replace(".json", "")
+                            file_date = datetime.strptime(date_str, "%Y%m%d")
+                            if latest_date is None or file_date > latest_date:
+                                latest_date = file_date
+                                latest_file = os.path.join(data_dir, file)
+                        except Exception as e:
+                            print(f"解析文件日期出错: {file}, {str(e)}")
+                
+                # 如果找到了最新文件，使用它
+                if latest_file:
+                    price_recommendation_file = latest_file
+                    print(f"使用最新的ETF价格推荐数据文件: {price_recommendation_file}")
+                else:
+                    # 如果没找到任何匹配的文件，尝试先获取最新ETF数据，然后生成新的推荐数据
+                    print("未找到任何ETF价格推荐数据文件，尝试获取最新数据并生成...")
+                    try:
+                        # 先尝试获取最新ETF数据
+                        from get_latest_etf_data import main as get_latest_data
+                        get_latest_result = get_latest_data()
+                        if get_latest_result != 0:
+                            print("获取最新ETF数据失败，尝试直接生成推荐数据")
+                        
+                        # 无论获取数据是否成功，都尝试生成推荐
+                        from etf_price_recommendation import main as generate_price_recommendations
+                        generate_price_recommendations()
+                        # 重新检查当天生成的文件
+                        price_recommendation_file = os.path.join(data_dir, f"etf_price_recommendations_{today}.json")
+                    except Exception as gen_e:
+                        print(f"获取最新数据或生成推荐时出错: {str(gen_e)}")
+                        import traceback
+                        traceback.print_exc()
             
             # 读取ETF价格推荐数据
             if os.path.exists(price_recommendation_file):
                 with open(price_recommendation_file, 'r', encoding='utf-8') as f:
                     price_data = json.load(f)
                     recommendations["price_return"] = price_data.get("price_return", [])
-                    print(f"成功加载ETF价格推荐数据，共{len(recommendations['price_return'])}条记录")
+                    # 获取交易日期信息
+                    recommendations["trade_date"] = price_data.get("trade_date", "3月19日")
+                    print(f"成功加载ETF价格推荐数据，共{len(recommendations['price_return'])}条记录，交易日期：{recommendations['trade_date']}")
+            else:
+                print(f"警告：无法找到或生成ETF价格推荐数据文件")
+
         except Exception as e:
             print(f"加载ETF价格推荐数据出错: {str(e)}")
             import traceback

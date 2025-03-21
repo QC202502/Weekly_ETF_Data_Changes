@@ -70,6 +70,12 @@ export function loadRecommendations() {
 function renderRecommendations(recommendations) {
     console.log('渲染推荐数据:', recommendations);
     
+    // 更新价格涨幅标签的文本
+    const priceReturnTab = document.querySelector('a[href="#price-return-tab"]');
+    if (priceReturnTab && recommendations.trade_date) {
+        priceReturnTab.textContent = `3月19日涨幅TOP20`;
+    }
+    
     // 渲染关注人数推荐
     renderRecommendationList('attention', recommendations.attention);
     
@@ -98,17 +104,22 @@ function renderRecommendationList(type, items) {
         itemElement.dataset.code = item.code;
         itemElement.dataset.type = type;
         
-        // 设置推荐项内容
+        // 设置推荐项内容 - 确保ETF代码不包含sh/sz前缀
+        let displayCode = item.code;
+        if (displayCode.startsWith('sh') || displayCode.startsWith('sz')) {
+            displayCode = displayCode.substring(2);
+        }
+        
         itemElement.innerHTML = `
             <div class="etf-name">${item.name}</div>
-            <div class="etf-code">${item.code}</div>
+            <div class="etf-code">${displayCode}</div>
         `;
         
         // 添加数据属性，用于悬浮卡片显示
-        itemElement.dataset.manager = item.manager;
+        itemElement.dataset.manager = item.manager || '未知';
         itemElement.dataset.business = item.is_business ? 'true' : 'false';
-        itemElement.dataset.businessText = item.business_text;
-        itemElement.dataset.index = item.index_code;
+        itemElement.dataset.businessText = item.business_text || '非商务品';
+        itemElement.dataset.index = item.index_code || item.index_name || '未知';
         itemElement.dataset.scale = item.scale || '0';
         
         // 根据推荐类型设置不同的变化值
@@ -145,6 +156,12 @@ function handleRecommendationClick(item) {
     // 获取ETF代码
     const code = item.dataset.code;
     
+    // 处理可能带有sh/sz前缀的ETF代码
+    let searchCode = code;
+    if (searchCode.startsWith('sh') || searchCode.startsWith('sz')) {
+        searchCode = searchCode.substring(2);
+    }
+    
     // 移除所有选中状态
     document.querySelectorAll('.recommendation-item').forEach(i => {
         i.classList.remove('selected');
@@ -156,7 +173,7 @@ function handleRecommendationClick(item) {
     // 填充搜索框
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
-        searchInput.value = code;
+        searchInput.value = searchCode;
     }
     
     // 触发搜索

@@ -6,13 +6,14 @@ import { showLoading, hideLoading, showMessage, showSection } from './modules/ut
 import { searchETF, handleSearchResult } from './modules/search.js';
 import { loadData, loadOverview, loadBusinessAnalysis, generateReport } from './modules/data.js';
 import { initRecommendations, loadRecommendations } from './modules/recommendation.js';
+import { generateMarkdown } from './modules/markdown_export.js';
 
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
     console.log('页面加载完成，初始化事件监听器');
     
     // 绑定搜索按钮点击事件
-    const searchButton = document.querySelector('#section-search button');
+    const searchButton = document.querySelector('#search-button');
     if (searchButton) {
         console.log('找到搜索按钮，绑定点击事件');
         searchButton.addEventListener('click', searchETF);
@@ -33,6 +34,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     } else {
         console.error('未找到搜索输入框');
+    }
+    
+    // 绑定导出Markdown按钮点击事件
+    const exportMarkdownButton = document.getElementById('export-markdown-button');
+    if (exportMarkdownButton) {
+        console.log('找到导出Markdown按钮，绑定点击事件');
+        exportMarkdownButton.addEventListener('click', function() {
+            // 获取当前搜索结果数据
+            const searchResultsData = window.currentSearchResults;
+            if (!searchResultsData) {
+                showMessage('warning', '没有可导出的搜索结果');
+                return;
+            }
+            
+            // 生成Markdown内容
+            const markdownContent = generateMarkdown(searchResultsData);
+            
+            // 显示Markdown模态框
+            const markdownModal = new bootstrap.Modal(document.getElementById('markdown-modal'));
+            document.getElementById('markdown-content').value = markdownContent;
+            markdownModal.show();
+        });
+    } else {
+        console.error('未找到导出Markdown按钮');
+    }
+    
+    // 绑定复制Markdown按钮点击事件
+    const copyMarkdownButton = document.getElementById('copy-markdown-button');
+    if (copyMarkdownButton) {
+        copyMarkdownButton.addEventListener('click', function() {
+            const markdownContent = document.getElementById('markdown-content');
+            markdownContent.select();
+            document.execCommand('copy');
+            showMessage('success', 'Markdown内容已复制到剪贴板');
+        });
     }
     
     // 初始化推荐栏

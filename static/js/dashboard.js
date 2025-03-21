@@ -782,6 +782,9 @@ function renderRecommendations(recommendations) {
     
     // 渲染保有金额推荐
     renderRecommendationList('amount', recommendations.amount);
+    
+    // 渲染价格涨幅推荐
+    renderRecommendationList('price-return', recommendations.price_return);
 }
 
 // 渲染推荐列表
@@ -799,10 +802,15 @@ function renderRecommendationList(type, items) {
         itemElement.dataset.code = item.code;
         itemElement.dataset.type = type;
         
-        // 设置推荐项内容
+        // 设置推荐项内容 - 确保ETF代码不包含sh/sz前缀
+        let displayCode = item.code;
+        if (displayCode.startsWith('sh') || displayCode.startsWith('sz')) {
+            displayCode = displayCode.substring(2);
+        }
+        
         itemElement.innerHTML = `
             <div class="etf-name">${item.name}</div>
-            <div class="etf-code">${item.code}</div>
+            <div class="etf-code">${displayCode}</div>
         `;
         
         // 添加数据属性，用于悬浮卡片显示
@@ -819,6 +827,8 @@ function renderRecommendationList(type, items) {
             itemElement.dataset.change = `+${item.holders_change.toLocaleString()} 人`;
         } else if (type === 'amount') {
             itemElement.dataset.change = `+${item.amount_change.toFixed(2)} 亿元`;
+        } else if (type === 'price-return') {
+            itemElement.dataset.change = `${item.daily_return.toFixed(2)}%`;
         }
         
         // 绑定点击事件
@@ -844,6 +854,12 @@ function handleRecommendationClick(item) {
     // 获取ETF代码
     const code = item.dataset.code;
     
+    // 处理可能带有sh/sz前缀的ETF代码
+    let searchCode = code;
+    if (searchCode.startsWith('sh') || searchCode.startsWith('sz')) {
+        searchCode = searchCode.substring(2);
+    }
+    
     // 移除所有选中状态
     document.querySelectorAll('.recommendation-item').forEach(i => {
         i.classList.remove('selected');
@@ -855,7 +871,7 @@ function handleRecommendationClick(item) {
     // 填充搜索框
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
-        searchInput.value = code;
+        searchInput.value = searchCode;
     }
     
     // 触发搜索
@@ -898,6 +914,8 @@ function showRecommendationTooltip(item) {
         changeTitle.textContent = '本周新增持仓: ';
     } else if (type === 'amount') {
         changeTitle.textContent = '本周新增保有: ';
+    } else if (type === 'price-return') {
+        changeTitle.textContent = '当日涨幅: ';
     }
     
     tooltipChange.textContent = item.dataset.change;

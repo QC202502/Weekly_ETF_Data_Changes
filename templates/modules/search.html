@@ -8,6 +8,7 @@
             <div class="input-group mb-3">
                 <input type="text" class="form-control" id="search-input" placeholder="输入ETF代码、名称或指数" value="{{ search_code }}">
                 <button class="btn btn-primary" type="button" id="search-button">查询</button>
+                <button class="btn btn-secondary" type="button" id="export-markdown-button" style="display: none;">导出Markdown</button>
             </div>
             <div class="form-text text-muted mb-3">可输入ETF代码(如560050或sh560050)、ETF名称(如红利)或指数代码(如000300)</div>
             
@@ -17,22 +18,27 @@
                     <div class="card-header p-2">
                         <ul class="nav nav-tabs card-header-tabs" id="recommendation-tabs">
                             <li class="nav-item">
-                                <a class="nav-link active" href="#attention-tab" data-bs-toggle="tab">本週新增关注TOP20</a>
+                                <a class="nav-link active" href="#price-return-tab" data-bs-toggle="tab">{{ recommendations.trade_date }}涨幅TOP20</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#holders-tab" data-bs-toggle="tab">本週新增持仓客户TOP20</a>
+                                <a class="nav-link" href="#attention-tab" data-bs-toggle="tab">上周新增关注TOP20</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#amount-tab" data-bs-toggle="tab">本週新增保有金额TOP20</a>
+                                <a class="nav-link" href="#holders-tab" data-bs-toggle="tab">上周新增持仓客户TOP20</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#price-return-tab" data-bs-toggle="tab">最新交易日涨幅TOP10</a>
+                                <a class="nav-link" href="#amount-tab" data-bs-toggle="tab">上周新增保有金额TOP20</a>
                             </li>
                         </ul>
                     </div>
                     <div class="card-body p-2">
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="attention-tab">
+                            <div class="tab-pane fade show active" id="price-return-tab">
+                                <div class="recommendation-scroll">
+                                    <div id="price-return-recommendations" class="d-flex flex-nowrap overflow-auto py-2"></div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="attention-tab">
                                 <div class="recommendation-scroll">
                                     <div id="attention-recommendations" class="d-flex flex-nowrap overflow-auto py-2"></div>
                                 </div>
@@ -45,11 +51,6 @@
                             <div class="tab-pane fade" id="amount-tab">
                                 <div class="recommendation-scroll">
                                     <div id="amount-recommendations" class="d-flex flex-nowrap overflow-auto py-2"></div>
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="price-return-tab">
-                                <div class="recommendation-scroll">
-                                    <div id="price-return-recommendations" class="d-flex flex-nowrap overflow-auto py-2"></div>
                                 </div>
                             </div>
                         </div>
@@ -80,5 +81,26 @@
     <div class="mt-1" id="tooltip-change-container">
         <small class="text-muted">本周新增: </small>
         <span id="tooltip-change"></span>
+    </div>
+</div>
+
+<!-- Markdown导出模态框 -->
+<div class="modal fade" id="markdown-modal" tabindex="-1" aria-labelledby="markdown-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markdown-modal-label">Markdown导出</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <textarea class="form-control" id="markdown-content" rows="15" readonly></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="copy-markdown-button">复制Markdown</button>
+            </div>
+        </div>
     </div>
 </div>

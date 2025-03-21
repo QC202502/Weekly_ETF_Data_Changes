@@ -6,7 +6,7 @@ import socket
 import argparse
 
 # 版本信息
-__version__ = "2.10.3"   
+__version__ = "2.11.0"   
 RELEASE_DATE = "2025-03-20"
 
 # 创建Flask应用
@@ -34,8 +34,38 @@ def index():
     """首页"""
     # 检查是否有code参数，如果有则预填充搜索框
     from flask import request
+    import os
+    import json
+    from datetime import datetime
+    
     code = request.args.get('code', '')
-    return render_template('dashboard.html', search_code=code)
+    
+    # 获取推荐数据
+    recommendations = {
+        "attention": [],
+        "holders": [],
+        "amount": [],
+        "price_return": [],
+        "trade_date": "3月19日"
+    }
+    
+    try:
+        # 查找最新的ETF价格推荐数据文件
+        data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+        today = datetime.now().strftime('%Y%m%d')
+        price_recommendation_file = os.path.join(data_dir, f"etf_price_recommendations_{today}.json")
+        
+        # 读取ETF价格推荐数据
+        if os.path.exists(price_recommendation_file):
+            with open(price_recommendation_file, 'r', encoding='utf-8') as f:
+                price_data = json.load(f)
+                recommendations["price_return"] = price_data.get("price_return", [])
+                # 获取交易日期信息，如果JSON中没有trade_date字段，则使用默认值
+                recommendations["trade_date"] = price_data.get("trade_date", "3月19日")
+    except Exception as e:
+        print(f"加载ETF价格推荐数据出错: {str(e)}")
+    
+    return render_template('dashboard.html', search_code=code, recommendations=recommendations)
 
 # 检查端口是否可用
 def is_port_available(port):
@@ -48,7 +78,7 @@ def is_port_available(port):
             return False
 
 # 查找可用端口
-def find_available_port(start_port, max_attempts=10):
+def find_available_port(start_port, max_attempts=100):
     """从指定端口开始查找可用端口"""
     port = start_port
     for _ in range(max_attempts):
@@ -84,7 +114,8 @@ if __name__ == '__main__':
             port = available_port
             print(f"已自动切换到可用端口: {port}")
         else:
-            print("无法找到可用端口，请手动指定其他端口")
+            print("无法找到可用端口，请手动指定其他端口或关闭占用端口的程序")
+            print("提示：您可以使用 --port 参数指定其他端口，例如: python app.py --port 8080")
             exit(1)
     
     # 启动应用

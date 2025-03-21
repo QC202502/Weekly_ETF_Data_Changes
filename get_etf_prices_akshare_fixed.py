@@ -476,16 +476,17 @@ class ETFPriceTrackerAKShare:
         
         return pd.DataFrame()
     
-    def save_data(self, data, filename=None):
+    def save_data(self, data, filename=None, legacy_format=True):
         """
         保存ETF价格数据到CSV文件
         
         参数:
             data: 包含ETF价格数据的DataFrame
             filename: 输出文件名，如果为None，则使用默认文件名
+            legacy_format: 是否同时保存为旧格式文件名(etf_prices_YYYYMMDD.csv)，默认为True
             
         返回:
-            str: 保存的文件路径
+            str: 保存的文件路径(新格式文件路径)
         """
         if data.empty:
             return None
@@ -494,6 +495,13 @@ class ETFPriceTrackerAKShare:
         if not filename:
             today = datetime.datetime.now().strftime('%Y%m%d')
             filename = f"ETF_价格数据_{today}.csv"
+            
+            # 同时创建旧格式文件名(用于兼容旧应用)
+            if legacy_format:
+                legacy_filename = f"etf_prices_{today}.csv"
+                legacy_file_path = os.path.join(self.data_dir, legacy_filename)
+                data.to_csv(legacy_file_path, index=False, encoding='utf-8-sig')
+                print(f"已同时保存兼容格式文件: {legacy_file_path}")
         
         # 确保文件名有.csv后缀
         if not filename.endswith('.csv'):

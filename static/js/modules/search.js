@@ -69,6 +69,8 @@ export function handleSearchResult(data) {
     
     if (data.error) {
         resultsContainer.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        // 隐藏导出Markdown按钮
+        document.getElementById('export-markdown-button').style.display = 'none';
         return;
     }
     
@@ -76,8 +78,16 @@ export function handleSearchResult(data) {
     if ((data.results && data.results.length === 0) || 
         (data.index_groups && data.index_groups.length === 0)) {
         resultsContainer.innerHTML = `<div class="alert alert-warning">未找到匹配"${data.keyword}"的ETF产品</div>`;
+        // 隐藏导出Markdown按钮
+        document.getElementById('export-markdown-button').style.display = 'none';
         return;
     }
+    
+    // 保存当前搜索结果数据，用于导出Markdown
+    window.currentSearchResults = data;
+    
+    // 显示导出Markdown按钮
+    document.getElementById('export-markdown-button').style.display = 'inline-block';
     
     let html = '';
     

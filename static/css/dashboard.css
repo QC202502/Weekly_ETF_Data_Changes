@@ -30,10 +30,10 @@ body {
 .nav-link.active {
     color: #007bff;
 }
-.main-content {
-    margin-left: 240px;
+.main-content-full {
     padding: 20px;
     flex: 1;
+    width: 100%;
 }
 .card {
     margin-bottom: 20px;

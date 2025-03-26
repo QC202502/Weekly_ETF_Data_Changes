@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 import pandas as pd
 import traceback
 from datetime import datetime
+from services.index_service import get_index_intro, get_index_info
 
 # 创建蓝图
 search_bp = Blueprint('search', __name__)
@@ -50,6 +51,10 @@ def search():
                 total_scale = index_etfs['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'].sum()
                 etf_count = len(index_etfs)
                 
+                # 获取指数简介信息
+                index_intro = get_index_intro(index_code)
+                index_info = get_index_info(index_code)
+                
                 return jsonify({
                     "success": True,
                     "search_type": search_type,
@@ -58,6 +63,8 @@ def search():
                     "keyword": keyword,
                     "index_name": index_name,
                     "index_code": index_code,
+                    "index_intro": index_intro,
+                    "index_info": index_info,
                     "total_scale": round(total_scale, 2),
                     "etf_count": etf_count
                 })
@@ -294,10 +301,16 @@ def search_by_index_name(keyword, etf_data, business_etfs, current_date_str):
                 'amount_change': round(float(row[amount_current] - row[amount_previous]) / 1e8 if pd.notna(row[amount_current]) and pd.notna(row[amount_previous]) else 0, 2)  # 转换为亿元
             })
         
+        # 获取指数简介信息
+        index_intro = get_index_intro(index_code)
+        index_info = get_index_info(index_code)
+        
         # 添加到指数组
         index_groups.append({
             'index_code': index_code,
             'index_name': index_name,
+            'index_intro': index_intro,
+            'index_info': index_info,
             'total_scale': round(index_scales.get(index_code, 0), 2),
             'etf_count': len(etf_results),
             'etfs': etf_results

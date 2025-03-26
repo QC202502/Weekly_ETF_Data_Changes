@@ -201,7 +201,13 @@ function renderCompanyResults(data) {
 
 // 渲染ETF代码搜索结果
 function renderETFCodeResults(data) {
-    let html = `<div class="alert alert-success">该ETF跟踪「${data.index_name}」（${data.index_code}），指数总规模 ${data.total_scale}（单位：亿元），跟踪ETF数量${data.etf_count}</div>`;
+    // 添加指数简介信息
+    let introHtml = '';
+    if (data.index_intro) {
+        introHtml = `<div class="alert alert-info mb-2">指数简介：${data.index_intro}</div>`;
+    }
+    
+    let html = introHtml + `<div class="alert alert-success">该ETF跟踪「${data.index_name}」（${data.index_code}），指数总规模 ${data.total_scale}（单位：亿元），跟踪ETF数量${data.etf_count}</div>`;
     
     // 创建表格
     html += `

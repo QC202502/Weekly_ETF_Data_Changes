@@ -328,6 +328,11 @@ function handleSearchResult(data) {
         `;
     } else if (data.search_type === "ETF基金代码" && data.index_name && data.index_code) {
         // ETF基金代码搜索 - 新格式
+        // 添加指数简介信息
+        if (data.index_intro) {
+            html += `<div class="alert alert-info mb-2">指数简介：${data.index_intro}</div>`;
+        }
+        
         html += `<div class="alert alert-success">该ETF跟踪「${data.index_name}」（${data.index_code}），指数总规模 ${data.total_scale}（单位：亿元），跟踪ETF数量${data.etf_count}</div>`;
         
         // 创建表格

@@ -168,23 +168,33 @@ function generateETFTableMarkdown(etfs) {
     return markdown;
 }
 
-// 获取指数描述（示例函数，实际应从数据库或API获取）
+// 获取指数描述（从搜索结果中获取）
 function getIndexDescription(indexCode) {
-    // 这里应该根据指数代码获取实际描述
-    // 为了演示，使用一些示例描述
-    const descriptions = {
-        '000015.SH': '上证红利指数挑选在上证所上市的现金股息率高、分红比较稳定、具有一定规模及流动性的50只股票作为样本，以反映上海证券市场高红利股票的整体状况和走势。',
-        '000922.CSI': '中证红利指数根据股息率指标，精选在上海证券交易所和深圳证券交易所上市的现金股息率高、分红比较稳定、具有一定规模及流动性的100只股票作为样本，以反映A股市场高红利股票的整体状况和走势。',
-        '000300.SH': '沪深300指数由沪深两市规模大、流动性好、最具代表性的300只股票组成，综合反映中国A股市场上市股票价格的整体表现。',
-        '000905.SH': '中证500指数由全部A股中剔除沪深300指数成份股及总市值排名前300名的股票后，总市值排名靠前的500只股票组成，综合反映中国A股市场中小市值公司的股票价格表现。',
-        '000852.SH': '中证1000指数从全部A股中剔除市值排名在前1000名的股票后，选取市值排名靠前的1000只股票组成，反映A股市场中小市值公司的股票价格表现。',
-        '399006.SZ': '创业板指数由创业板市场规模大、流动性好的100家上市公司组成，反映创业板市场层次的运行情况。',
-        '399673.SZ': '创业板50指数由创业板市场规模大、流动性好的50家上市公司组成，反映创业板市场最具代表性的上市公司整体表现。',
-        '000688.SH': '科创50指数由科创板市场规模大、流动性好的50家上市公司组成，反映科创板市场最具代表性的上市公司整体表现。',
-        '399989.SZ': '中证医疗指数从主营业务属于医疗保健行业的上市公司中，选取规模大、流动性好的100家公司组成，反映医疗保健行业上市公司的整体表现。',
-        '000991.SH': '中证消费指数从主营业务属于可选消费或主要消费行业的上市公司中，选取规模大、流动性好的80家公司组成，反映消费类上市公司的整体表现。',
-        '000993.SH': '中证信息技术指数从主营业务属于信息技术行业的上市公司中，选取规模大、流动性好的100家公司组成，反映信息技术行业上市公司的整体表现。'
-    };
+    // 从当前搜索结果中获取指数简介
+    const searchResultsData = window.currentSearchResults;
     
-    return descriptions[indexCode] || `${indexCode}指数是一个跟踪特定市场或行业的指数，由一系列符合特定条件的股票组成，用于反映该市场或行业的整体表现。`;
+    // 检查是否有搜索结果数据
+    if (searchResultsData) {
+        // 如果是ETF基金代码搜索结果，直接使用index_intro
+        if (searchResultsData.search_type === "ETF基金代码" && 
+            searchResultsData.index_code === indexCode && 
+            searchResultsData.index_intro) {
+            return searchResultsData.index_intro;
+        }
+        
+        // 如果是指数名称搜索结果，在index_groups中查找
+        if (searchResultsData.search_type === "跟踪指数名称" && 
+            searchResultsData.index_groups) {
+            // 在指数组中查找匹配的指数代码
+            const matchedGroup = searchResultsData.index_groups.find(group => 
+                group.index_code === indexCode);
+            
+            if (matchedGroup && matchedGroup.index_intro) {
+                return matchedGroup.index_intro;
+            }
+        }
+    }
+    
+    // 如果在搜索结果中找不到，则使用默认描述
+    return `${indexCode}指数是一个跟踪特定市场或行业的指数，由一系列符合特定条件的股票组成，用于反映该市场或行业的整体表现。`;
 }

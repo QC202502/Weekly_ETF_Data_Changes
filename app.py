@@ -6,7 +6,7 @@ import socket
 import argparse
 
 # 版本信息
-__version__ = "2.11.4"   
+__version__ = "2.11.5"   
 RELEASE_DATE = "2025-03-26"
 
 # 创建Flask应用

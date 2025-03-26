@@ -6,8 +6,8 @@ import socket
 import argparse
 
 # 版本信息
-__version__ = "2.11.1"   
-RELEASE_DATE = "2025-03-20"
+__version__ = "2.11.2"   
+RELEASE_DATE = "2025-03-26"
 
 # 创建Flask应用
 app = Flask(__name__)

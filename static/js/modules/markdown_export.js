@@ -48,9 +48,7 @@ export function generateMarkdown(data) {
         markdown += generateGeneralMarkdown(data);
     }
     
-    // 添加结尾
-    markdown += '\n---\n-';
-    
+    // 不再添加结尾分隔符
     return markdown;
 }
 
@@ -76,8 +74,8 @@ function generateIndexGroupsMarkdown(indexGroups) {
 
 // 生成ETF代码搜索的Markdown
 function generateETFCodeMarkdown(data) {
-    // 移除一级标题，直接从二级标题开始
-    let markdown = `## **1. ${data.index_name} (${data.index_code})**\n`;
+    // 移除一级标题和序号，直接从二级标题开始
+    let markdown = `## **${data.index_name} (${data.index_code})**\n`;
     markdown += `|**总规模: ${data.total_scale}亿元 , ETF数量: ${data.etf_count}**|\n`;
     markdown += `|:-----|\n`;
     markdown += `|${getIndexDescription(data.index_code)}|\n\n`;
@@ -125,6 +123,14 @@ function generateETFTableMarkdown(etfs) {
         }
     });
     
+    // 找出费率最低且交易量最大的ETF
+    // 先找出所有费率最低的ETF
+    let minFeeRateETFs = etfs.filter(etf => etf.fee_rate === minFeeRateETF.fee_rate);
+    
+    // 如果有多个费率相同的ETF，选择交易量最大的
+    let minFeeMaxVolumeETF = minFeeRateETFs.reduce((max, etf) => 
+        etf.volume > max.volume ? etf : max, minFeeRateETFs[0]);
+    
     // 确定需要高亮的ETF
     // 在交易量最大、规模最大和费率最低中选择交易量最大的作为高亮ETF
     let volumeRank = [maxVolumeETF];
@@ -151,7 +157,7 @@ function generateETFTableMarkdown(etfs) {
         let manager = etf.manager.replace(/基金(管理有限)?公司$|基金$|资产管理$|证券$/, '');
         
         // 使用下划线标记高亮ETF
-        let code = etf === highlightETF ? `==${etf.code}==` : etf.code;
+        let code = (etf === highlightETF || etf === minFeeMaxVolumeETF) ? `==${etf.code}==` : etf.code;
         let volume = etf === maxVolumeETF ? `==${etf.volume.toFixed(2)}==` : etf.volume.toFixed(2);
         let scale = etf === maxScaleETF ? `==${etf.scale.toFixed(2)}==` : etf.scale.toFixed(2);
         let feeRate = etf === minFeeRateETF ? `==${etf.fee_rate.toFixed(2)}%==` : `${etf.fee_rate.toFixed(2)}%`;

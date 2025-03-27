@@ -659,6 +659,11 @@ def get_recommendations():
                     # 获取交易日期信息
                     recommendations["trade_date"] = price_data.get("trade_date", "3月19日")
                     print(f"成功加载ETF价格推荐数据，共{len(recommendations['price_return'])}条记录，交易日期：{recommendations['trade_date']}")
+                    
+                    # 更新标题中的日期
+                    priceReturnTab = document.querySelector('a[href="#price-return-tab"]')
+                    if priceReturnTab:
+                        priceReturnTab.textContent = f"{recommendations['trade_date']}涨幅TOP20"
             else:
                 print(f"警告：无法找到或生成ETF价格推荐数据文件")
 

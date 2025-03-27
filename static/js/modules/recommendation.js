@@ -73,7 +73,7 @@ function renderRecommendations(recommendations) {
     // 更新价格涨幅标签的文本
     const priceReturnTab = document.querySelector('a[href="#price-return-tab"]');
     if (priceReturnTab && recommendations.trade_date) {
-        priceReturnTab.textContent = `3月19日涨幅TOP20`;
+        priceReturnTab.textContent = `${recommendations.trade_date}涨幅TOP20`;
     }
     
     // 渲染关注人数推荐

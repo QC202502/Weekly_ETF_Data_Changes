@@ -4,10 +4,12 @@ import matplotlib
 matplotlib.use('Agg')  # 非交互式后端
 import socket
 import argparse
+from database.models import Database
+import pandas as pd
 
 # 版本信息
-__version__ = "2.11.5"   
-RELEASE_DATE = "2025-03-26"
+__version__ = "3.0.0"   
+RELEASE_DATE = "2025-04-02"
 
 # 创建Flask应用
 app = Flask(__name__)
@@ -34,8 +36,6 @@ def index():
     """首页"""
     # 检查是否有code参数，如果有则预填充搜索框
     from flask import request
-    import os
-    import json
     from datetime import datetime
     
     code = request.args.get('code', '')
@@ -46,24 +46,35 @@ def index():
         "holders": [],
         "amount": [],
         "price_return": [],
-        "trade_date": "3月19日"
+        "trade_date": datetime.now().strftime("%m月%d日")
     }
     
     try:
-        # 查找最新的ETF价格推荐数据文件
-        data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
-        today = datetime.now().strftime('%Y%m%d')
-        price_recommendation_file = os.path.join(data_dir, f"etf_price_recommendations_{today}.json")
+        # 创建数据库连接
+        db = Database()
         
-        # 读取ETF价格推荐数据
-        if os.path.exists(price_recommendation_file):
-            with open(price_recommendation_file, 'r', encoding='utf-8') as f:
-                price_data = json.load(f)
-                recommendations["price_return"] = price_data.get("price_return", [])
-                # 获取交易日期信息，如果JSON中没有trade_date字段，则使用默认值
-                recommendations["trade_date"] = price_data.get("trade_date", "3月19日")
+        # 获取ETF价格数据
+        price_data = db.get_etf_price_recommendations()
+        if price_data is not None:
+            recommendations["price_return"] = price_data
+        
+        # 获取ETF持有人数据
+        holders_data = db.get_etf_holders_recommendations()
+        if holders_data is not None:
+            recommendations["holders"] = holders_data
+        
+        # 获取ETF自选数据
+        attention_data = db.get_etf_attention_recommendations()
+        if attention_data is not None:
+            recommendations["attention"] = attention_data
+        
+        # 获取ETF成交额数据
+        amount_data = db.get_etf_amount_recommendations()
+        if amount_data is not None:
+            recommendations["amount"] = amount_data
+            
     except Exception as e:
-        print(f"加载ETF价格推荐数据出错: {str(e)}")
+        print(f"加载ETF推荐数据出错: {str(e)}")
     
     return render_template('dashboard.html', search_code=code, recommendations=recommendations)
 
@@ -101,9 +112,14 @@ if __name__ == '__main__':
     
     # 预加载数据
     print("正在预加载ETF数据...")
-    from services.data_service import load_latest_data
-    load_result, etf_data, business_etfs, current_date_str, previous_date_str, date_range = load_latest_data()
-    print(f"数据加载结果: {load_result}")
+    try:
+        db = Database()
+        etf_data = db.get_all_etf_info()
+        business_etfs = db.get_all_business_etf()
+        print(f"成功加载ETF数据：{len(etf_data)}条记录")
+        print(f"成功加载商务ETF数据：{len(business_etfs)}条记录")
+    except Exception as e:
+        print(f"预加载数据失败: {str(e)}")
     
     # 检查端口是否可用，如果不可用则自动查找可用端口
     port = args.port

@@ -13,6 +13,67 @@ import { loadData, loadOverview, loadBusinessAnalysis, generateReport } from './
 import { initRecommendations, loadRecommendations } from './modules/recommendation.js';
 import { generateMarkdown } from './modules/markdown_export.js';
 
+// 全局错误处理，捕获JSON解析错误和HTTP错误
+window.addEventListener('error', function(event) {
+    console.log('捕获到错误:', event.message);
+    
+    // 捕获JSON解析错误
+    if (event.message && event.message.indexOf('SyntaxError') !== -1 && 
+        event.message.indexOf('JSON') !== -1) {
+        console.error('捕获到JSON解析错误:', event);
+        
+        // 隐藏原始错误提示
+        hideErrorBanner();
+        
+        // 显示友好的错误提示
+        showMessage('warning', '数据加载出错，请刷新页面或点击"刷新数据"按钮');
+        
+        // 阻止错误显示在控制台
+        event.preventDefault();
+        return;
+    }
+    
+    // 捕获HTTP 404错误
+    if (event.message && 
+        (event.message.indexOf('404') !== -1 || 
+         event.message.indexOf('HTTP错误') !== -1)) {
+        console.error('捕获到HTTP错误:', event);
+        
+        // 处理HTTP错误
+        window.handleHttpError(event.message);
+        
+        // 阻止错误显示在控制台
+        event.preventDefault();
+        return;
+    }
+});
+
+// 隐藏错误提示横幅
+function hideErrorBanner() {
+    const errorBanners = document.querySelectorAll('.alert-danger');
+    errorBanners.forEach(banner => {
+        banner.style.display = 'none';
+    });
+}
+
+// 添加HTTP错误的特殊处理
+window.handleHttpError = function(message) {
+    console.error('HTTP错误:', message);
+    
+    // 隐藏可能存在的错误提示
+    hideErrorBanner();
+    
+    // 获取状态区域并更新
+    const statusArea = document.getElementById('status-message') || document.getElementById('statusMessage');
+    if (statusArea) {
+        statusArea.textContent = '';
+        statusArea.style.display = 'none';
+    }
+    
+    // 显示友好的错误提示
+    showMessage('warning', '服务器连接错误，请确认服务是否正常运行');
+}
+
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
     console.log('页面加载完成，初始化事件监听器');
@@ -161,4 +222,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 页面加载完成后自动加载数据
     loadData();
+    
+    // 隐藏可能存在的错误信息
+    const errorBanner = document.querySelector('.alert-danger');
+    if (errorBanner && errorBanner.textContent.indexOf('SyntaxError') !== -1) {
+        errorBanner.style.display = 'none';
+        showMessage('info', '系统已就绪，请输入搜索关键词');
+    }
 });

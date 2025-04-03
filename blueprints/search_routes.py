@@ -503,6 +503,11 @@ def search_by_index_name(keyword, etf_data, business_etfs, current_date_str):
                 'etfs': [],
                 'total_scale': 0
             }
+            
+            # 添加指数简介
+            index_intro = get_index_intro(index_code)
+            if index_intro:
+                index_groups[index_code]['index_intro'] = index_intro
         
         # 格式化ETF结果
         for _, row in index_etfs.iterrows():

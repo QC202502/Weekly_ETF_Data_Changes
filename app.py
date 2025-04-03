@@ -21,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息
-__version__ = "3.0.4"   
+__version__ = "3.0.5"   
 RELEASE_DATE = "2025-04-03"
 
 # 创建Flask应用

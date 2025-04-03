@@ -147,6 +147,14 @@ export function searchETF() {
 // 处理搜索结果
 export function handleSearchResult(data) {
     console.log('处理搜索结果:', data);
+    // 添加更详细的调试信息
+    console.log('搜索类型 (search_type):', data.search_type);
+    console.log('是否有index_groups:', data.index_groups ? '是' : '否');
+    if (data.index_groups) {
+        console.log('index_groups长度:', data.index_groups.length);
+        console.log('第一个index_group示例:', data.index_groups[0]);
+    }
+    console.log('关键词 (keyword):', data.keyword);
     console.log('v2.0.1 持仓人数:', data.results && data.results[0] ? data.results[0].holder_count : 'N/A', '持仓金额:', data.results && data.results[0] ? data.results[0].holding_amount : 'N/A');
     
     // 针对ETF基金代码搜索的调试信息
@@ -320,16 +328,16 @@ function generateETFTable(etfs, title = '搜索结果') {
                                 <th>代码</th>
                                 <th>名称</th>
                                 <th>管理人</th>
+                                <th>区间日均成交额(亿)</th>
                                 <th>规模(亿)</th>
                                 <th>管理费率</th>
-                                <th>区间日均成交额(亿)</th>
-                                <th>最近交易日成交额(亿)</th>
-                                <th>跟踪误差(%)</th>
-                                <th>总持有人数</th>
+                                <th>类型</th>
+                                <th>关注人数</th>
                                 <th>持仓人数</th>
                                 <th>持仓金额(元)</th>
-                                <th>关注人数</th>
-                                <th>类型</th>
+                                <th>最近交易日成交额(亿)</th>
+                                <th>总持有人数</th>
+                                <th>跟踪误差(%)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -423,16 +431,16 @@ function generateETFTable(etfs, title = '搜索结果') {
                     <td>${codeDisplay}</td>
                     <td>${etfSafe.name}</td>
                     <td>${simplifyCompany(etfSafe.manager)}</td>
+                    <td>${volumeDisplay}</td>
                     <td>${fundSizeDisplay}</td>
                     <td>${feeDisplay}</td>
-                    <td>${volumeDisplay}</td>
-                    <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
-                    <td>${formatNumber(etfSafe.tracking_error)}</td>
-                    <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
+                    <td>${etfSafe.business_text}</td>
+                    <td>${formatNumber(etfSafe.attention_count, 0)}</td>
                     <td>${formatNumber(etfSafe.holder_count, 0)}</td>
                     <td>${formatNumber(etfSafe.holding_amount, 2)}</td>
-                    <td>${formatNumber(etfSafe.attention_count, 0)}</td>
-                    <td>${etfSafe.business_text}</td>
+                    <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
+                    <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
+                    <td>${formatNumber(etfSafe.tracking_error)}</td>
                 </tr>
             `;
         } catch (e) {
@@ -448,16 +456,16 @@ function generateETFTable(etfs, title = '搜索结果') {
                 <tfoot>
                     <tr class="table-info">
                         <td colspan="3">汇总 (${etfs.length}个ETF${businessCount > 0 ? '，其中'+businessCount+'个商务品' : ''})</td>
+                        <td>${formatNumber(totalDailyAvgVolume, 2)}</td>
                         <td>${formatNumber(totalScale)}</td>
                         <td>${formatNumber(avgFeeRate, 4)}</td>
-                        <td>${formatNumber(totalDailyAvgVolume, 2)}</td>
-                        <td>${formatNumber(totalDailyVolume, 2)}</td>
-                        <td>-</td>
-                        <td>${formatNumber(totalHolders, 0)}</td>
+                        <td>${etfs.length > 0 ? formatNumber((businessCount / etfs.length) * 100, 1)+'%' : '-'}</td>
+                        <td>${formatNumber(totalAttention, 0)}</td>
                         <td>${formatNumber(totalHolderCount, 0)}</td>
                         <td>${formatNumber(totalHoldingAmount, 2)}</td>
-                        <td>${formatNumber(totalAttention, 0)}</td>
-                        <td>${etfs.length > 0 ? formatNumber((businessCount / etfs.length) * 100, 1)+'%' : '-'}</td>
+                        <td>${formatNumber(totalDailyVolume, 2)}</td>
+                        <td>${formatNumber(totalHolders, 0)}</td>
+                        <td>-</td>
                     </tr>
                 </tfoot>
             </table>
@@ -533,16 +541,16 @@ function renderIndexGroupResults(data) {
                                     <th>代码</th>
                                     <th>名称</th>
                                     <th>管理人</th>
+                                    <th>区间日均成交额(亿)</th>
                                     <th>规模(亿)</th>
                                     <th>管理费率</th>
-                                    <th>区间日均成交额(亿)</th>
-                                    <th>最近交易日成交额(亿)</th>
-                                    <th>跟踪误差(%)</th>
-                                    <th>总持有人数</th>
+                                    <th>类型</th>
+                                    <th>关注人数</th>
                                     <th>持仓人数</th>
                                     <th>持仓金额(元)</th>
-                                    <th>关注人数</th>
-                                    <th>类型</th>
+                                    <th>最近交易日成交额(亿)</th>
+                                    <th>总持有人数</th>
+                                    <th>跟踪误差(%)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -635,16 +643,16 @@ function renderIndexGroupResults(data) {
                     <td>${codeDisplay}</td>
                     <td>${etfSafe.name}</td>
                     <td>${simplifyCompany(etfSafe.manager)}</td>
+                    <td>${volumeDisplay}</td>
                     <td>${fundSizeDisplay}</td>
                     <td>${feeDisplay}</td>
-                    <td>${volumeDisplay}</td>
-                    <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
-                    <td>${formatNumber(etfSafe.tracking_error)}</td>
-                    <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
+                    <td>${etfSafe.business_text}</td>
+                    <td>${formatNumber(etfSafe.attention_count, 0)}</td>
                     <td>${formatNumber(etfSafe.holder_count, 0)}</td>
                     <td>${formatNumber(etfSafe.holding_amount, 2)}</td>
-                    <td>${formatNumber(etfSafe.attention_count, 0)}</td>
-                    <td>${etfSafe.business_text}</td>
+                    <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
+                    <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
+                    <td>${formatNumber(etfSafe.tracking_error)}</td>
                 </tr>
             `;
         });
@@ -653,26 +661,26 @@ function renderIndexGroupResults(data) {
         const avgFeeRate = group.etfs.length > 0 ? totalFeeRate / group.etfs.length : 0;
         
         html += `
-                    </tbody>
+                            </tbody>
                     <tfoot>
                         <tr class="table-info">
                             <td colspan="3">汇总 (${group.etfs.length}个ETF${businessCount > 0 ? '，其中'+businessCount+'个商务品' : ''})</td>
+                            <td>${formatNumber(totalDailyAvgVolume, 2)}</td>
                             <td>${formatNumber(totalScale)}</td>
                             <td>${formatNumber(avgFeeRate, 4)}</td>
-                            <td>${formatNumber(totalDailyAvgVolume, 2)}</td>
-                            <td>${formatNumber(totalDailyVolume, 2)}</td>
-                            <td>-</td>
-                            <td>${formatNumber(totalHolders, 0)}</td>
+                            <td>${group.etfs.length > 0 ? formatNumber((businessCount / group.etfs.length) * 100, 1)+'%' : '-'}</td>
+                            <td>${formatNumber(totalAttention, 0)}</td>
                             <td>${formatNumber(totalHolderCount, 0)}</td>
                             <td>${formatNumber(totalHoldingAmount, 2)}</td>
-                            <td>${formatNumber(totalAttention, 0)}</td>
-                            <td>${group.etfs.length > 0 ? formatNumber((businessCount / group.etfs.length) * 100, 1)+'%' : '-'}</td>
+                            <td>${formatNumber(totalDailyVolume, 2)}</td>
+                            <td>${formatNumber(totalHolders, 0)}</td>
+                            <td>-</td>
                         </tr>
                     </tfoot>
-                </table>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 `
     });
     

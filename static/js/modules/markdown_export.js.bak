@@ -42,8 +42,6 @@ export function generateMarkdown(data) {
         const totalEtfCount = data.count || data.index_groups.reduce((sum, group) => sum + group.etf_count, 0);
         title = `${data.keyword}相关ETF，有哪些选择？`;
         description = `目前，全市场共有相关的${indexCount}个指数和${totalEtfCount}只ETF。哪只规模大？哪只交易量大？哪只费率便宜？这就为你揭晓！`;
-        console.log(`生成指数分组的标题: ${title}`);
-        console.log(`指数组数量: ${indexCount}, ETF总数: ${totalEtfCount}`);
     } else {
         // 其他搜索类型
         title = `${data.keyword}相关ETF，有哪些选择？`;
@@ -357,8 +355,6 @@ function generateETFTableForGroup(etfs) {
 
 // 获取指数描述（从搜索结果中获取）
 function getIndexDescription(indexCode, indexIntro) {
-    console.log('获取指数描述, 指数代码:', indexCode, '传入简介:', indexIntro ? '有' : '无');
-    
     // 首先尝试使用传入的指数简介
     if (indexIntro) {
         return indexIntro;
@@ -366,7 +362,6 @@ function getIndexDescription(indexCode, indexIntro) {
     
     // 从当前搜索结果中获取指数简介
     const searchResultsData = window.currentSearchResults;
-    console.log('搜索结果类型:', searchResultsData ? searchResultsData.search_type : '无搜索结果');
     
     // 检查是否有搜索结果数据
     if (searchResultsData) {
@@ -378,21 +373,18 @@ function getIndexDescription(indexCode, indexIntro) {
         }
         
         // 如果是指数名称搜索结果，在index_groups中查找
-        if (searchResultsData.index_groups) {
+        if (searchResultsData.search_type === "跟踪指数名称" && 
+            searchResultsData.index_groups) {
             // 在指数组中查找匹配的指数代码
             const matchedGroup = searchResultsData.index_groups.find(group => 
                 group.index_code === indexCode);
             
-            console.log('匹配的指数组:', matchedGroup ? '找到' : '未找到');
-            
             if (matchedGroup && matchedGroup.index_intro) {
-                console.log('使用指数组中的简介');
                 return matchedGroup.index_intro;
             }
         }
     }
     
     // 如果在搜索结果中找不到，则使用默认描述
-    console.log('使用默认描述');
     return `${indexCode}指数是一个跟踪特定市场或行业的指数，由一系列符合特定条件的股票组成，用于反映该市场或行业的整体表现。`;
 }

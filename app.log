@@ -1765,3 +1765,357 @@ IndentationError: expected an indented block
 2025-04-03 17:10:20,344 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
 2025-04-03 17:10:21,578 - werkzeug - WARNING -  * Debugger is active!
 2025-04-03 17:10:21,626 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 17:19:29,472 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET / HTTP/1.1" 200 -
+2025-04-03 17:19:29,553 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 17:19:29,554 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 17:19:29,556 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 17:19:29,698 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 17:19:29,698 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 17:19:29,699 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 17:19:29,701 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 17:19:29,702 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 17:19:29,711 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 17:19:29,812 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:19:29] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 17:28:15,446 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET / HTTP/1.1" 200 -
+2025-04-03 17:28:15,540 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 17:28:15,546 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 17:28:15,546 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 17:28:15,598 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 17:28:15,600 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 17:28:15,601 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 17:28:15,602 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 17:28:15,606 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 17:28:15,633 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 17:28:15,639 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:15] "[33mGET /api/load_data HTTP/1.1[0m" 404 -
+2025-04-03 17:28:19,887 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:19] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:28:25,117 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET / HTTP/1.1" 200 -
+2025-04-03 17:28:25,160 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 17:28:25,161 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 17:28:25,161 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 17:28:25,181 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 17:28:25,181 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 17:28:25,184 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 17:28:25,185 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 17:28:25,185 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 17:28:25,196 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 17:28:25,198 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:28:25] "[33mGET /api/load_data HTTP/1.1[0m" 404 -
+2025-04-03 17:29:22,806 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 17:29:22,809 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 17:31:35,665 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET / HTTP/1.1" 200 -
+2025-04-03 17:31:35,740 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 17:31:35,758 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 17:31:35,759 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 17:31:35,801 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 17:31:35,802 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 17:31:35,805 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 17:31:35,805 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 17:31:35,807 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 17:31:35,815 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:35] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 17:31:36,189 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:36] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 17:31:37,977 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:37] "GET / HTTP/1.1" 200 -
+2025-04-03 17:31:38,008 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 17:31:38,008 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 17:31:38,008 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 17:31:38,030 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 17:31:38,033 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 17:31:38,033 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 17:31:38,033 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 17:31:38,034 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 17:31:38,040 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 17:31:38,116 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:31:38] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 17:32:08,714 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 17:32:08,717 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 17:32:09,961 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5007
+ * Running on http://192.168.88.59:5007
+2025-04-03 17:32:09,961 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 17:32:09,962 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 17:32:11,101 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 17:32:11,103 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 17:32:12,315 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 17:32:12,362 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 17:32:20,691 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET / HTTP/1.1" 200 -
+2025-04-03 17:32:20,778 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 17:32:20,778 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 17:32:20,780 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 17:32:20,829 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 17:32:20,829 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 17:32:20,830 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 17:32:20,831 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 17:32:20,833 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 17:32:20,838 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 17:32:20,969 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:20] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 17:32:27,254 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:27] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:32:35,096 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:35] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:32:58,121 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:32:58] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:33:52,578 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:33:52] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:33:58,415 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:33:58] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:39:15,970 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:15] "GET / HTTP/1.1" 200 -
+2025-04-03 17:39:16,091 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 17:39:16,092 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 17:39:16,092 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 17:39:16,153 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 17:39:16,153 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 17:39:16,156 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 17:39:16,158 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 17:39:16,159 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 17:39:16,176 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 17:39:16,360 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:16] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 17:39:19,209 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:39:19] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:43:02,712 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:43:02] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:52:54,470 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET / HTTP/1.1" 200 -
+2025-04-03 17:52:54,546 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 17:52:54,547 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 17:52:54,547 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 17:52:54,607 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 17:52:54,608 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 17:52:54,610 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 17:52:54,610 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 17:52:54,611 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 17:52:54,617 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 17:52:54,754 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:54] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 17:52:57,864 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:52:57] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:53:10,716 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:53:10] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:53:29,914 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:53:29] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:54:06,965 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:54:06] "POST /search HTTP/1.1" 200 -
+2025-04-03 17:54:19,678 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 17:54:19] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:02:06,293 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 18:02:06,295 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 18:02:06,753 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 18:02:06,753 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 18:02:53,210 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET / HTTP/1.1" 200 -
+2025-04-03 18:02:53,309 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 18:02:53,310 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 18:02:53,310 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 18:02:53,386 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 18:02:53,390 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 18:02:53,391 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 18:02:53,393 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 18:02:53,394 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 18:02:53,413 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 18:02:53,557 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:53] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 18:02:56,712 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:02:56] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:03:45,968 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:03:45] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:08:22,699 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 18:08:22,701 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 18:08:23,153 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 18:08:23,154 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 18:08:38,680 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET / HTTP/1.1" 200 -
+2025-04-03 18:08:38,833 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 18:08:38,846 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 18:08:38,847 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 18:08:38,951 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 18:08:38,953 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 18:08:38,953 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 18:08:38,955 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 18:08:38,956 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 18:08:38,979 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:38] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 18:08:40,145 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:40] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 18:08:42,464 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:08:42] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:09:23,056 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:09:23] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:12:18,342 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 18:12:18,345 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 18:12:18,863 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 18:12:18,863 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 18:13:11,139 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 18:13:11,142 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 18:13:11,708 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 18:13:11,708 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 18:14:13,082 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 18:14:13,085 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 18:14:13,642 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 18:14:13,643 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 18:14:28,504 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:28] "GET / HTTP/1.1" 200 -
+2025-04-03 18:14:29,190 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:29] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 18:14:29,194 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:29] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 18:14:29,194 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:29] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 18:14:29,494 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:29] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 18:14:29,494 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:29] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 18:14:29,494 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:29] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 18:14:29,500 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:29] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 18:14:29,500 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:29] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 18:14:29,522 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:29] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 18:14:30,282 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:30] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 18:14:34,910 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:14:34] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:15:05,691 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:15:05] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:15:08,196 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:15:08] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:17:34,762 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 18:17:34,764 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 18:17:35,186 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 18:17:35,186 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 18:17:45,561 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET / HTTP/1.1" 200 -
+2025-04-03 18:17:45,647 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 18:17:45,647 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 18:17:45,648 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 18:17:45,669 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 18:17:45,670 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 18:17:45,671 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 18:17:45,672 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 18:17:45,674 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 18:17:45,682 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 18:17:45,773 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:45] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 18:17:51,877 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:17:51] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:18:14,471 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:18:14] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:19:19,395 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:19:19] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:22:08,737 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 18:22:08,739 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 18:22:09,192 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 18:22:09,192 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 18:22:18,167 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET / HTTP/1.1" 200 -
+2025-04-03 18:22:18,264 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 18:22:18,268 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 18:22:18,271 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 18:22:18,303 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 18:22:18,304 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 18:22:18,307 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 18:22:18,308 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 18:22:18,315 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 18:22:18,323 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 18:22:18,451 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:18] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 18:22:21,619 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:21] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:22:53,362 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 18:22:53] "POST /search HTTP/1.1" 200 -
+2025-04-03 18:25:57,401 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 18:25:57,403 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 18:25:57,848 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 18:25:57,848 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 19:57:46,764 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET / HTTP/1.1" 200 -
+2025-04-03 19:57:46,858 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 19:57:46,860 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 19:57:46,860 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 19:57:46,947 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 19:57:46,949 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 19:57:46,949 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 19:57:46,950 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 19:57:46,951 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 19:57:46,957 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:46] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 19:57:47,094 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:47] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 19:57:54,486 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:54] "POST /search HTTP/1.1" 200 -
+2025-04-03 19:57:59,680 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:57:59] "POST /search HTTP/1.1" 200 -
+2025-04-03 19:58:18,297 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 19:58:18] "POST /search HTTP/1.1" 200 -
+2025-04-03 19:59:48,919 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-03 19:59:49,371 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 19:59:51,433 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 19:59:51,436 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 19:59:52,821 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 19:59:52,870 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 20:00:04,161 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-03 20:00:04,329 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 20:00:05,468 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:00:05,470 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:00:06,768 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 20:00:06,802 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 20:00:17,024 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-03 20:00:17,218 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 20:00:18,566 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:00:18,569 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:00:19,828 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 20:00:19,857 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 20:00:31,161 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-03 20:00:31,336 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 20:00:32,681 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:00:32,684 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:00:34,067 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 20:00:34,132 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 20:02:49,813 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:02:49,816 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:02:50,294 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 20:02:50,294 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 20:05:09,350 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:05:09,353 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:05:09,890 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 20:05:09,890 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 20:05:17,775 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:17] "GET / HTTP/1.1" 200 -
+2025-04-03 20:05:18,157 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:18] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 20:05:18,157 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:18] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 20:05:18,157 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:18] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 20:05:18,246 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:18] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 20:05:18,259 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:18] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 20:05:18,261 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:18] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 20:05:18,262 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:18] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 20:05:18,265 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:18] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 20:05:28,323 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:28] "GET / HTTP/1.1" 200 -
+2025-04-03 20:05:28,363 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:28] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 20:05:28,368 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:28] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 20:05:28,369 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:28] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 20:05:28,382 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:28] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 20:05:28,383 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:28] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 20:05:28,383 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:28] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 20:05:28,385 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:28] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 20:05:28,386 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:05:28] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 20:05:53,539 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:05:53,542 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:05:54,844 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5008
+ * Running on http://192.168.31.213:5008
+2025-04-03 20:05:54,844 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 20:05:54,845 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 20:05:55,657 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:05:55,659 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:05:56,823 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 20:05:56,871 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 20:06:08,857 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:06:08] "GET / HTTP/1.1" 200 -
+2025-04-03 20:06:08,874 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:06:08] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 20:06:08,880 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:06:08] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 20:06:08,884 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:06:08] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 20:06:08,898 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:06:08] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 20:06:08,898 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:06:08] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 20:06:08,899 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:06:08] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 20:06:08,903 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:06:08] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 20:06:08,903 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:06:08] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 20:07:23,938 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-03 20:07:24,164 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 20:07:28,766 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:07:28,769 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:07:30,150 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 20:07:30,195 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 20:07:59,394 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-03 20:07:59,618 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 20:08:02,147 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:08:02,149 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:08:03,571 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 20:08:03,615 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 20:08:14,026 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/database/models.py', reloading
+2025-04-03 20:08:14,198 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 20:08:15,187 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:08:15,191 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:08:16,587 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 20:08:16,616 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 20:08:27,891 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/database/models.py', reloading
+2025-04-03 20:08:28,040 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 20:08:28,928 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:08:28,930 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:08:30,117 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 20:08:30,144 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 20:11:10,952 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:10] "GET / HTTP/1.1" 200 -
+2025-04-03 20:11:11,042 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 20:11:11,043 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 20:11:11,043 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 20:11:11,084 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 20:11:11,085 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 20:11:11,087 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 20:11:11,089 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 20:11:11,091 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 20:11:11,098 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 20:11:11,246 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:11] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 20:11:13,953 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:13] "POST /search HTTP/1.1" 200 -
+2025-04-03 20:11:39,107 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:39] "POST /search HTTP/1.1" 200 -
+2025-04-03 20:11:40,932 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:11:40] "POST /search HTTP/1.1" 200 -
+2025-04-03 20:20:56,438 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 20:20:56] "POST /search HTTP/1.1" 200 -
+2025-04-03 20:22:21,136 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/app.py', reloading
+2025-04-03 20:22:21,456 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 20:22:23,458 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 20:22:23,461 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 20:22:24,646 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 20:22:24,684 - werkzeug - INFO -  * Debugger PIN: 513-303-707

@@ -11,6 +11,10 @@ import pandas as pd
 from datetime import datetime
 from utils.etf_code import normalize_etf_code
 from typing import List, Dict
+from services.index_service import get_index_intro  # 导入get_index_intro函数
+
+# 数据库路径
+DATABASE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data/etf_data.db')
 
 class Database:
     """
@@ -18,7 +22,7 @@ class Database:
     """
     def __init__(self):
         """初始化数据库连接"""
-        self.db_file = 'data/etf_data.db'
+        self.db_file = DATABASE_PATH
         os.makedirs(os.path.dirname(self.db_file), exist_ok=True)
         self.conn = None
         
@@ -1071,7 +1075,7 @@ class Database:
                 # 添加到结果列表
                 etf_results.append(etf_data)
                 
-                # 按指数分组
+                # 初始化当前指数组
                 if index_code not in index_groups:
                     index_groups[index_code] = {
                         'index_code': index_code,
@@ -1079,6 +1083,11 @@ class Database:
                         'etfs': [],
                         'total_scale': 0
                     }
+                    
+                    # 添加指数简介
+                    index_intro = get_index_intro(index_code)
+                    if index_intro:
+                        index_groups[index_code]['index_intro'] = index_intro
                 
                 # 添加到对应指数组
                 index_groups[index_code]['etfs'].append(etf_data)
@@ -1357,7 +1366,7 @@ class Database:
                 # 添加到结果列表
                 etf_results.append(etf_data)
                 
-                # 按指数分组
+                # 初始化当前指数组
                 if index_code not in index_groups:
                     index_groups[index_code] = {
                         'index_code': index_code,
@@ -1365,6 +1374,11 @@ class Database:
                         'etfs': [],
                         'total_scale': 0
                     }
+                    
+                    # 添加指数简介
+                    index_intro = get_index_intro(index_code)
+                    if index_intro:
+                        index_groups[index_code]['index_intro'] = index_intro
                 
                 # 添加到对应指数组
                 index_groups[index_code]['etfs'].append(etf_data)

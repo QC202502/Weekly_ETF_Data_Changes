@@ -1,0 +1,92 @@
+{
+  "count": 1,
+  "index_code": "746059.MI",
+  "index_intro": "MSCI中国A50互联互通指数基于MSCI中国A股指数（母指数）构建而成，其母指数是个基础广泛的基准指数，它包含了在上海和深圳交易所上市的中国A股大盘和中盘股票，且可通过北向交易互联互通。这个指数旨在反映代表各全球行业分类标准的5种最大股票的表现，并反映母指数的行业权重分配。",
+  "index_name": "MSCI中国A50互联互通",
+  "related_count": 4,
+  "related_etfs": [
+    {
+      "attention_count": 500,
+      "business_text": "非商务品",
+      "code": "563000.SH",
+      "fund_size": 45.147,
+      "holder_count": 178,
+      "holding_amount": 8302939.39,
+      "is_business": false,
+      "management_fee_rate": 0.15,
+      "manager": "易方达基金管理有限公司",
+      "name": "中国A50ETF",
+      "total_holder_count": 60424,
+      "tracking_error": 2.0,
+      "tracking_index_code": "746059.MI",
+      "tracking_index_name": "MSCI中国A50互联互通"
+    },
+    {
+      "attention_count": 1642,
+      "business_text": "非商务品",
+      "code": "159601.SZ",
+      "fund_size": 38.7322,
+      "holder_count": 385,
+      "holding_amount": 14913202.05,
+      "is_business": false,
+      "management_fee_rate": 0.5,
+      "manager": "华夏基金管理有限公司",
+      "name": "A50ETF",
+      "total_holder_count": 68298,
+      "tracking_error": 2.0,
+      "tracking_index_code": "746059.MI",
+      "tracking_index_name": "MSCI中国A50互联互通"
+    },
+    {
+      "attention_count": 202,
+      "business_text": "非商务品",
+      "code": "159602.SZ",
+      "fund_size": 12.213,
+      "holder_count": 49,
+      "holding_amount": 1603427.4,
+      "is_business": false,
+      "management_fee_rate": 0.15,
+      "manager": "南方基金管理股份有限公司",
+      "name": "中国A50ETF",
+      "total_holder_count": 19411,
+      "tracking_error": 2.0,
+      "tracking_index_code": "746059.MI",
+      "tracking_index_name": "MSCI中国A50互联互通"
+    },
+    {
+      "attention_count": 34,
+      "business_text": "非商务品",
+      "code": "563280.SH",
+      "fund_size": 0.1121,
+      "holder_count": 0,
+      "holding_amount": 0.0,
+      "is_business": false,
+      "management_fee_rate": 0.7,
+      "manager": "富国基金管理有限公司",
+      "name": "A50增强ETF",
+      "total_holder_count": 362,
+      "tracking_error": 6.5,
+      "tracking_index_code": "746059.MI",
+      "tracking_index_name": "MSCI中国A50互联互通"
+    }
+  ],
+  "results": [
+    {
+      "attention_count": 3062,
+      "business_text": "商务品",
+      "code": "560050.SH",
+      "fund_size": 57.3761,
+      "holder_count": 3046,
+      "holding_amount": 515202640.51,
+      "is_business": true,
+      "management_fee_rate": 0.5,
+      "manager": "汇添富基金管理股份有限公司",
+      "name": "MSCI中国A50ETF",
+      "total_holder_count": 65510,
+      "tracking_error": 2.0,
+      "tracking_index_code": "746059.MI",
+      "tracking_index_name": "MSCI中国A50互联互通"
+    }
+  ],
+  "search_type": "ETF基金代码"
+}

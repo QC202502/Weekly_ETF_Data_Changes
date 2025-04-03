@@ -60,19 +60,19 @@ def search():
         keyword = None
         
         # 尝试从表单数据获取
-        if request.form and 'code' in request.form:
-        keyword = request.form.get('code', '').strip()
+        if request.form:
+            keyword = request.form.get('code', '').strip()
             print(f"从表单获取关键词: {keyword}")
         
         # 如果表单数据不存在，尝试从JSON数据获取
         if not keyword and request.is_json:
-            data = request.get_json(silent=True)
+            data = request.get_json()
             if data and 'code' in data:
                 keyword = data.get('code', '').strip()
                 print(f"从JSON获取关键词: {keyword}")
         
         # 如果JSON数据不存在，尝试从URL参数获取
-        if not keyword and 'code' in request.args:
+        if not keyword:
             keyword = request.args.get('code', '').strip()
             print(f"从URL参数获取关键词: {keyword}")
         
@@ -88,9 +88,6 @@ def search():
         print(f"搜索关键词: '{keyword}'")
         
         db = Database()
-        
-        # 获取数据截止日期
-        data_date = get_data_cutoff_date()
         
         # 检查是否是ETF代码
         if re.match(r'^\d{6}$', keyword) or re.match(r'^\d{6}\.[A-Z]{2}$', keyword):
@@ -122,7 +119,7 @@ def search():
                         # 根据跟踪指数查找相关ETF
                         if tracking_index_code:
                             related_etfs = db.search_by_index_code(tracking_index_code)
-            else:
+                        else:
                             related_etfs = db.search_by_index_name(tracking_index_name)
                             
                         # 标准化结果
@@ -148,26 +145,8 @@ def search():
                         'related_etfs': related_etfs,
                         'related_count': len(related_etfs),
                         'index_code': tracking_index_code,
-                        'index_name': tracking_index_name,
-                        'data_date': data_date  # 添加数据截止日期
+                        'index_name': tracking_index_name
                     }
-                    
-                    # 添加ETF数量和总规模字段
-                    total_etf_count = len(results) + len(related_etfs)
-                    response_data['etf_count'] = total_etf_count
-                    
-                    # 计算总规模
-                    total_scale = 0
-                    for etf in results:
-                        total_scale += float(etf.get('fund_size', 0) or 0)
-                    for etf in related_etfs:
-                        total_scale += float(etf.get('fund_size', 0) or 0)
-                    response_data['total_scale'] = total_scale
-                    
-                    # 调试信息
-                    print(f"ETF基金代码搜索 - 添加总计字段:")
-                    print(f"- etf_count: {total_etf_count}")
-                    print(f"- total_scale: {total_scale}")
                     
                     # 尝试获取指数介绍
                     if tracking_index_code:
@@ -208,16 +187,14 @@ def search():
                     'results': results,
                     'count': len(results),
                     'company_name': keyword,
-                    'is_grouped': False,
-                    'data_date': data_date  # 添加数据截止日期
+                    'is_grouped': False
                 })
                 return add_cors_headers(response)
             else:
                 response = jsonify({
                     'results': [],
                     'count': 0,
-                    'message': '未找到相关ETF',
-                    'data_date': data_date  # 添加数据截止日期
+                    'message': '未找到相关ETF'
                 })
                 return add_cors_headers(response)
         
@@ -253,8 +230,7 @@ def search():
                     'count': len(results),
                     'index_code': tracking_index_code,
                     'index_name': tracking_index_name or keyword,
-                    'is_grouped': False,
-                    'data_date': data_date  # 添加数据截止日期
+                    'is_grouped': False
                 }
                 
                 # 尝试获取指数介绍
@@ -292,16 +268,14 @@ def search():
                         'results': results,
                         'count': len(results),
                         'keyword': keyword,
-                        'is_grouped': False,
-                        'data_date': data_date  # 添加数据截止日期
+                        'is_grouped': False
                     })
                     return add_cors_headers(response)
-        else:
+            else:
                 response = jsonify({
                     'results': [],
                     'count': 0,
-                    'message': '未找到相关ETF',
-                    'data_date': data_date  # 添加数据截止日期
+                    'message': '未找到相关ETF'
                 })
                 return add_cors_headers(response)
         
@@ -376,7 +350,7 @@ def determine_search_type(keyword):
         ]
         for code in possible_codes:
             if db.check_etf_code_exists(code):
-            return "ETF基金代码"
+                return "ETF基金代码"
     
     # 判断是否为基金公司名称
     company_keywords = ['基金', '资管', '投资', '证券']
@@ -959,254 +933,3 @@ def get_recommendations():
         import traceback
         traceback.print_exc()
         return jsonify({"error": f"获取推荐数据出错：{str(e)}"})
-
-# 添加一个新函数来获取数据截止日期
-def get_data_cutoff_date():
-    """从ETF数据文件名获取最新的数据截止日期"""
-    try:
-        import os
-        import re
-        import datetime
-        
-        # 定义可能的数据文件路径模式
-        data_file_patterns = [
-            'data/ETF_DATA_*.xlsx',
-            'data/客户ETF自选人数*.xlsx',
-            'data/客户ETF保有量*.xlsx',
-            'data/ETF单产品商务协议*.xlsx'
-        ]
-        
-        latest_date = None
-        
-        # 遍历所有可能的文件模式
-        for pattern in data_file_patterns:
-            # 使用glob查找匹配的文件
-            import glob
-            files = glob.glob(pattern)
-            
-            for file_path in files:
-                # 从文件名中提取日期
-                date_match = re.search(r'(\d{8})', file_path)
-                if date_match:
-                    date_str = date_match.group(1)
-                    try:
-                        file_date = datetime.datetime.strptime(date_str, '%Y%m%d').date()
-                        if latest_date is None or file_date > latest_date:
-                            latest_date = file_date
-                    except ValueError:
-                        # 日期格式不正确，忽略
-                        continue
-        
-        # 如果找到有效日期，格式化为YYYY.MM.DD
-        if latest_date:
-            return latest_date.strftime('%Y.%m.%d')
-        else:
-            # 如果没有找到有效日期，返回当前日期
-            return datetime.datetime.now().strftime('%Y.%m.%d')
-    except Exception as e:
-        print(f"获取数据截止日期出错: {str(e)}")
-        # 出错时返回当前日期
-        import datetime
-        return datetime.datetime.now().strftime('%Y.%m.%d')
-
-@search_bp.route('/api/search', methods=['GET'])
-def api_search():
-    """API搜索ETF（GET方法）"""
-    try:
-        # 在返回的jsonify结果中查看CORS头
-        def add_cors_headers(response):
-            response.headers.add('Access-Control-Allow-Origin', '*')
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-            return response
-            
-        # 调试输出请求信息
-        print("\n======= 收到API搜索请求 =======")
-        print(f"请求方法: {request.method}")
-        print(f"URL参数: {request.args}")
-        print("============================\n")
-        
-        # 获取搜索关键词
-        keyword = ''
-        
-        # 尝试从URL查询参数获取，API使用的是'query'参数
-        if request.args and 'query' in request.args:
-            keyword = request.args.get('query', '').strip()
-            print(f"从URL参数获取关键词: {keyword}")
-            
-            # 尝试解码URL编码
-            try:
-                import urllib.parse
-                decoded_keyword = urllib.parse.unquote(keyword)
-                print(f"原始关键词: '{keyword}'")
-                print(f"解码后关键词: '{decoded_keyword}'")
-                keyword = decoded_keyword
-            except Exception as e:
-                print(f"解码关键词时出错: {str(e)}")
-        
-        # 如果没有关键词，返回错误
-        if not keyword:
-            print("未提供搜索关键词")
-            response = jsonify({"error": "请输入搜索关键词"})
-            return add_cors_headers(response)
-        
-        print(f"最终使用的搜索关键词: '{keyword}'")
-        
-        # 尝试直接运行公司搜索
-        if keyword in ['汇添富', '华夏', '易方达', '南方', '广发', '嘉实', '博时'] or '基金' in keyword or '资管' in keyword:
-            print(f"尝试直接进行公司搜索: '{keyword}'")
-            db = Database()
-            company_results = db.search_by_company(keyword)
-            
-            if company_results:
-                print(f"公司搜索成功，找到{len(company_results)}条结果")
-                response = jsonify({
-                    'results': normalize_etf_results(company_results),
-                    'count': len(company_results),
-                    'data_date': get_data_cutoff_date(),
-                    'search_type': '基金公司名称',
-                    'company_name': keyword
-                })
-                return add_cors_headers(response)
-        
-        # 如果公司搜索无结果或不是公司名称，则继续进行其他类型的搜索
-        db = Database()
-        
-        # 获取数据截止日期
-        data_date = get_data_cutoff_date()
-        
-        # 确定搜索类型
-        search_type = determine_search_type(keyword)
-        print(f"搜索类型: {search_type}")
-        
-        # 根据搜索类型执行不同的搜索
-        if search_type == "ETF基金代码":
-            # 处理ETF代码，去掉可能的后缀
-            etf_code = keyword
-            if '.' in etf_code:
-                etf_code = etf_code.split('.')[0]
-            elif etf_code.startswith('sh') or etf_code.startswith('sz'):
-                etf_code = etf_code[2:]
-            print(f"搜索ETF代码: {etf_code}")
-            results = db.search_by_etf_code(etf_code)
-        elif search_type == "基金公司名称":
-            print(f"搜索基金公司: {keyword}")
-            results = db.search_by_company(keyword)
-        elif search_type == "跟踪指数名称":
-            print(f"搜索指数名称: {keyword}")
-            results = db.search_by_index_name(keyword)
-        else:
-            # 通用搜索
-            print(f"执行通用搜索: {keyword}")
-            results = db.general_search(keyword)
-        
-        if results:
-            # 添加数据截止日期
-            if isinstance(results, dict) and 'results' in results:
-                results['data_date'] = data_date
-            else:
-                # 如果结果是列表，则构建新的字典返回
-                results = {
-                    'results': normalize_etf_results(results),
-                    'count': len(results),
-                    'data_date': data_date
-                }
-            
-            print(f"搜索成功，返回{results.get('count', len(results.get('results', [])))}条结果")
-            response = jsonify(results)
-            return add_cors_headers(response)
-        else:
-            print("搜索无结果")
-            response = jsonify({
-                'results': [],
-                'count': 0,
-                'message': '未找到相关ETF',
-                'data_date': data_date
-            })
-            return add_cors_headers(response)
-            
-    except Exception as e:
-        print(f"API搜索处理错误: {str(e)}")
-        traceback.print_exc()
-        return jsonify({
-            'error': f'搜索处理错误: {str(e)}',
-            'trace': traceback.format_exc()
-        }), 500
-
-@search_bp.route('/api/company', methods=['GET'])
-def api_company_search():
-    """按基金公司搜索ETF（GET方法）"""
-    try:
-        # 在返回的jsonify结果中查看CORS头
-        def add_cors_headers(response):
-            response.headers.add('Access-Control-Allow-Origin', '*')
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-            return response
-            
-        # 调试输出请求信息
-        print("\n======= 收到基金公司搜索请求 =======")
-        print(f"请求方法: {request.method}")
-        print(f"URL参数: {request.args}")
-        print("=================================\n")
-        
-        # 获取搜索关键词
-        company = ''
-        
-        # 尝试从URL查询参数获取
-        if request.args and 'name' in request.args:
-            company = request.args.get('name', '').strip()
-            print(f"从URL参数获取公司名称: {company}")
-            
-            # 尝试解码URL编码
-            try:
-                import urllib.parse
-                decoded_company = urllib.parse.unquote(company)
-                print(f"原始公司名称: '{company}'")
-                print(f"解码后公司名称: '{decoded_company}'")
-                company = decoded_company
-            except Exception as e:
-                print(f"解码公司名称时出错: {str(e)}")
-        
-        # 如果没有关键词，返回错误
-        if not company:
-            print("未提供基金公司名称")
-            response = jsonify({"error": "请输入基金公司名称"})
-            return add_cors_headers(response)
-        
-        print(f"最终使用的基金公司名称: '{company}'")
-        
-        # 查询数据库
-        db = Database()
-        company_results = db.search_by_company(company)
-        
-        # 获取数据截止日期
-        data_date = get_data_cutoff_date()
-        
-        if company_results:
-            print(f"公司搜索成功，找到{len(company_results)}条结果")
-            response = jsonify({
-                'results': normalize_etf_results(company_results),
-                'count': len(company_results),
-                'data_date': data_date,
-                'search_type': '基金公司名称',
-                'company_name': company
-            })
-            return add_cors_headers(response)
-        else:
-            print("基金公司搜索无结果")
-            response = jsonify({
-                'results': [],
-                'count': 0,
-                'message': '未找到该基金公司的ETF产品',
-                'data_date': data_date
-            })
-            return add_cors_headers(response)
-            
-    except Exception as e:
-        print(f"基金公司搜索处理错误: {str(e)}")
-        traceback.print_exc()
-        return jsonify({
-            'error': f'搜索处理错误: {str(e)}',
-            'trace': traceback.format_exc()
-        }), 500

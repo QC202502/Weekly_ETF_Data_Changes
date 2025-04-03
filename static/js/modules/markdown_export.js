@@ -10,6 +10,9 @@ export function generateMarkdown(data) {
         return '无法生成Markdown：没有有效的搜索结果';
     }
     
+    // 获取数据截止日期，如果存在就使用，否则使用当前日期
+    const dataDate = data.data_date || new Date().toISOString().split('T')[0].replace(/-/g, '.');
+    
     // 根据搜索类型生成不同的标题和描述
     let title, description;
     let date = new Date().toISOString().split('T')[0]; // 当前日期，格式为YYYY-MM-DD
@@ -39,6 +42,11 @@ export function generateMarkdown(data) {
     // 构建Markdown头部
     let markdown = `---\ntitle: ${title}\ndescription: ${description}\ntags: ${tags.join(', ')}\ndate: ${date}\nimage: https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80\n\n---\n-\n\n`;
     
+    // 如果是关键词搜索，添加关键词为一级标题
+    if (data.search_type === "跟踪指数名称" && data.keyword) {
+        markdown += `# ${data.keyword}\n\n`;
+    }
+    
     // 根据搜索类型生成不同的内容
     if (data.search_type === "跟踪指数名称" && data.index_groups) {
         markdown += generateIndexGroupsMarkdown(data.index_groups);
@@ -48,7 +56,9 @@ export function generateMarkdown(data) {
         markdown += generateGeneralMarkdown(data);
     }
     
-    // 不再添加结尾分隔符
+    // 添加免责声明和数据来源说明，使用动态数据截止日期
+    markdown += `\n\n> 数据来源：Wind ${dataDate}（截止日期取数据库数据日期）。相关内容仅供参考，不作为投资建议，请自行决策，并以基金公告为准。月日均交易量为数据截止日前30日平均日交易量，单位为亿元；总规模为最新基金定期报告中数据，单位为亿元；管理费率单位为 %。`;
+    
     return markdown;
 }
 
@@ -56,16 +66,19 @@ export function generateMarkdown(data) {
 function generateIndexGroupsMarkdown(indexGroups) {
     let markdown = '';
     
-    // 为每个指数创建一个部分
+    // 对指数组按规模大小排序
+    indexGroups.sort((a, b) => b.total_scale - a.total_scale);
+    
+    // 处理每个指数组
     indexGroups.forEach((group, index) => {
-        // 移除一级标题
+        // 添加带序号的二级标题
         markdown += `## **${index + 1}. ${group.index_name} (${group.index_code})**\n`;
-        markdown += `|**总规模: ${group.total_scale}亿元 , ETF数量: ${group.etf_count}**|\n`;
+        markdown += `|**总规模: ${group.total_scale.toFixed(2)}亿元 , ETF数量: ${group.etf_count}**|\n`;
         markdown += `|:-----|\n`;
-        markdown += `|${getIndexDescription(group.index_code)}|\n\n`;
+        markdown += `|${getIndexDescription(group.index_code, group.index_intro)}|\n\n`;
         
         // 添加ETF表格
-        markdown += generateETFTableMarkdown(group.etfs);
+        markdown += generateETFTableForGroup(group.etfs);
         markdown += '\n';
     });
     
@@ -74,14 +87,42 @@ function generateIndexGroupsMarkdown(indexGroups) {
 
 // 生成ETF代码搜索的Markdown
 function generateETFCodeMarkdown(data) {
-    // 移除一级标题和序号，直接从二级标题开始
+    // 添加调试信息
+    console.log('生成ETF代码Markdown，data对象:', JSON.stringify(data, null, 2));
+    console.log('data.index_name:', data.index_name);
+    console.log('data.index_code:', data.index_code);
+    console.log('data.total_scale:', data.total_scale);
+    console.log('data.etf_count:', data.etf_count);
+    console.log('data.results长度:', data.results ? data.results.length : 0);
+    console.log('data.related_etfs长度:', data.related_etfs ? data.related_etfs.length : 0);
+    
+    // 检查关键属性是否存在
+    if (!data.index_name || !data.index_code || data.total_scale === undefined) {
+        console.error('ETF代码Markdown生成失败：缺少必要属性');
+        return '无法生成Markdown：数据不完整，缺少指数名称、代码或总规模信息';
+    }
+    
+    // 移除序号，直接从二级标题开始
     let markdown = `## **${data.index_name} (${data.index_code})**\n`;
-    markdown += `|**总规模: ${data.total_scale}亿元 , ETF数量: ${data.etf_count}**|\n`;
+    markdown += `|**总规模: ${(data.total_scale || 0).toFixed(2)}亿元 , ETF数量: ${data.etf_count || 0}**|\n`;
     markdown += `|:-----|\n`;
-    markdown += `|${getIndexDescription(data.index_code)}|\n\n`;
+    markdown += `|${getIndexDescription(data.index_code, data.index_intro)}|\n\n`;
+    
+    // 合并主ETF和同指数ETF
+    let allETFs = [...(data.results || [])];
+    if (data.related_etfs && data.related_etfs.length > 0) {
+        allETFs = allETFs.concat(data.related_etfs);
+    }
+    
+    // 按区间日均成交额从高到低排序
+    allETFs.sort((a, b) => {
+        const volumeA = Number(a.daily_avg_volume || 0);
+        const volumeB = Number(b.daily_avg_volume || 0);
+        return volumeB - volumeA;
+    });
     
     // 添加ETF表格
-    markdown += generateETFTableMarkdown(data.results);
+    markdown += generateETFTableForGroup(allETFs);
     
     return markdown;
 }
@@ -95,81 +136,98 @@ function generateGeneralMarkdown(data) {
     markdown += `|以下是与"${data.keyword}"相关的ETF产品|\n\n`;
     
     // 添加ETF表格
-    markdown += generateETFTableMarkdown(data.results);
+    markdown += generateETFTableForGroup(data.results);
     
     return markdown;
 }
 
-// 生成ETF表格的Markdown
-function generateETFTableMarkdown(etfs) {
+// 为指数组生成ETF表格
+function generateETFTableForGroup(etfs) {
     if (!etfs || etfs.length === 0) {
-        return '无相关ETF产品';
+        return '暂无相关ETF产品数据\n';
     }
     
-    // 找出交易量最大、规模最大和费率最低的ETF
-    let maxVolumeETF = etfs[0];
-    let maxScaleETF = etfs[0];
-    let minFeeRateETF = etfs[0];
+    let markdown = '';
     
-    etfs.forEach(etf => {
-        if (etf.volume > maxVolumeETF.volume) {
-            maxVolumeETF = etf;
-        }
-        if (etf.scale > maxScaleETF.scale) {
-            maxScaleETF = etf;
-        }
-        if (etf.fee_rate < minFeeRateETF.fee_rate) {
-            minFeeRateETF = etf;
-        }
-    });
+    // 创建表头
+    markdown += `|产品代码|产品简称|管理人|月日均交易量|总规模|管理费率|\n`;
+    markdown += `|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|\n`;
     
-    // 找出费率最低且交易量最大的ETF
-    // 先找出所有费率最低的ETF
-    let minFeeRateETFs = etfs.filter(etf => etf.fee_rate === minFeeRateETF.fee_rate);
+    // 简化公司名称的辅助函数
+    const simplifyCompany = (company) => {
+        if (!company) return '';
+        // 删除"基金"及其后面的字符
+        return company.replace(/基金.*$/, '');
+    };
     
-    // 如果有多个费率相同的ETF，选择交易量最大的
-    let minFeeMaxVolumeETF = minFeeRateETFs.reduce((max, etf) => 
-        etf.volume > max.volume ? etf : max, minFeeRateETFs[0]);
+    // 移除代码后缀的辅助函数
+    const removeCodeSuffix = (code) => {
+        if (!code) return '';
+        return code.replace(/\.(SZ|SH|BJ)$/i, '');
+    };
     
-    // 确定需要高亮的ETF
-    // 在交易量最大、规模最大和费率最低中选择交易量最大的作为高亮ETF
-    let volumeRank = [maxVolumeETF];
-    if (maxScaleETF.volume > 0 && maxScaleETF !== maxVolumeETF) {
-        volumeRank.push(maxScaleETF);
-    }
-    if (minFeeRateETF.volume > 0 && minFeeRateETF !== maxVolumeETF && minFeeRateETF !== maxScaleETF) {
-        volumeRank.push(minFeeRateETF);
-    }
+    // 找出总规模最大和交易量最大的ETF
+    let maxFundSizeETF = [...etfs].sort((a, b) => 
+        (Number(b.fund_size || 0) - Number(a.fund_size || 0)))[0] || null;
     
-    // 按交易量排序
-    volumeRank.sort((a, b) => b.volume - a.volume);
+    let maxVolumeETF = [...etfs].sort((a, b) => 
+        (Number(b.daily_avg_volume || 0) - Number(a.daily_avg_volume || 0)))[0] || null;
     
-    // 交易量最大的ETF作为高亮ETF
-    let highlightETF = volumeRank[0];
+    // 找出管理费率最低的ETF组
+    let minFeeETFs = [...etfs].sort((a, b) => 
+        (Number(a.management_fee_rate || 0) - Number(b.management_fee_rate || 0)));
     
-    // 创建表格头部
-    let markdown = '|产品代码|产品简称|管理人|月日均交易量|总规模|管理费率|\n';
-    markdown += '|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|\n';
+    // 获取最低费率
+    const lowestFee = minFeeETFs.length > 0 ? Number(minFeeETFs[0].management_fee_rate || 0) : 0;
+    
+    // 筛选所有具有最低费率的ETF
+    const lowestFeeETFs = minFeeETFs.filter(etf => 
+        Number(etf.management_fee_rate || 0) === lowestFee);
+    
+    // 在最低费率组中，找出交易量最大的
+    let minFeeHighlightETF = lowestFeeETFs.length > 0 ? 
+        lowestFeeETFs.sort((a, b) => 
+            Number(b.daily_avg_volume || 0) - Number(a.daily_avg_volume || 0))[0] : 
+        (etfs.length > 0 ? etfs[0] : null);
     
     // 添加ETF行
     etfs.forEach(etf => {
-        // 处理管理人名称，移除"基金"后缀
-        let manager = etf.manager.replace(/基金(管理有限)?公司$|基金$|资产管理$|证券$/, '');
+        // 检查是否需要高亮
+        const isMinFeeHighlight = minFeeHighlightETF && etf.code === minFeeHighlightETF.code;
+        const isMaxSizeHighlight = maxFundSizeETF && etf.code === maxFundSizeETF.code;
+        const isMaxVolumeHighlight = maxVolumeETF && etf.code === maxVolumeETF.code;
         
-        // 使用下划线标记高亮ETF
-        let code = (etf === highlightETF || etf === minFeeMaxVolumeETF) ? `==${etf.code}==` : etf.code;
-        let volume = etf === maxVolumeETF ? `==${etf.volume.toFixed(2)}==` : etf.volume.toFixed(2);
-        let scale = etf === maxScaleETF ? `==${etf.scale.toFixed(2)}==` : etf.scale.toFixed(2);
-        let feeRate = etf === minFeeRateETF ? `==${etf.fee_rate.toFixed(2)}%==` : `${etf.fee_rate.toFixed(2)}%`;
+        // 处理基本字段
+        const displayCode = removeCodeSuffix(etf.code);
+        // 修改：确保费率最低中交易量最高的产品代码也被高亮
+        const code = (isMaxSizeHighlight || isMaxVolumeHighlight || isMinFeeHighlight) ? 
+            `==${displayCode}==` : displayCode;
         
-        markdown += `|${code}|${etf.name}|${manager}|${volume}|${scale}|${feeRate}|\n`;
+        const volume = isMaxVolumeHighlight ? 
+            `==${Number(etf.daily_avg_volume || 0).toFixed(2)}==` : 
+            Number(etf.daily_avg_volume || 0).toFixed(2);
+        
+        const size = isMaxSizeHighlight ? 
+            `==${Number(etf.fund_size || 0).toFixed(1)}==` : 
+            Number(etf.fund_size || 0).toFixed(1);
+            
+        const fee = isMinFeeHighlight ? 
+            `==${Number(etf.management_fee_rate || 0).toFixed(2)}==` : 
+            Number(etf.management_fee_rate || 0).toFixed(2);
+        
+        markdown += `|${code}|${etf.name}|${simplifyCompany(etf.manager)}|${volume}|${size}|${fee}|\n`;
     });
     
     return markdown;
 }
 
 // 获取指数描述（从搜索结果中获取）
-function getIndexDescription(indexCode) {
+function getIndexDescription(indexCode, indexIntro) {
+    // 首先尝试使用传入的指数简介
+    if (indexIntro) {
+        return indexIntro;
+    }
+    
     // 从当前搜索结果中获取指数简介
     const searchResultsData = window.currentSearchResults;
     

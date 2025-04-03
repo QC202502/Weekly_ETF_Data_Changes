@@ -1,0 +1,54 @@
+{
+  "count": 1,
+  "data_date": "2025.03.31",
+  "index_count": 1,
+  "index_groups": [
+    {
+      "etf_count": 1,
+      "etfs": [
+        {
+          "attention_count": 42,
+          "business_text": "\u5546\u52a1\u54c1",
+          "code": "159005.SZ",
+          "daily_avg_volume": 0.107,
+          "daily_volume": 0.0558,
+          "fund_size": 335.0884,
+          "holder_count": 13,
+          "holding_amount": 149998.5,
+          "is_business": true,
+          "management_fee_rate": 0.15,
+          "manager": "\u6c47\u6dfb\u5bcc\u57fa\u91d1\u7ba1\u7406\u80a1\u4efd\u6709\u9650\u516c\u53f8",
+          "name": "\u6c47\u6dfb\u5bcc\u5feb\u94b1ETF",
+          "total_holder_count": 381,
+          "tracking_error": 0.0,
+          "tracking_index_code": "\u672a\u77e5\u6307\u6570",
+          "tracking_index_name": "\u672a\u77e5\u6307\u6570\u540d\u79f0"
+        }
+      ],
+      "index_code": "\u672a\u77e5\u6307\u6570",
+      "index_name": "\u672a\u77e5\u6307\u6570\u540d\u79f0",
+      "total_scale": 335.0884
+    }
+  ],
+  "is_grouped": true,
+  "results": [
+    {
+      "attention_count": 42,
+      "business_text": "\u5546\u52a1\u54c1",
+      "code": "159005.SZ",
+      "daily_avg_volume": 0.107,
+      "daily_volume": 0.0558,
+      "fund_size": 335.0884,
+      "holder_count": 13,
+      "holding_amount": 149998.5,
+      "is_business": true,
+      "management_fee_rate": 0.15,
+      "manager": "\u6c47\u6dfb\u5bcc\u57fa\u91d1\u7ba1\u7406\u80a1\u4efd\u6709\u9650\u516c\u53f8",
+      "name": "\u6c47\u6dfb\u5bcc\u5feb\u94b1ETF",
+      "total_holder_count": 381,
+      "tracking_error": 0.0,
+      "tracking_index_code": "\u672a\u77e5\u6307\u6570",
+      "tracking_index_name": "\u672a\u77e5\u6307\u6570\u540d\u79f0"
+    }
+  ]
+}

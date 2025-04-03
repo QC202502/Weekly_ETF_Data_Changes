@@ -1,11 +1,24 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request, send_from_directory
 import matplotlib
 matplotlib.use('Agg')  # 非交互式后端
 import socket
 import argparse
 from database.models import Database
 import pandas as pd
+import logging
+import sys
+
+# 配置全局日志
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler('app.log')
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # 版本信息
 __version__ = "3.0.1"   
@@ -15,6 +28,17 @@ RELEASE_DATE = "2025-04-03"
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 限制上传文件大小为50MB
+app.logger.setLevel(logging.DEBUG)
+
+# 禁用静态文件缓存
+@app.after_request
+def add_cache_control(response):
+    """为静态资源添加缓存控制头"""
+    if request.path.startswith('/static/'):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    return response
 
 # 确保上传目录存在
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

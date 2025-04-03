@@ -8,7 +8,9 @@
             <div class="input-group mb-3">
                 <input type="text" class="form-control" id="search-input" placeholder="输入ETF代码、名称或指数" value="{{ search_code }}">
                 <button class="btn btn-primary" type="button" id="search-button">查询</button>
-                <button class="btn btn-secondary" type="button" id="export-markdown-button" style="display: none;">导出Markdown</button>
+                <button class="btn btn-primary" type="button" id="export-markdown-button" style="margin-left: 5px;">
+                    <i class="bi bi-markdown"></i> 导出Markdown
+                </button>
             </div>
             <div class="form-text text-muted mb-3">可输入ETF代码(如560050或sh560050)、指数关键词(如红利、纳斯达克等)、指数代码(如000300.SH)或基金公司简称</div>
             
@@ -102,12 +104,18 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
+                    <p class="small text-muted">以下Markdown内容可用于MD2Card等工具生成图片分享</p>
                     <textarea class="form-control" id="markdown-content" rows="15" readonly></textarea>
                 </div>
             </div>
             <div class="modal-footer">
+                <a class="btn btn-outline-primary" href="https://md2card.vercel.app/" target="_blank">
+                    <i class="bi bi-image"></i> 前往MD2Card
+                </a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" id="copy-markdown-button">复制Markdown</button>
+                <button type="button" class="btn btn-primary" id="copy-markdown-button">
+                    <i class="bi bi-clipboard"></i> 复制Markdown
+                </button>
             </div>
         </div>
     </div>

@@ -1,7 +1,12 @@
 /**
  * 主入口文件
  * 负责导入各个模块并初始化应用
+ * 版本: 1.0.2 (2025-04-04) - 添加持仓人数和持仓金额支持
  */
+
+// 版本日志
+console.log('ETF分析平台 v1.0.2 (2025-04-04) - 添加持仓人数和持仓金额支持');
+
 import { showLoading, hideLoading, showMessage, showSection } from './modules/utils.js';
 import { searchETF, handleSearchResult } from './modules/search.js';
 import { loadData, loadOverview, loadBusinessAnalysis, generateReport } from './modules/data.js';
@@ -20,11 +25,18 @@ document.addEventListener('DOMContentLoaded', function() {
         'searchInput': document.getElementById('searchInput'),
         'search-results': document.getElementById('search-results'),
         'searchResults': document.getElementById('searchResults'),
+        'export-markdown-button': document.getElementById('export-markdown-button'),
     };
     
     console.log('页面元素检查:');
     for (const [id, element] of Object.entries(elements)) {
         console.log(`${id}: ${element ? '存在' : '不存在'}`);
+    }
+    
+    // 确保导出Markdown按钮在页面加载后立即可见
+    if (elements['export-markdown-button']) {
+        console.log('初始化Markdown导出按钮，设为可见');
+        elements['export-markdown-button'].style.display = 'block';
     }
     
     // 绑定搜索按钮点击事件 - 兼容两种可能的ID
@@ -56,10 +68,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 绑定导出Markdown按钮点击事件
-    const exportMarkdownButton = document.getElementById('export-markdown-button');
-    if (exportMarkdownButton) {
+    if (elements['export-markdown-button']) {
         console.log('找到导出Markdown按钮，绑定点击事件');
-        exportMarkdownButton.addEventListener('click', function() {
+        elements['export-markdown-button'].addEventListener('click', function() {
             // 获取当前搜索结果数据
             const searchResultsData = window.currentSearchResults;
             if (!searchResultsData) {
@@ -71,9 +82,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const markdownContent = generateMarkdown(searchResultsData);
             
             // 显示Markdown模态框
-            const markdownModal = new bootstrap.Modal(document.getElementById('markdown-modal'));
-            document.getElementById('markdown-content').value = markdownContent;
-            markdownModal.show();
+            try {
+                const markdownModal = new bootstrap.Modal(document.getElementById('markdown-modal'));
+                document.getElementById('markdown-content').value = markdownContent;
+                markdownModal.show();
+                console.log('显示Markdown导出模态框');
+            } catch (error) {
+                console.error('打开Markdown模态框失败:', error);
+                showMessage('danger', '打开Markdown导出窗口失败，请检查控制台错误');
+            }
         });
     } else {
         console.error('未找到导出Markdown按钮');

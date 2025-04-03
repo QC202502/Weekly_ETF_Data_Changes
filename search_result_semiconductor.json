@@ -1,0 +1,211 @@
+{
+  "count": 9,
+  "index_count": 5,
+  "index_groups": [
+    {
+      "etf_count": 1,
+      "etfs": [
+        {
+          "attention_count": 19576,
+          "business_text": "\u975e\u5546\u52a1\u54c1",
+          "code": "512480.SH",
+          "daily_avg_volume": 11.7585,
+          "daily_volume": 9.0276,
+          "fund_size": 238.5837,
+          "holder_count": 3190,
+          "holding_amount": 137487289.9,
+          "is_business": false,
+          "management_fee_rate": 0.5,
+          "manager": "\u56fd\u8054\u5b89\u57fa\u91d1\u7ba1\u7406\u6709\u9650\u516c\u53f8",
+          "name": "\u534a\u5bfc\u4f53ETF",
+          "total_holder_count": 355604,
+          "tracking_error": 3.0,
+          "tracking_index_code": "h30184.CSI",
+          "tracking_index_name": "\u4e2d\u8bc1\u5168\u6307\u534a\u5bfc\u4f53"
+        }
+      ],
+      "index_code": "h30184.CSI",
+      "index_name": "\u4e2d\u8bc1\u5168\u6307\u534a\u5bfc\u4f53",
+      "total_scale": 238.5837
+    },
+    {
+      "etf_count": 1,
+      "etfs": [
+        {
+          "attention_count": 13033,
+          "business_text": "\u975e\u5546\u52a1\u54c1",
+          "code": "512760.SH",
+          "daily_avg_volume": 3.7035,
+          "daily_volume": 3.1034,
+          "fund_size": 127.406,
+          "holder_count": 1772,
+          "holding_amount": 64362736.12,
+          "is_business": false,
+          "management_fee_rate": 0.5,
+          "manager": "\u56fd\u6cf0\u57fa\u91d1\u7ba1\u7406\u6709\u9650\u516c\u53f8",
+          "name": "\u82af\u7247ETF",
+          "total_holder_count": 183764,
+          "tracking_error": 2.0,
+          "tracking_index_code": "990001.CSI",
+          "tracking_index_name": "\u4e2d\u534e\u534a\u5bfc\u4f53\u82af\u7247"
+        }
+      ],
+      "index_code": "990001.CSI",
+      "index_name": "\u4e2d\u534e\u534a\u5bfc\u4f53\u82af\u7247",
+      "total_scale": 127.406
+    },
+    {
+      "etf_count": 5,
+      "etfs": [
+        {
+          "attention_count": 1215,
+          "business_text": "\u975e\u5546\u52a1\u54c1",
+          "code": "159516.SZ",
+          "daily_avg_volume": 1.4185,
+          "daily_volume": 1.8261,
+          "fund_size": 16.8511,
+          "holder_count": 281,
+          "holding_amount": 13190301.6,
+          "is_business": false,
+          "management_fee_rate": 0.5,
+          "manager": "\u56fd\u6cf0\u57fa\u91d1\u7ba1\u7406\u6709\u9650\u516c\u53f8",
+          "name": "\u534a\u5bfc\u4f53\u8bbe\u5907ETF",
+          "total_holder_count": 17809,
+          "tracking_error": 2.0,
+          "tracking_index_code": "931743.CSI",
+          "tracking_index_name": "\u534a\u5bfc\u4f53\u6750\u6599\u8bbe\u5907"
+        },
+        {
+          "attention_count": 248,
+          "business_text": "\u975e\u5546\u52a1\u54c1",
+          "code": "159558.SZ",
+          "daily_avg_volume": 0.0778,
+          "daily_volume": 0.0401,
+          "fund_size": 6.2393,
+          "holder_count": 27,
+          "holding_amount": 345355.41,
+          "is_business": false,
+          "management_fee_rate": 0.5,
+          "manager": "\u6613\u65b9\u8fbe\u57fa\u91d1\u7ba1\u7406\u6709\u9650\u516c\u53f8",
+          "name": "\u534a\u5bfc\u4f53\u8bbe\u5907ETF\u6613\u65b9\u8fbe",
+          "total_holder_count": 0,
+          "tracking_error": 2.0,
+          "tracking_index_code": "931743.CSI",
+          "tracking_index_name": "\u534a\u5bfc\u4f53\u6750\u6599\u8bbe\u5907"
+        },
+        {
+          "attention_count": 382,
+          "business_text": "\u5546\u52a1\u54c1",
+          "code": "562590.SH",
+          "daily_avg_volume": 0.149,
+          "daily_volume": 0.0967,
+          "fund_size": 3.8982,
+          "holder_count": 69,
+          "holding_amount": 2933937.6,
+          "is_business": true,
+          "management_fee_rate": 0.5,
+          "manager": "\u534e\u590f\u57fa\u91d1\u7ba1\u7406\u6709\u9650\u516c\u53f8",
+          "name": "\u534a\u5bfc\u4f53\u6750\u6599ETF",
+          "total_holder_count": 1741,
+          "tracking_error": 2.0,
+          "tracking_index_code": "931743.CSI",
+          "tracking_index_name": "\u534a\u5bfc\u4f53\u6750\u6599\u8bbe\u5907"
+        },
+        {
+          "attention_count": 125,
+          "business_text": "\u975e\u5546\u52a1\u54c1",
+          "code": "560780.SH",
+          "daily_avg_volume": 0.067,
+          "daily_volume": 0.0388,
+          "fund_size": 2.3022,
+          "holder_count": 20,
+          "holding_amount": 382505.0,
+          "is_business": false,
+          "management_fee_rate": 0.5,
+          "manager": "\u5e7f\u53d1\u57fa\u91d1\u7ba1\u7406\u6709\u9650\u516c\u53f8",
+          "name": "\u82af\u7247\u8bbe\u5907ETF",
+          "total_holder_count": 997,
+          "tracking_error": 2.0,
+          "tracking_index_code": "931743.CSI",
+          "tracking_index_name": "\u534a\u5bfc\u4f53\u6750\u6599\u8bbe\u5907"
+        },
+        {
+          "attention_count": 178,
+          "business_text": "\u5546\u52a1\u54c1",
+          "code": "159327.SZ",
+          "daily_avg_volume": 0.1043,
+          "daily_volume": 0.0777,
+          "fund_size": 1.4666,
+          "holder_count": 34,
+          "holding_amount": 1060471.86,
+          "is_business": true,
+          "management_fee_rate": 0.5,
+          "manager": "\u4e07\u5bb6\u57fa\u91d1\u7ba1\u7406\u6709\u9650\u516c\u53f8",
+          "name": "\u534a\u5bfc\u4f53\u8bbe\u5907ETF\u57fa\u91d1",
+          "total_holder_count": 0,
+          "tracking_error": 2.0,
+          "tracking_index_code": "931743.CSI",
+          "tracking_index_name": "\u534a\u5bfc\u4f53\u6750\u6599\u8bbe\u5907"
+        }
+      ],
+      "index_code": "931743.CSI",
+      "index_name": "\u534a\u5bfc\u4f53\u6750\u6599\u8bbe\u5907",
+      "total_scale": 30.757399999999997
+    },
+    {
+      "etf_count": 1,
+      "etfs": [
+        {
+          "attention_count": 765,
+          "business_text": "\u975e\u5546\u52a1\u54c1",
+          "code": "513310.SH",
+          "daily_avg_volume": 4.1928,
+          "daily_volume": 2.3161,
+          "fund_size": 6.6049,
+          "holder_count": 106,
+          "holding_amount": 2448806.4,
+          "is_business": false,
+          "management_fee_rate": 0.8,
+          "manager": "\u534e\u6cf0\u67cf\u745e\u57fa\u91d1\u7ba1\u7406\u6709\u9650\u516c\u53f8",
+          "name": "\u4e2d\u97e9\u534a\u5bfc\u4f53ETF",
+          "total_holder_count": 7939,
+          "tracking_error": 4.0,
+          "tracking_index_code": "931790.CSI",
+          "tracking_index_name": "\u4e2d\u97e9\u534a\u5bfc\u4f53"
+        }
+      ],
+      "index_code": "931790.CSI",
+      "index_name": "\u4e2d\u97e9\u534a\u5bfc\u4f53",
+      "total_scale": 6.6049
+    },
+    {
+      "etf_count": 1,
+      "etfs": [
+        {
+          "attention_count": 211,
+          "business_text": "\u975e\u5546\u52a1\u54c1",
+          "code": "159325.SZ",
+          "daily_avg_volume": 0.0886,
+          "daily_volume": 0.0854,
+          "fund_size": 1.458,
+          "holder_count": 23,
+          "holding_amount": 932285.53,
+          "is_business": false,
+          "management_fee_rate": 0.15,
+          "manager": "\u5357\u65b9\u57fa\u91d1\u7ba1\u7406\u80a1\u4efd\u6709\u9650\u516c\u53f8",
+          "name": "\u534a\u5bfc\u4f53ETF\u5357\u65b9",
+          "total_holder_count": 0,
+          "tracking_error": 2.0,
+          "tracking_index_code": "932066.CSI",
+          "tracking_index_name": "\u534a\u5bfc\u4f53\u884c\u4e1a\u7cbe\u9009"
+        }
+      ],
+      "index_code": "932066.CSI",
+      "index_name": "\u534a\u5bfc\u4f53\u884c\u4e1a\u7cbe\u9009",
+      "total_scale": 1.458
+    }
+  ],
+  "is_grouped": true,
+  "keyword": "\u534a\u5bfc\u4f53",
+  "search_type": "\u8ddf\u8e2a\u6307\u6570\u540d\u79f0(\u6309\u6307\u6570\u5206\u7ec4)"
+}

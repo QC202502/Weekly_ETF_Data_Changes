@@ -6,7 +6,7 @@ import pandas as pd
 import glob
 
 # 导入数据加载函数
-from services.data_service import load_latest_data, load_etf_data
+from services.data_service import load_latest_data
 
 # 创建蓝图
 data_bp = Blueprint('data', __name__)
@@ -20,32 +20,26 @@ date_range = ""
 
 @data_bp.route('/load_data')
 def load_data_route():
-    """加载数据的路由"""
-    global etf_data, business_etfs, current_date_str, previous_date_str, date_range
+    """加载数据路由"""
     try:
-        result, etf_data_loaded, business_etfs_loaded, current_date_str_loaded, previous_date_str_loaded, date_range_loaded = load_latest_data()
-        
-        # 更新全局变量
-        if etf_data_loaded is not None:
-            etf_data = etf_data_loaded
-            business_etfs = business_etfs_loaded
-            current_date_str = current_date_str_loaded
-            previous_date_str = previous_date_str_loaded
-            date_range = date_range_loaded
-        
-        if isinstance(result, str):
-            # 如果返回的是错误消息字符串
-            return jsonify({"success": False, "message": result})
-        else:
-            # 如果加载成功
+        result = load_latest_data()
+        if result['status'] == 'success':
             return jsonify({
-                "success": True, 
-                "message": f"数据已加载，日期：{current_date_str}，商务品数量：{len(business_etfs)}个"
+                'status': 'success',
+                'message': '数据加载成功',
+                'data': result['message']
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': result['message']
             })
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({"success": False, "message": f"加载数据出错：{str(e)}"})
+        print(f"加载数据时出错: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'加载数据时出错: {str(e)}'
+        })
 
 @data_bp.route('/upload_data', methods=['GET', 'POST'])
 def upload_data():

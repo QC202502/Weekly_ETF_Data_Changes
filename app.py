@@ -8,8 +8,8 @@ from database.models import Database
 import pandas as pd
 
 # 版本信息
-__version__ = "3.0.0"   
-RELEASE_DATE = "2025-04-02"
+__version__ = "3.0.1"   
+RELEASE_DATE = "2025-04-03"
 
 # 创建Flask应用
 app = Flask(__name__)
@@ -114,12 +114,53 @@ if __name__ == '__main__':
     print("正在预加载ETF数据...")
     try:
         db = Database()
+        
+        # 导入ETF基本信息
+        etf_info_file = 'data/ETF_DATA_20250331.xlsx'
+        if os.path.exists(etf_info_file):
+            df = pd.read_excel(etf_info_file, engine='openpyxl')
+            if db.save_etf_info(df):
+                print(f"成功导入ETF基本信息：{len(df)}条记录")
+            else:
+                print("导入ETF基本信息失败")
+        
+        # 导入商务协议数据
+        business_file = 'data/ETF单产品商务协议20250328.xlsx'
+        if os.path.exists(business_file):
+            df = pd.read_excel(business_file, engine='openpyxl')
+            if db.save_business_etf(df):
+                print(f"成功导入商务协议数据：{len(df)}条记录")
+            else:
+                print("导入商务协议数据失败")
+        
+        # 导入自选数据
+        attention_file = 'data/客户ETF自选人数20250331.xlsx'
+        if os.path.exists(attention_file):
+            df = pd.read_excel(attention_file, engine='openpyxl')
+            if db.save_etf_attention(df):
+                print(f"成功导入自选数据：{len(df)}条记录")
+            else:
+                print("导入自选数据失败")
+        
+        # 导入持有人数据
+        holders_file = 'data/客户ETF保有量20250331.xlsx'
+        if os.path.exists(holders_file):
+            df = pd.read_excel(holders_file, engine='openpyxl')
+            if db.save_etf_holders(df):
+                print(f"成功导入持有人数据：{len(df)}条记录")
+            else:
+                print("导入持有人数据失败")
+        
+        # 验证数据
         etf_data = db.get_all_etf_info()
         business_etfs = db.get_all_business_etf()
-        print(f"成功加载ETF数据：{len(etf_data)}条记录")
-        print(f"成功加载商务ETF数据：{len(business_etfs)}条记录")
+        print(f"当前数据库中的ETF数据：{len(etf_data)}条记录")
+        print(f"当前数据库中的商务ETF数据：{len(business_etfs)}条记录")
+        
     except Exception as e:
         print(f"预加载数据失败: {str(e)}")
+        print("请确保已经导入了ETF数据")
+        exit(1)
     
     # 检查端口是否可用，如果不可用则自动查找可用端口
     port = args.port
@@ -136,5 +177,7 @@ if __name__ == '__main__':
     
     # 启动应用
     print(f"服务已启动，请访问 http://localhost:{port} 或 http://127.0.0.1:{port}")
+    print(f"如果浏览器无法访问，请确认使用的是 http://localhost:{port} 而不是 https://localhost:{port}")
+    print(f"您也可以尝试使用其他端口启动，例如: python app.py --port 8080")
     app.run(debug=True, host='0.0.0.0', port=port)
     

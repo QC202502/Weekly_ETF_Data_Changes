@@ -28,7 +28,15 @@ function searchETF() {
     // 获取搜索关键词
     const searchInput = document.getElementById('search-input');
     if (!searchInput) {
-        console.error('未找到搜索输入框元素');
+        console.error('未找到搜索输入框元素 (id="search-input")');
+        
+        // 调试信息：检查DOM中所有input元素
+        const allInputs = document.querySelectorAll('input');
+        console.error(`页面中共有 ${allInputs.length} 个input元素：`);
+        allInputs.forEach((input, index) => {
+            console.error(`[${index}] id=${input.id}, name=${input.name}, type=${input.type}, class=${input.className}`);
+        });
+        
         showMessage('danger', '系统错误：未找到搜索输入框');
         return;
     }

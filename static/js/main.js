@@ -12,28 +12,47 @@ import { generateMarkdown } from './modules/markdown_export.js';
 document.addEventListener('DOMContentLoaded', function() {
     console.log('页面加载完成，初始化事件监听器');
     
-    // 绑定搜索按钮点击事件
-    const searchButton = document.querySelector('#search-button');
-    if (searchButton) {
-        console.log('找到搜索按钮，绑定点击事件');
-        searchButton.addEventListener('click', searchETF);
-    } else {
-        console.error('未找到搜索按钮');
+    // 检查页面元素，输出调试信息
+    const elements = {
+        'search-button': document.getElementById('search-button'),
+        'search-input': document.getElementById('search-input'),
+        'searchButton': document.querySelector('#searchButton'),
+        'searchInput': document.getElementById('searchInput'),
+        'search-results': document.getElementById('search-results'),
+        'searchResults': document.getElementById('searchResults'),
+    };
+    
+    console.log('页面元素检查:');
+    for (const [id, element] of Object.entries(elements)) {
+        console.log(`${id}: ${element ? '存在' : '不存在'}`);
     }
     
-    // 绑定搜索输入框事件
-    const searchInput = document.getElementById('search-input');
+    // 绑定搜索按钮点击事件 - 兼容两种可能的ID
+    const searchButton = document.querySelector('#search-button') || document.querySelector('#searchButton');
+    if (searchButton) {
+        console.log('找到搜索按钮，绑定点击事件');
+        searchButton.addEventListener('click', function() {
+            console.log('搜索按钮被点击');
+            searchETF();
+        });
+    } else {
+        console.error('未找到搜索按钮，无法绑定点击事件');
+    }
+    
+    // 绑定搜索输入框事件 - 兼容两种可能的ID
+    const searchInput = document.getElementById('search-input') || document.getElementById('searchInput');
     if (searchInput) {
         console.log('找到搜索输入框，绑定事件');
         // 回车事件
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
+                console.log('搜索输入框回车按下');
                 e.preventDefault();
                 searchETF();
             }
         });
     } else {
-        console.error('未找到搜索输入框');
+        console.error('未找到搜索输入框，无法绑定事件');
     }
     
     // 绑定导出Markdown按钮点击事件
@@ -118,7 +137,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 如果搜索框有预填充的值，自动触发搜索
     if (searchInput && searchInput.value.trim()) {
         console.log("检测到预填充的搜索关键词，自动搜索:", searchInput.value);
-        searchETF();
+        setTimeout(function() {
+            searchETF();
+        }, 1000);
     }
     
     // 页面加载完成后自动加载数据

@@ -3,9 +3,31 @@ import pandas as pd
 import traceback
 from datetime import datetime
 from services.index_service import get_index_intro, get_index_info
+from database.models import Database
+import re
+import json
+import traceback  # 确保导入traceback模块
 
 # 创建蓝图
 search_bp = Blueprint('search', __name__)
+
+# 调试辅助函数
+def debug_print(obj, title="调试信息"):
+    """打印调试信息"""
+    print(f"\n=== {title} ===")
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            print(f"{k}: {v}")
+    elif isinstance(obj, list):
+        for i, item in enumerate(obj):
+            if i < 5:  # 只打印前5个
+                print(f"[{i}] {item}")
+            else:
+                print(f"... 还有 {len(obj) - 5} 项未显示")
+                break
+    else:
+        print(obj)
+    print("=" * (len(title) + 8))
 
 # 获取当前日期格式化为"MM月DD日"
 def get_current_date_format():
@@ -16,138 +38,219 @@ def get_current_date_format():
 @search_bp.route('/search', methods=['POST'])
 def search():
     """搜索ETF"""
-    # 从data_service导入数据
-    from services.data_service import etf_data, business_etfs, current_date_str
-    import pandas as pd
-    
-    if etf_data is None:
-        return jsonify({"error": "数据未加载，请先加载数据"})
-    
     try:
-        # 获取搜索关键词
-        keyword = request.form.get('code', '').strip()
+        # 在返回的jsonify结果中查看CORS头
+        def add_cors_headers(response):
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            return response
+            
+        # 调试输出完整的请求信息
+        print("\n======= 收到搜索请求 =======")
+        print(f"请求方法: {request.method}")
+        print(f"请求Content-Type: {request.content_type}")
+        print(f"请求头: {dict(request.headers)}")
+        print(f"表单数据: {request.form}")
+        print(f"JSON数据: {request.get_json(silent=True)}")
+        print(f"URL参数: {request.args}")
+        print("===========================\n")
         
+        # 获取搜索关键词，尝试多种方式
+        keyword = None
+        
+        # 尝试从表单数据获取
+        if request.form:
+            keyword = request.form.get('code', '').strip()
+            print(f"从表单获取关键词: {keyword}")
+        
+        # 如果表单数据不存在，尝试从JSON数据获取
+        if not keyword and request.is_json:
+            data = request.get_json()
+            if data and 'code' in data:
+                keyword = data.get('code', '').strip()
+                print(f"从JSON获取关键词: {keyword}")
+        
+        # 如果JSON数据不存在，尝试从URL参数获取
         if not keyword:
-            return jsonify({"error": "请输入搜索关键词"})
+            keyword = request.args.get('code', '').strip()
+            print(f"从URL参数获取关键词: {keyword}")
         
+        # 如果仍然没有关键词，返回错误
+        if not keyword:
+            print("未提供搜索关键词")
+            response = jsonify({"error": "请输入搜索关键词"})
+            return add_cors_headers(response)
+        
+        print(f"最终使用的搜索关键词: '{keyword}'")
+        
+        print(f"开始处理搜索请求...")
         print(f"搜索关键词: '{keyword}'")
         
-        # 判断搜索类型
-        search_type = determine_search_type(keyword, etf_data)
-        print(f"搜索类型: {search_type}")
+        db = Database()
         
-        # 根据不同搜索类型处理结果
-        if search_type == "ETF基金代码":
-            results = search_by_etf_code(keyword, etf_data, business_etfs, current_date_str)
+        # 检查是否是ETF代码
+        if re.match(r'^\d{6}$', keyword) or re.match(r'^\d{6}\.[A-Z]{2}$', keyword):
+            code = keyword.split('.')[0] if '.' in keyword else keyword
+            print(f"检查ETF代码是否存在: {keyword} -> {code}")
             
-            # 获取该ETF的跟踪指数信息
-            if results and len(results) > 0:
-                # 获取第一个结果的指数信息
-                index_name = results[0]['index_name']
-                index_code = results[0]['index_code']
+            if db.check_etf_code_exists(code):
+                print("搜索类型: ETF基金代码")
+                print(f"搜索ETF代码: {code}")
+                results = db.search_by_etf_code(code)
                 
-                # 计算该指数的总规模和ETF数量
-                index_etfs = etf_data[etf_data['跟踪指数代码'] == index_code]
-                total_scale = index_etfs['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'].sum()
-                etf_count = len(index_etfs)
+                if results:
+                    # 确保所有必要字段都存在并格式化
+                    results = normalize_etf_results(results)
+                    
+                    # 打印一条结果用于调试
+                    if results:
+                        print(f"搜索结果示例：")
+                        for key, value in results[0].items():
+                            print(f"  {key}: {value}")
+                    
+                    # 增加调试日志，确保返回格式正确
+                    response_data = {
+                        'results': results,
+                        'count': len(results)
+                    }
+                    print(f"返回数据结构：{type(response_data)}")
+                    print(f"results类型：{type(response_data['results'])}")
+                    print(f"results长度：{len(response_data['results'])}")
+                    print(f"count值：{response_data['count']}")
+                    
+                    response = jsonify(response_data)
+                    return add_cors_headers(response)
+                else:
+                    response = jsonify({
+                        'results': [],
+                        'count': 0,
+                        'message': '未找到相关ETF'
+                    })
+                    return add_cors_headers(response)
+        
+        # 检查是否是基金公司名称
+        if '基金' in keyword or '资管' in keyword:
+            print("搜索类型: 基金公司名称")
+            print(f"搜索基金公司: {keyword}")
+            results = db.search_by_company(keyword)
+            
+            if results:
+                # 确保所有必要字段都存在并格式化
+                results = normalize_etf_results(results)
                 
-                # 获取指数简介信息
-                index_intro = get_index_intro(index_code)
-                index_info = get_index_info(index_code)
-                
-                return jsonify({
-                    "success": True,
-                    "search_type": search_type,
-                    "count": len(results),
-                    "results": results,
-                    "keyword": keyword,
-                    "index_name": index_name,
-                    "index_code": index_code,
-                    "index_intro": index_intro,
-                    "index_info": index_info,
-                    "total_scale": round(total_scale, 2),
-                    "etf_count": etf_count
+                response = jsonify({
+                    'results': results,
+                    'count': len(results)
                 })
+                return add_cors_headers(response)
             else:
-                return jsonify({
-                    "success": True,
-                    "search_type": search_type,
-                    "count": 0,
-                    "results": [],
-                    "keyword": keyword
+                response = jsonify({
+                    'results': [],
+                    'count': 0,
+                    'message': '未找到相关ETF'
                 })
-            
-        elif search_type == "跟踪指数名称":
-            index_groups = search_by_index_name(keyword, etf_data, business_etfs, current_date_str)
-            return jsonify({
-                "success": True,
-                "search_type": search_type,
-                "count": sum(len(group['etfs']) for group in index_groups),
-                "index_count": len(index_groups),  # 匹配的指数数量
-                "index_groups": index_groups,
-                "keyword": keyword
-            })
-            
-        elif search_type == "跟踪指数代码":
-            results = search_by_index_code(keyword, etf_data, business_etfs, current_date_str)
-            return jsonify({
-                "success": True,
-                "search_type": search_type,
-                "count": len(results),
-                "results": results,
-                "keyword": keyword
-            })
-            
-        elif search_type == "基金公司名称":
-            results = search_by_company(keyword, etf_data, business_etfs, current_date_str)
-            return jsonify({
-                "success": True,
-                "search_type": search_type,
-                "count": len(results),
-                "results": results,
-                "keyword": keyword
-            })
+                return add_cors_headers(response)
         
+        # 默认按指数名称搜索
+        print("搜索类型: 跟踪指数名称")
+        print(f"搜索指数名称: {keyword}")
+        results = db.search_by_index_name(keyword)
+        
+        if results:
+            # 确保所有必要字段都存在并格式化
+            results = normalize_etf_results(results)
+            
+            response = jsonify({
+                'results': results,
+                'count': len(results)
+            })
+            return add_cors_headers(response)
         else:
-            # 通用搜索，返回所有匹配结果
-            results = general_search(keyword, etf_data, business_etfs, current_date_str)
-            return jsonify({
-                "success": True,
-                "search_type": "通用搜索",
-                "count": len(results),
-                "results": results,
-                "keyword": keyword
-            })
-        
+            # 尝试通用搜索
+            print("指数名称搜索无结果，尝试通用搜索")
+            results = db.general_search(keyword)
+            
+            if results:
+                # 确保所有必要字段都存在并格式化
+                results = normalize_etf_results(results)
+                
+                response = jsonify({
+                    'results': results,
+                    'count': len(results)
+                })
+                return add_cors_headers(response)
+            else:
+                response = jsonify({
+                    'results': [],
+                    'count': 0,
+                    'message': '未找到相关ETF'
+                })
+                return add_cors_headers(response)
+            
     except Exception as e:
-        import traceback
+        print(f"搜索出错: {str(e)}")
         traceback.print_exc()
-        return jsonify({"error": f"搜索出错：{str(e)}"})
+        response = jsonify({'error': f'搜索出错: {str(e)}'})
+        return add_cors_headers(response)
 
-def determine_search_type(keyword, etf_data):
+def normalize_etf_results(results):
+    """标准化ETF搜索结果，确保所有必要字段都存在"""
+    normalized_results = []
+    
+    for result in results:
+        # 创建一个标准化的ETF数据对象
+        normalized_etf = {
+            'code': result.get('code', ''),
+            'name': result.get('name', ''),
+            'manager': result.get('manager', result.get('fund_manager', '')),
+            'fund_size': float(result.get('fund_size', result.get('scale', 0))),
+            'management_fee_rate': float(result.get('management_fee_rate', result.get('fee_rate', 0))),
+            'tracking_error': float(result.get('tracking_error', 0)),
+            'total_holder_count': int(result.get('total_holder_count', result.get('holders_count', 0))),
+            'attention_count': int(result.get('attention_count', 0)),
+            'is_business': bool(result.get('is_business')),
+            'business_text': result.get('business_text', '商务品' if result.get('is_business') else '非商务品'),
+            'tracking_index_code': result.get('tracking_index_code', result.get('index_code', '')),
+            'tracking_index_name': result.get('tracking_index_name', result.get('index_name', ''))
+        }
+        
+        normalized_results.append(normalized_etf)
+    
+    return normalized_results
+
+def determine_search_type(keyword):
     """判断搜索类型"""
-    # 判断是否为ETF基金代码
-    # 处理可能带有sh/sz前缀的ETF代码
+    # 创建数据库连接
+    db = Database()
+    
+    # 处理可能带有后缀的ETF代码
     etf_code = keyword
-    if keyword.startswith('sh') or keyword.startswith('sz'):
-        etf_code = keyword[2:]
+    if '.' in etf_code:
+        etf_code = etf_code.split('.')[0]
+    elif etf_code.startswith('sh') or etf_code.startswith('sz'):
+        etf_code = etf_code[2:]
     
+    # 判断是否为ETF基金代码
     if etf_code.isdigit() and len(etf_code) == 6:
-        if any(etf_data['证券代码'].str.contains(etf_code, na=False)):
-            return "ETF基金代码"
-    
-    # 判断是否为跟踪指数代码
-    if '.' in keyword and any(etf_data['跟踪指数代码'].str.contains(keyword, na=False, regex=False)):
-        return "跟踪指数代码"
+        # 检查所有可能的格式
+        possible_codes = [
+            etf_code,
+            f"{etf_code}.SZ",
+            f"{etf_code}.SH"
+        ]
+        for code in possible_codes:
+            if db.check_etf_code_exists(code):
+                return "ETF基金代码"
     
     # 判断是否为基金公司名称
     company_keywords = ['基金', '资管', '投资', '证券']
-    if any(kw in keyword for kw in company_keywords) or any(etf_data['基金管理人'].str.contains(keyword, na=False)):
+    if any(kw in keyword for kw in company_keywords) or db.check_company_exists(keyword):
         return "基金公司名称"
     
     # 判断是否为跟踪指数名称
     index_keywords = ['指数', '300', '500', '1000', '红利', '消费', '医药', '科技']
-    if any(kw in keyword for kw in index_keywords) or any(etf_data['跟踪指数名称'].str.contains(keyword, na=False)):
+    if any(kw in keyword for kw in index_keywords) or db.check_index_name_exists(keyword):
         return "跟踪指数名称"
     
     # 默认为通用搜索
@@ -167,22 +270,16 @@ def search_by_etf_code(keyword, etf_data, business_etfs, current_date_str):
     if target_etf.empty:
         return []
     
-    # 获取该ETF的跟踪指数代码
-    index_code = target_etf.iloc[0]['跟踪指数代码']
-    
-    # 查找同一跟踪指数的所有ETF
-    same_index_etfs = etf_data[etf_data['跟踪指数代码'] == index_code]
-    
     # 使用新的交易量字段排序
     volume_col = '区间日均成交额[起始交易日期]S_cal_date(enddate,-1,M,0)[截止交易日期]最新收盘日[单位]亿元'
-    same_index_etfs = same_index_etfs.sort_values(by=volume_col, ascending=False)
+    target_etf = target_etf.sort_values(by=volume_col, ascending=False)
     
     # 从data_service导入当前和上周日期
     from services.data_service import current_date_str, previous_date_str
     
     # 格式化结果
     results = []
-    for _, row in same_index_etfs.iterrows():
+    for _, row in target_etf.iterrows():
         etf_code = row['证券代码']
         is_business = etf_code in business_etfs
         
@@ -201,7 +298,6 @@ def search_by_etf_code(keyword, etf_data, business_etfs, current_date_str):
             'code': etf_code,
             'name': row[name_col] if name_col in row else row['证券代码'],  # 如果列名不存在，使用证券代码作为备用
             'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
-            # 使用新的交易量字段
             'volume': round(float(row[volume_col]) if pd.notna(row[volume_col]) else 0, 2),  # 已经是亿元单位
             'fee_rate': round(float(row['管理费率[单位]%']) if pd.notna(row['管理费率[单位]%']) else 0, 2),
             'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
@@ -209,7 +305,6 @@ def search_by_etf_code(keyword, etf_data, business_etfs, current_date_str):
             'business_text': "商务品" if is_business else "非商务品",
             'index_code': row['跟踪指数代码'],
             'index_name': row['跟踪指数名称'],
-            # 新增字段
             'attention_count': int(row[attention_current]) if pd.notna(row[attention_current]) else 0,
             'attention_change': int(row[attention_current] - row[attention_previous]) if pd.notna(row[attention_current]) and pd.notna(row[attention_previous]) else 0,
             'holders_count': int(row[holders_current]) if pd.notna(row[holders_current]) else 0,
@@ -479,7 +574,6 @@ def general_search(keyword, etf_data, business_etfs, current_date_str):
             'code': etf_code,
             'name': row[name_col] if name_col in row else row['证券代码'],  # 如果列名不存在，使用证券代码作为备用
             'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
-            # 使用新的交易量字段
             'volume': round(float(row[volume_col]) if pd.notna(row[volume_col]) else 0, 2),  # 已经是亿元单位
             'fee_rate': round(float(row['管理费率[单位]%']) if pd.notna(row['管理费率[单位]%']) else 0, 2),
             'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
@@ -487,7 +581,6 @@ def general_search(keyword, etf_data, business_etfs, current_date_str):
             'business_text': "商务品" if is_business else "非商务品",
             'index_code': row['跟踪指数代码'],
             'index_name': row['跟踪指数名称'],
-            # 新增字段
             'attention_count': int(row[attention_current]) if pd.notna(row[attention_current]) else 0,
             'attention_change': int(row[attention_current] - row[attention_previous]) if pd.notna(row[attention_current]) and pd.notna(row[attention_previous]) else 0,
             'holders_count': int(row[holders_current]) if pd.notna(row[holders_current]) else 0,

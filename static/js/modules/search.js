@@ -205,16 +205,6 @@ export function handleSearchResult(data) {
         `;
     }
     
-    // 检查是否有指数介绍
-    if (data.index_intro) {
-        htmlContent += `
-            <div class="alert alert-light">
-                <h5>指数介绍: ${data.index_name || data.index_code}</h5>
-                <p>${data.index_intro}</p>
-            </div>
-        `;
-    }
-    
     // 检查搜索类型并处理结果
     if ((data.is_grouped && data.index_count === 0) || 
         (!data.is_grouped && (!data.results || data.results.length === 0))) {
@@ -222,10 +212,10 @@ export function handleSearchResult(data) {
         resultsContainer.innerHTML = `<div class="alert alert-info">未找到相关ETF</div>`;
     } else {
         if (data.search_type === 'ETF基金代码') {
-            // 添加指数简介信息
+            // 添加指数简介信息 - 只添加一次
             if (data.index_intro) {
-                htmlContent += `<div class="alert alert-info mb-3">
-                    <h5 class="alert-heading">${data.index_name || ''} (${data.index_code || ''})</h5>
+                htmlContent += `<div class="alert alert-danger">
+                    <h5>指数介绍: ${data.index_name || ''} (${data.index_code || ''})</h5>
                     <p>${data.index_intro}</p>
                 </div>`;
             }
@@ -258,27 +248,6 @@ export function handleSearchResult(data) {
         
         // 更新结果容器
         resultsContainer.innerHTML = htmlContent;
-        
-        // 同时更新隐藏的结果容器(如果存在)
-        const altResultsContainer = 
-            resultsContainer.id === 'search-results' 
-                ? document.getElementById('searchResults') 
-                : document.getElementById('search-results');
-        
-        if (altResultsContainer) {
-            altResultsContainer.innerHTML = htmlContent;
-        }
-        
-        // 成功处理结果后显示成功消息
-        let successMessage = '';
-        if (data.search_type === 'ETF基金代码') {
-            successMessage = `找到${data.count}个主要ETF和${data.related_count || 0}个同指数ETF`;
-        } else if (data.is_grouped) {
-            successMessage = `按跟踪指数分组，找到${data.index_count}个指数，共${data.count}个ETF`;
-        } else {
-            successMessage = `成功找到${data.count}个匹配的ETF`;
-        }
-        showMessage('success', successMessage);
     }
 }
 
@@ -379,8 +348,6 @@ function generateETFTable(etfs, title = '搜索结果') {
     
     etfs.forEach((etf, index) => {
         try {
-            console.log(`处理ETF结果[${index}]:`, etf);
-            
             // 确保所有字段都有默认值
             const etfSafe = {
                 code: etf.code || '',
@@ -415,32 +382,49 @@ function generateETFTable(etfs, title = '搜索结果') {
             const isMaxSizeHighlight = maxFundSizeETF && etf.code === maxFundSizeETF.code;
             const isMaxVolumeHighlight = maxVolumeETF && etf.code === maxVolumeETF.code;
             
-            // 设置行样式
-            let highlightClass = '';
-            if (isMinFeeHighlight) highlightClass = ' class="table-warning"';
-            
             // 处理代码和管理费率的显示
             const displayCode = removeCodeSuffix(etfSafe.code);
             
             // 设置显示格式和高亮
-            const codeDisplay = isMaxSizeHighlight || isMaxVolumeHighlight ? 
-                `<strong style="color: #007bff;">${displayCode}</strong>` : displayCode;
+            // 商务品整行高亮
+            let rowClass = '';
+            if (etfSafe.is_business) {
+                rowClass = ' class="table-warning"';
+            }
             
+            // 高亮规则：
+            // 1. 费率最低且交易量最高的ETF：高亮费率和代码
+            // 2. 规模最大的ETF：高亮规模和代码
+            // 3. 交易量最大的ETF：高亮交易量和代码
+            
+            // 规模最大ETF的规模字段和代码
             const fundSizeDisplay = isMaxSizeHighlight ? 
                 `<strong style="color: #007bff;">${formatNumber(etfSafe.fund_size)}</strong>` : 
                 formatNumber(etfSafe.fund_size);
             
+            // 交易量最大ETF的交易量字段和代码
             const volumeDisplay = isMaxVolumeHighlight ? 
                 `<strong style="color: #007bff;">${formatNumber(etfSafe.daily_avg_volume, 2)}</strong>` : 
                 formatNumber(etfSafe.daily_avg_volume, 2);
             
+            // 费率最低里交易量最高的ETF的费率
+            const feeDisplay = isMinFeeHighlight ? 
+                `<strong style="color: #007bff;">${formatNumber(etfSafe.management_fee_rate, 4)}</strong>` : 
+                formatNumber(etfSafe.management_fee_rate, 4);
+            
+            // 代码高亮逻辑 - 所有特殊ETF的代码都高亮
+            let codeDisplay = displayCode;
+            if (isMinFeeHighlight || isMaxSizeHighlight || isMaxVolumeHighlight) {
+                codeDisplay = `<strong style="color: #007bff;">${displayCode}</strong>`;
+            }
+            
             tableHtml += `
-                <tr${highlightClass}>
+                <tr${rowClass}>
                     <td>${codeDisplay}</td>
                     <td>${etfSafe.name}</td>
                     <td>${simplifyCompany(etfSafe.manager)}</td>
                     <td>${fundSizeDisplay}</td>
-                    <td>${formatNumber(etfSafe.management_fee_rate, 4)}</td>
+                    <td>${feeDisplay}</td>
                     <td>${volumeDisplay}</td>
                     <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
                     <td>${formatNumber(etfSafe.tracking_error)}</td>
@@ -611,32 +595,48 @@ function renderIndexGroupResults(data) {
             const isMaxSizeHighlight = maxFundSizeETF && etf.code === maxFundSizeETF.code;
             const isMaxVolumeHighlight = maxVolumeETF && etf.code === maxVolumeETF.code;
             
-            // 设置行样式
-            let highlightClass = '';
-            if (isMinFeeHighlight) highlightClass = ' class="table-warning"';
+            // 商务品整行高亮
+            let rowClass = '';
+            if (etfSafe.is_business) {
+                rowClass = ' class="table-warning"';
+            }
             
             // 处理代码和管理费率的显示
             const displayCode = removeCodeSuffix(etfSafe.code);
             
-            // 设置显示格式和高亮
-            const codeDisplay = isMaxSizeHighlight || isMaxVolumeHighlight ? 
-                `<strong style="color: #007bff;">${displayCode}</strong>` : displayCode;
+            // 高亮规则：
+            // 1. 费率最低且交易量最高的ETF：高亮费率和代码
+            // 2. 规模最大的ETF：高亮规模和代码
+            // 3. 交易量最大的ETF：高亮交易量和代码
             
+            // 规模最大ETF的规模字段
             const fundSizeDisplay = isMaxSizeHighlight ? 
                 `<strong style="color: #007bff;">${formatNumber(etfSafe.fund_size)}</strong>` : 
                 formatNumber(etfSafe.fund_size);
             
+            // 交易量最大ETF的交易量字段
             const volumeDisplay = isMaxVolumeHighlight ? 
                 `<strong style="color: #007bff;">${formatNumber(etfSafe.daily_avg_volume, 2)}</strong>` : 
                 formatNumber(etfSafe.daily_avg_volume, 2);
+                
+            // 费率最低里交易量最高的ETF的费率
+            const feeDisplay = isMinFeeHighlight ? 
+                `<strong style="color: #007bff;">${formatNumber(etfSafe.management_fee_rate, 4)}</strong>` : 
+                formatNumber(etfSafe.management_fee_rate, 4);
+            
+            // 代码高亮逻辑 - 所有特殊ETF的代码都高亮
+            let codeDisplay = displayCode;
+            if (isMinFeeHighlight || isMaxSizeHighlight || isMaxVolumeHighlight) {
+                codeDisplay = `<strong style="color: #007bff;">${displayCode}</strong>`;
+            }
             
             html += `
-                <tr${highlightClass}>
+                <tr${rowClass}>
                     <td>${codeDisplay}</td>
                     <td>${etfSafe.name}</td>
                     <td>${simplifyCompany(etfSafe.manager)}</td>
                     <td>${fundSizeDisplay}</td>
-                    <td>${formatNumber(etfSafe.management_fee_rate, 4)}</td>
+                    <td>${feeDisplay}</td>
                     <td>${volumeDisplay}</td>
                     <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
                     <td>${formatNumber(etfSafe.tracking_error)}</td>
@@ -653,27 +653,27 @@ function renderIndexGroupResults(data) {
         const avgFeeRate = group.etfs.length > 0 ? totalFeeRate / group.etfs.length : 0;
         
         html += `
-                            </tbody>
-                            <tfoot>
-                                <tr class="table-info">
-                                    <td colspan="3">汇总 (${group.etfs.length}个ETF${businessCount > 0 ? '，其中'+businessCount+'个商务品' : ''})</td>
-                                    <td>${formatNumber(totalScale)}</td>
-                                    <td>${formatNumber(avgFeeRate, 4)}</td>
-                                    <td>${formatNumber(totalDailyAvgVolume, 2)}</td>
-                                    <td>${formatNumber(totalDailyVolume, 2)}</td>
-                                    <td>-</td>
-                                    <td>${formatNumber(totalHolders, 0)}</td>
-                                    <td>${formatNumber(totalHolderCount, 0)}</td>
-                                    <td>${formatNumber(totalHoldingAmount, 2)}</td>
-                                    <td>${formatNumber(totalAttention, 0)}</td>
-                                    <td>${group.etfs.length > 0 ? formatNumber((businessCount / group.etfs.length) * 100, 1)+'%' : '-'}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-info">
+                            <td colspan="3">汇总 (${group.etfs.length}个ETF${businessCount > 0 ? '，其中'+businessCount+'个商务品' : ''})</td>
+                            <td>${formatNumber(totalScale)}</td>
+                            <td>${formatNumber(avgFeeRate, 4)}</td>
+                            <td>${formatNumber(totalDailyAvgVolume, 2)}</td>
+                            <td>${formatNumber(totalDailyVolume, 2)}</td>
+                            <td>-</td>
+                            <td>${formatNumber(totalHolders, 0)}</td>
+                            <td>${formatNumber(totalHolderCount, 0)}</td>
+                            <td>${formatNumber(totalHoldingAmount, 2)}</td>
+                            <td>${formatNumber(totalAttention, 0)}</td>
+                            <td>${group.etfs.length > 0 ? formatNumber((businessCount / group.etfs.length) * 100, 1)+'%' : '-'}</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
-        `;
+        </div>
+    </div>
+`
     });
     
     return html;

@@ -61,7 +61,7 @@ def search():
         
         # 尝试从表单数据获取
         if request.form and 'code' in request.form:
-        keyword = request.form.get('code', '').strip()
+            keyword = request.form.get('code', '').strip()
             print(f"从表单获取关键词: {keyword}")
         
         # 如果表单数据不存在，尝试从JSON数据获取
@@ -122,7 +122,7 @@ def search():
                         # 根据跟踪指数查找相关ETF
                         if tracking_index_code:
                             related_etfs = db.search_by_index_code(tracking_index_code)
-            else:
+                        else:
                             related_etfs = db.search_by_index_name(tracking_index_name)
                             
                         # 标准化结果
@@ -296,7 +296,7 @@ def search():
                         'data_date': data_date  # 添加数据截止日期
                     })
                     return add_cors_headers(response)
-        else:
+            else:
                 response = jsonify({
                     'results': [],
                     'count': 0,
@@ -376,7 +376,7 @@ def determine_search_type(keyword):
         ]
         for code in possible_codes:
             if db.check_etf_code_exists(code):
-            return "ETF基金代码"
+                return "ETF基金代码"
     
     # 判断是否为基金公司名称
     company_keywords = ['基金', '资管', '投资', '证券']

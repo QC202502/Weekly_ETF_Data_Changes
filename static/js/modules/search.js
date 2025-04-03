@@ -146,156 +146,139 @@ export function searchETF() {
 
 // 处理搜索结果
 export function handleSearchResult(data) {
-    try {
     console.log('处理搜索结果:', data);
-        console.log('v2.0.1 持仓人数:', data.results && data.results[0] ? data.results[0].holder_count : 'N/A', '持仓金额:', data.results && data.results[0] ? data.results[0].holding_amount : 'N/A');
-        
-        // 针对ETF基金代码搜索的调试信息
-        if (data.search_type === "ETF基金代码") {
-            console.log('ETF基金代码搜索调试信息:');
-            console.log('- search_type:', data.search_type);
-            console.log('- index_name:', data.index_name);
-            console.log('- index_code:', data.index_code);
-            console.log('- total_scale:', data.total_scale);
-            console.log('- etf_count:', data.etf_count);
-            console.log('- index_intro:', data.index_intro ? data.index_intro.substring(0, 50) + '...' : 'N/A');
-        }
-        
-        // 同时查找两种可能的结果容器ID
-        const resultsContainer = document.getElementById('search-results') || document.getElementById('searchResults');
-        
-        // 隐藏调试信息
-        const debugInfo = document.getElementById('debug-info');
-        if (debugInfo) {
-            debugInfo.style.display = 'none';
-        }
-        
-        // 保存当前搜索结果
-        window.currentSearchResults = data;
-        
-        // 显示导出Markdown按钮（无论是否有搜索结果）
-        const exportMarkdownButton = document.getElementById('export-markdown-button');
-        if (exportMarkdownButton) {
-            exportMarkdownButton.style.display = 'block';
-            console.log('显示导出Markdown按钮 - display设置为block');
-        } else {
-            console.error('无法找到导出Markdown按钮元素 (ID: export-markdown-button)');
-        }
-        
-        // 隐藏推荐栏
-        const recommendationContainer = document.getElementById('recommendation-container');
-        if (recommendationContainer) {
-            recommendationContainer.style.display = 'none';
-        }
-        
-        // 检查结果容器
+    console.log('v2.0.1 持仓人数:', data.results && data.results[0] ? data.results[0].holder_count : 'N/A', '持仓金额:', data.results && data.results[0] ? data.results[0].holding_amount : 'N/A');
+    
+    // 针对ETF基金代码搜索的调试信息
+    if (data.search_type === "ETF基金代码") {
+        console.log('ETF基金代码搜索调试信息:');
+        console.log('- search_type:', data.search_type);
+        console.log('- index_name:', data.index_name);
+        console.log('- index_code:', data.index_code);
+        console.log('- total_scale:', data.total_scale);
+        console.log('- etf_count:', data.etf_count);
+        console.log('- index_intro:', data.index_intro ? data.index_intro.substring(0, 50) + '...' : 'N/A');
+    }
+    
+    // 同时查找两种可能的结果容器ID
+    const resultsContainer = document.getElementById('search-results') || document.getElementById('searchResults');
+    
+    // 隐藏调试信息
+    const debugInfo = document.getElementById('debug-info');
+    if (debugInfo) {
+        debugInfo.style.display = 'none';
+    }
+    
+    // 保存当前搜索结果
+    window.currentSearchResults = data;
+    
+    // 显示导出Markdown按钮（无论是否有搜索结果）
+    const exportMarkdownButton = document.getElementById('export-markdown-button');
+    if (exportMarkdownButton) {
+        exportMarkdownButton.style.display = 'inline-block';
+        console.log('显示导出Markdown按钮 - display设置为inline-block');
+    } else {
+        console.error('无法找到导出Markdown按钮元素 (ID: export-markdown-button)');
+    }
+    
+    // 隐藏推荐栏
+    const recommendationContainer = document.getElementById('recommendation-container');
+    if (recommendationContainer) {
+        recommendationContainer.style.display = 'none';
+    }
+    
+    // 检查结果容器
     if (!resultsContainer) {
         console.error('未找到搜索结果容器');
         return;
     }
     
-        // 根据搜索类型生成不同的HTML
-        let htmlContent = '';
-        
-        // 添加数据截止日期信息
-        if (data.data_date) {
-            htmlContent += `
-                <div class="alert alert-info">
-                    <small class="text-muted">数据截止日期: ${data.data_date}</small>
-                </div>
-            `;
-        }
-        
-        // 检查是否有指数介绍
-        if (data.index_intro) {
-            htmlContent += `
-                <div class="alert alert-light">
-                    <h5>指数介绍: ${data.index_name || data.index_code}</h5>
+    // 根据搜索类型生成不同的HTML
+    let htmlContent = '';
+    
+    // 添加数据截止日期信息
+    if (data.data_date) {
+        htmlContent += `
+            <div class="alert alert-info">
+                <small class="text-muted">数据截止日期: ${data.data_date}</small>
+            </div>
+        `;
+    }
+    
+    // 检查是否有指数介绍
+    if (data.index_intro) {
+        htmlContent += `
+            <div class="alert alert-light">
+                <h5>指数介绍: ${data.index_name || data.index_code}</h5>
+                <p>${data.index_intro}</p>
+            </div>
+        `;
+    }
+    
+    // 检查搜索类型并处理结果
+    if ((data.is_grouped && data.index_count === 0) || 
+        (!data.is_grouped && (!data.results || data.results.length === 0))) {
+        console.log("搜索无结果");
+        resultsContainer.innerHTML = `<div class="alert alert-info">未找到相关ETF</div>`;
+    } else {
+        if (data.search_type === 'ETF基金代码') {
+            // 添加指数简介信息
+            if (data.index_intro) {
+                htmlContent += `<div class="alert alert-info mb-3">
+                    <h5 class="alert-heading">${data.index_name || ''} (${data.index_code || ''})</h5>
                     <p>${data.index_intro}</p>
-                </div>
-            `;
-        }
-        
-        // 检查搜索类型并处理结果
-        if ((data.is_grouped && data.index_count === 0) || 
-            (!data.is_grouped && (!data.results || data.results.length === 0))) {
-            console.log("搜索无结果");
-            resultsContainer.innerHTML = `<div class="alert alert-info">未找到相关ETF</div>`;
+                </div>`;
+            }
+            
+            // 合并主ETF和同指数ETF
+            let allETFs = [...data.results];
+            if (data.related_etfs && data.related_etfs.length > 0) {
+                allETFs = allETFs.concat(data.related_etfs);
+            }
+            
+            // 按区间日均成交额从高到低排序
+            allETFs.sort((a, b) => {
+                const volumeA = Number(a.daily_avg_volume || 0);
+                const volumeB = Number(b.daily_avg_volume || 0);
+                return volumeB - volumeA;
+            });
+            
+            // 生成单一表格
+            htmlContent += generateETFTable(allETFs, `${data.index_name || ''}跟踪ETF (${allETFs.length}个)`);
+        } else if (data.is_grouped && (data.search_type === '通用搜索(按指数分组)' || data.search_type === '跟踪指数名称(按指数分组)')) {
+            // 显示按指数分组的搜索结果
+            htmlContent += renderIndexGroupResults(data);
+        } else if (data.search_type === '基金公司名称') {
+            // 基金公司搜索结果显示为普通表格，不分组
+            htmlContent += generateETFTable(data.results, `${data.company_name || '基金公司'}旗下ETF`);
         } else {
-            if (data.search_type === 'ETF基金代码') {
-                // 添加指数简介信息
-                if (data.index_intro) {
-                    htmlContent += `<div class="alert alert-info mb-3">
-                        <h5 class="alert-heading">${data.index_name || ''} (${data.index_code || ''})</h5>
-                        <p>${data.index_intro}</p>
-                    </div>`;
-                }
-                
-                // 合并主ETF和同指数ETF
-                let allETFs = [...data.results];
-                if (data.related_etfs && data.related_etfs.length > 0) {
-                    allETFs = allETFs.concat(data.related_etfs);
-                }
-                
-                // 按区间日均成交额从高到低排序
-                allETFs.sort((a, b) => {
-                    const volumeA = Number(a.daily_avg_volume || 0);
-                    const volumeB = Number(b.daily_avg_volume || 0);
-                    return volumeB - volumeA;
-                });
-                
-                // 生成单一表格
-                htmlContent += generateETFTable(allETFs, `${data.index_name || ''}跟踪ETF (${allETFs.length}个)`);
-            } else if (data.is_grouped && (data.search_type === '通用搜索(按指数分组)' || data.search_type === '跟踪指数名称(按指数分组)')) {
-                // 显示按指数分组的搜索结果
-                htmlContent += renderIndexGroupResults(data);
-            } else if (data.search_type === '基金公司名称') {
-                // 基金公司搜索结果显示为普通表格，不分组
-                htmlContent += generateETFTable(data.results, `${data.company_name || '基金公司'}旗下ETF`);
-            } else {
-                // 其他搜索类型使用通用表格
-                htmlContent += generateETFTable(data.results, data.search_type || '搜索结果');
-            }
-            
-            // 更新结果容器
-            resultsContainer.innerHTML = htmlContent;
-            
-            // 同时更新隐藏的结果容器(如果存在)
-            const altResultsContainer = 
-                resultsContainer.id === 'search-results' 
-                    ? document.getElementById('searchResults') 
-                    : document.getElementById('search-results');
-            
-            if (altResultsContainer) {
-                altResultsContainer.innerHTML = htmlContent;
-            }
-            
-            // 成功处理结果后显示成功消息
-            let successMessage = '';
-            if (data.search_type === 'ETF基金代码') {
-                successMessage = `找到${data.count}个主要ETF和${data.related_count || 0}个同指数ETF`;
-            } else if (data.is_grouped) {
-                successMessage = `按跟踪指数分组，找到${data.index_count}个指数，共${data.count}个ETF`;
-            } else {
-                successMessage = `成功找到${data.count}个匹配的ETF`;
-            }
-            showMessage('success', successMessage);
-        }
-    } catch (error) {
-        console.error('处理搜索结果时出错:', error);
-        showMessage('danger', `处理搜索结果时出错: ${error.message}`);
-        
-        const resultsContainer = document.getElementById('search-results') || document.getElementById('searchResults');
-        if (resultsContainer) {
-            resultsContainer.innerHTML = `<div class="alert alert-danger">处理搜索结果时出错: ${error.message}</div>`;
+            // 其他搜索类型使用通用表格
+            htmlContent += generateETFTable(data.results, data.search_type || '搜索结果');
         }
         
-        // 确保导出按钮显示，即使出错了
-        const exportMarkdownButton = document.getElementById('export-markdown-button');
-        if (exportMarkdownButton) {
-            exportMarkdownButton.style.display = 'block';
-            console.log('出错情况下确保显示导出Markdown按钮');
+        // 更新结果容器
+        resultsContainer.innerHTML = htmlContent;
+        
+        // 同时更新隐藏的结果容器(如果存在)
+        const altResultsContainer = 
+            resultsContainer.id === 'search-results' 
+                ? document.getElementById('searchResults') 
+                : document.getElementById('search-results');
+        
+        if (altResultsContainer) {
+            altResultsContainer.innerHTML = htmlContent;
         }
+        
+        // 成功处理结果后显示成功消息
+        let successMessage = '';
+        if (data.search_type === 'ETF基金代码') {
+            successMessage = `找到${data.count}个主要ETF和${data.related_count || 0}个同指数ETF`;
+        } else if (data.is_grouped) {
+            successMessage = `按跟踪指数分组，找到${data.index_count}个指数，共${data.count}个ETF`;
+        } else {
+            successMessage = `成功找到${data.count}个匹配的ETF`;
+        }
+        showMessage('success', successMessage);
     }
 }
 

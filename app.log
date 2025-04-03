@@ -1587,3 +1587,98 @@ Traceback (most recent call last):
     keyword = request.form.get('code', '').strip()
           ^
 IndentationError: expected an indented block
+2025-04-03 16:06:33,676 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:06:33,679 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:08:36,836 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:08:36,839 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:08:54,439 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:08:54,441 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:12:10,254 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:12:10,257 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:12:39,534 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:12:39,537 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:13:22,789 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:13:22,792 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:16:07,338 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:16:07,340 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:16:57,057 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:16:57,059 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:20:31,960 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:20:31,963 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:20:32,491 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 16:20:32,491 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 16:24:35,367 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:24:35,370 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:24:35,971 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 16:24:35,971 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 16:26:38,812 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:26:38,815 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:26:39,336 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8080
+2025-04-03 16:26:39,336 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 16:27:18,197 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:27:18] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:27:27,518 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:27:27] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:28:01,694 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:28:01] "GET / HTTP/1.1" 200 -
+2025-04-03 16:28:07,894 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:28:07] "GET / HTTP/1.1" 200 -
+2025-04-03 16:29:08,362 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:29:08,366 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:29:08,879 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8080
+2025-04-03 16:29:08,880 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 16:30:05,620 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:05] "GET / HTTP/1.1" 200 -
+2025-04-03 16:30:05,739 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:05] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 16:30:05,740 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:05] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 16:30:05,742 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:05] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 16:30:06,074 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:06] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 16:30:06,076 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:06] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 16:30:06,077 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:06] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 16:30:06,077 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:06] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 16:30:06,080 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:06] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 16:30:06,099 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:06] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 16:30:06,248 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:06] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 16:30:08,238 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:08] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-04-03 16:30:10,125 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:10] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:30:41,571 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:41] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:30:51,106 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:30:51] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:32:32,350 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:32:32] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:32:54,956 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:32:54] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:39:26,962 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:39:26,972 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:39:27,540 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8080
+2025-04-03 16:39:27,540 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 16:39:45,911 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:39:45] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:40:33,832 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:33] "GET / HTTP/1.1" 200 -
+2025-04-03 16:40:33,994 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:33] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-03 16:40:33,996 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:33] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-03 16:40:33,998 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:33] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-03 16:40:34,077 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:34] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-03 16:40:34,078 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:34] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-03 16:40:34,082 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:34] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-03 16:40:34,082 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:34] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-03 16:40:34,083 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:34] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-03 16:40:34,094 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:34] "GET /recommendations HTTP/1.1" 200 -
+2025-04-03 16:40:34,218 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:34] "GET /load_data HTTP/1.1" 200 -
+2025-04-03 16:40:39,009 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:40:39] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:42:03,330 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:42:03] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:42:17,071 - werkzeug - INFO - 127.0.0.1 - - [03/Apr/2025 16:42:17] "POST /search HTTP/1.1" 200 -
+2025-04-03 16:43:32,711 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:43:32,714 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:43:34,049 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5007
+ * Running on http://192.168.88.59:5007
+2025-04-03 16:43:34,050 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 16:43:34,051 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 16:43:34,982 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:43:34,984 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:43:36,190 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 16:43:36,251 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-03 16:45:03,348 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/app.py', reloading
+2025-04-03 16:45:03,586 - werkzeug - INFO -  * Restarting with stat
+2025-04-03 16:45:05,829 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-03 16:45:05,833 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-03 16:45:08,280 - werkzeug - WARNING -  * Debugger is active!
+2025-04-03 16:45:08,326 - werkzeug - INFO -  * Debugger PIN: 513-303-707

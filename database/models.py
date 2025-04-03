@@ -426,7 +426,7 @@ class Database:
                 # 检查处理后的规模数据
                 print("\n处理后的基金规模统计：")
                 print(df['fund_size'].describe())
-                
+            
             # 处理费率字段
             def process_fee_rate(value):
                 if pd.isna(value):
@@ -496,7 +496,12 @@ class Database:
                 df['total_market_value'] = df['total_market_value'].apply(process_numeric_value)
             
             # 添加更新时间
-            df['update_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            df['update_time'] = current_time
+            
+            # 添加日期列（仅取日期部分）
+            current_date = datetime.now().strftime('%Y-%m-%d')
+            df['date'] = current_date
             
             # 显示数据示例
             print("\n最终数据示例：")
@@ -533,8 +538,30 @@ class Database:
                 )
             """)
             
-            # 保存到数据库
-            df.to_sql('etf_info', conn, if_exists='append', index=False)
+            # 创建ETF规模历史表（如果不存在）
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS etf_fund_size_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    code TEXT,
+                    fund_size REAL,
+                    date TEXT,
+                    update_time TIMESTAMP
+                )
+            """)
+            
+            # 保存到主表（不包含日期列）
+            main_columns = [col for col in df.columns if col != 'date']
+            df[main_columns].to_sql('etf_info', conn, if_exists='append', index=False)
+            
+            # 保存规模历史数据
+            if 'fund_size' in df.columns:
+                fund_size_data = df[['code', 'fund_size', 'date', 'update_time']].copy()
+                # 过滤出非零规模的数据
+                fund_size_data = fund_size_data[fund_size_data['fund_size'] > 0]
+                if not fund_size_data.empty:
+                    fund_size_data.to_sql('etf_fund_size_history', conn, if_exists='append', index=False)
+                    print(f"同时保存了{len(fund_size_data)}条规模历史数据到etf_fund_size_history表")
+            
             conn.commit()
             
             print(f"\n成功保存ETF基本信息，共{len(df)}条记录")
@@ -628,7 +655,12 @@ class Database:
             df = df[required_columns]
             
             # 添加更新时间
-            df['update_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            df['update_time'] = current_time
+            
+            # 添加日期列（仅取日期部分）
+            current_date = datetime.now().strftime('%Y-%m-%d')
+            df['date'] = current_date
             
             # 确保数字类型正确
             try:
@@ -650,12 +682,28 @@ class Database:
                 )
             """)
             
-            # 保存到数据库
-            df.to_sql('etf_attention', conn, if_exists='append', index=False)
+            # 同时保存到历史表
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS etf_attention_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    code TEXT,
+                    attention_count INTEGER,
+                    date TEXT,
+                    update_time TIMESTAMP
+                )
+            """)
+            
+            # 保存到主表
+            df[['code', 'attention_count', 'update_time']].to_sql('etf_attention', conn, if_exists='append', index=False)
+            
+            # 保存到历史表
+            df[['code', 'attention_count', 'date', 'update_time']].to_sql('etf_attention_history', conn, if_exists='append', index=False)
+            
             conn.commit()
             cursor.close()  # 只关闭游标，不关闭连接
             
             print(f"成功保存ETF自选数据，共{len(df)}条记录")
+            print(f"同时保存了{len(df)}条历史记录到etf_attention_history表")
             return True
             
         except Exception as e:
@@ -709,11 +757,15 @@ class Database:
                 print(f"转换数值时出错: {str(e)}")
             
             # 添加更新时间
-            if 'update_time' not in df.columns:
-                df['update_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            df['update_time'] = current_time
+            
+            # 添加日期列（仅取日期部分）
+            current_date = datetime.now().strftime('%Y-%m-%d')
+            df['date'] = current_date
             
             # 选择最终列
-            final_columns = ['code', 'holder_count', 'holding_amount', 'update_time']
+            final_columns = ['code', 'holder_count', 'holding_amount', 'update_time', 'date']
             df = df[final_columns]
             
             # 保存到数据库
@@ -732,12 +784,29 @@ class Database:
                 )
             """)
             
-            # 保存到数据库
-            df.to_sql('etf_holders', conn, if_exists='append', index=False)
+            # 同时创建历史表（如果不存在）
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS etf_holders_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    code TEXT,
+                    holder_count INTEGER,
+                    holding_amount REAL,
+                    date TEXT,
+                    update_time TIMESTAMP
+                )
+            """)
+            
+            # 保存到主表
+            df[['code', 'holder_count', 'holding_amount', 'update_time']].to_sql('etf_holders', conn, if_exists='append', index=False)
+            
+            # 保存到历史表
+            df[['code', 'holder_count', 'holding_amount', 'date', 'update_time']].to_sql('etf_holders_history', conn, if_exists='append', index=False)
+            
             conn.commit()
             cursor.close()  # 只关闭游标，不关闭连接
             
             print(f"成功保存ETF持有人数据，共{len(df)}条记录")
+            print(f"同时保存了{len(df)}条历史记录到etf_holders_history表")
             return True
             
         except Exception as e:
@@ -1424,4 +1493,125 @@ class Database:
             return [dict(zip(columns, row)) for row in result]
         except Exception as e:
             print(f"获取指定指数代码的ETF时出错: {str(e)}")
+            return []
+    
+    def get_etf_attention_history(self, etf_code):
+        """获取ETF自选人数历史数据"""
+        try:
+            # 标准化ETF代码
+            etf_code = normalize_etf_code(etf_code)
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询指定ETF的历史自选人数
+            cursor.execute("""
+                SELECT date, attention_count
+                FROM etf_attention_history
+                WHERE code LIKE ?
+                ORDER BY date
+            """, (f"%{etf_code}%",))
+            
+            history = cursor.fetchall()
+            
+            # 格式化结果
+            result = [{"date": date, "attention_count": count} for date, count in history]
+            
+            return result
+        
+        except Exception as e:
+            print(f"获取ETF自选人数历史数据出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return []
+            
+    def get_etf_holders_history(self, etf_code):
+        """获取ETF持有人历史数据"""
+        try:
+            # 标准化ETF代码
+            etf_code = normalize_etf_code(etf_code)
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询指定ETF的历史持有人数据
+            cursor.execute("""
+                SELECT date, holder_count, holding_amount
+                FROM etf_holders_history
+                WHERE code LIKE ?
+                ORDER BY date
+            """, (f"%{etf_code}%",))
+            
+            history = cursor.fetchall()
+            
+            # 格式化结果
+            result = [
+                {
+                    "date": date, 
+                    "holder_count": holder_count,
+                    "holding_amount": holding_amount
+                } 
+                for date, holder_count, holding_amount in history
+            ]
+            
+            return result
+        
+        except Exception as e:
+            print(f"获取ETF持有人历史数据出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return []
+            
+    def get_etf_fund_size_history(self, etf_code):
+        """获取ETF规模历史数据"""
+        try:
+            # 标准化ETF代码
+            etf_code = normalize_etf_code(etf_code)
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询该ETF是否存在于etf_info表中
+            cursor.execute("""
+                SELECT COUNT(*) 
+                FROM etf_info 
+                WHERE code LIKE ?
+            """, (f"%{etf_code}%",))
+            
+            if cursor.fetchone()[0] == 0:
+                print(f"ETF代码 {etf_code} 不存在")
+                return []
+            
+            # 如果存在历史规模表，查询历史规模数据
+            cursor.execute("""
+                SELECT count(*)
+                FROM sqlite_master
+                WHERE type='table' AND name='etf_fund_size_history'
+            """)
+            
+            if cursor.fetchone()[0] > 0:
+                cursor.execute("""
+                    SELECT date, fund_size
+                    FROM etf_fund_size_history
+                    WHERE code LIKE ?
+                    ORDER BY date
+                """, (f"%{etf_code}%",))
+                
+                history = cursor.fetchall()
+                
+                # 格式化结果
+                result = [{"date": date, "fund_size": fund_size} for date, fund_size in history]
+                
+                return result
+            else:
+                print("etf_fund_size_history表不存在")
+                return []
+        
+        except Exception as e:
+            print(f"获取ETF规模历史数据出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return []

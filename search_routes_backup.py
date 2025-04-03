@@ -296,7 +296,7 @@ def search():
                         'data_date': data_date  # 添加数据截止日期
                     })
                     return add_cors_headers(response)
-        else:
+            else:
                 response = jsonify({
                     'results': [],
                     'count': 0,
@@ -1215,3 +1215,35 @@ def api_company_search():
             'error': f'搜索处理错误: {str(e)}',
             'trace': traceback.format_exc()
         }), 500
+
+@search_bp.route('/etf_attention_history', methods=['GET'])
+def etf_attention_history():
+    """获取ETF关注数历史数据"""
+    try:
+        etf_code = request.args.get('code', '')
+        if not etf_code:
+            return jsonify({
+                'error': '请提供ETF代码'
+            })
+        
+        db = Database()
+        history_data = db.get_etf_attention_history(etf_code)
+        
+        # 获取ETF名称
+        etf_info = db.general_search(etf_code)
+        etf_name = etf_info[0]['name'] if etf_info else ''
+        
+        return add_cors_headers(jsonify({
+            'code': etf_code,
+            'name': etf_name,
+            'data': history_data
+        }))
+    
+    except Exception as e:
+        print(f"获取ETF关注数历史数据出错: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        return add_cors_headers(jsonify({
+            'error': f'获取数据失败: {str(e)}'
+        }))

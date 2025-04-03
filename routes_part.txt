@@ -1,0 +1,41 @@
+                # 尝试获取指数介绍
+                if tracking_index_code:
+                    index_intro = get_index_intro(tracking_index_code)
+                    if index_intro:
+                        response_data['index_intro'] = index_intro
+                
+                response = jsonify(response_data)
+                return add_cors_headers(response)
+        else:
+            # 尝试通用搜索
+            print("指数名称搜索无结果，尝试通用搜索")
+            results = db.general_search(keyword)
+            
+            if results:
+                # 检查结果是否已分组
+                if isinstance(results, dict) and results.get('is_grouped'):
+                    # 已分组的结果格式不同
+                    response = jsonify({
+                        'search_type': '通用搜索(按指数分组)',
+                        'index_groups': results['index_groups'],
+                        'index_count': results['index_count'],
+                        'count': results['count'],
+                        'is_grouped': True,
+                        'keyword': keyword
+                    })
+                    return add_cors_headers(response)
+                else:
+                    # 标准化普通结果
+                    results = normalize_etf_results(results)
+                    
+                    response = jsonify({
+                        'search_type': '通用搜索',
+                        'results': results,
+                        'count': len(results),
+                        'keyword': keyword,
+                        'is_grouped': False,
+                        'data_date': data_date  # 添加数据截止日期
+                    })
+                    return add_cors_headers(response)
+        else:
+                response = jsonify({

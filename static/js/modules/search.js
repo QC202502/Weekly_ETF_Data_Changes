@@ -248,6 +248,9 @@ export function handleSearchResult(data) {
             // 添加容器用于显示ETF历史数据图表
             if (data.results && data.results.length > 0) {
                 const mainETF = data.results[0];
+                const etfCode = mainETF.code;
+                const etfName = mainETF.name;
+                const manager = mainETF.manager || '';
                 htmlContent += `<div id="etf-charts-container"></div>`;
             }
         } else if (data.is_grouped && (data.search_type === '通用搜索(按指数分组)' || data.search_type === '跟踪指数名称(按指数分组)')) {
@@ -269,9 +272,10 @@ export function handleSearchResult(data) {
             const mainETF = data.results[0];
             const etfCode = mainETF.code;
             const etfName = mainETF.name;
+            const manager = mainETF.manager || '';
             
             // 初始化并显示ETF历史数据图表
-            displayETFCharts(etfCode, etfName, 'etf-charts-container');
+            displayETFCharts(etfCode, etfName, 'etf-charts-container', manager);
         }
     }
 }

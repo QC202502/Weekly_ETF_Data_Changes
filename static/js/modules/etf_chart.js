@@ -115,7 +115,7 @@ async function loadChartJSLibrary() {
 }
 
 // 创建ETF时序图容器
-export function createETFChartContainer(etfCode, etfName) {
+export function createETFChartContainer(etfCode, etfName, manager = '') {
     const chartContainerId = `chart-container-${etfCode.replace('.', '-')}`;
     
     // 创建图表容器HTML
@@ -123,7 +123,7 @@ export function createETFChartContainer(etfCode, etfName) {
     <div class="etf-chart-section mt-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5><i class="bi bi-graph-up"></i> ${etfName || etfCode} 历史数据趋势</h5>
+                <h5><i class="bi bi-graph-up"></i> ${etfCode}｜${etfName}｜${manager}｜客户数据趋势</h5>
                 <div class="btn-group btn-group-sm" role="group">
                     <button type="button" class="btn btn-outline-secondary active" data-period="all">全部</button>
                     <button type="button" class="btn btn-outline-secondary" data-period="month">一个月</button>
@@ -131,12 +131,51 @@ export function createETFChartContainer(etfCode, etfName) {
                 </div>
             </div>
             <div class="card-body">
-                <div id="${chartContainerId}" class="chart-container" style="height: 300px;">
-                    <div class="text-center py-5">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">正在加载...</span>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="${chartContainerId}" class="chart-container" style="height: 300px;">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">正在加载...</span>
+                                </div>
+                                <p class="mt-2">正在加载图表数据...</p>
+                            </div>
                         </div>
-                        <p class="mt-2">正在加载图表数据...</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card" id="${chartContainerId}-stats">
+                            <div class="card-header">
+                                <h6 class="mb-0">数据变化统计</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center py-3">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">计算中...</span>
+                                    </div>
+                                    <p class="mt-2 small">计算历史数据变化...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">时间范围选择</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="${chartContainerId}-start-date" class="form-label small">开始日期</label>
+                                        <input type="date" class="form-control form-control-sm" id="${chartContainerId}-start-date">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="${chartContainerId}-end-date" class="form-label small">结束日期</label>
+                                        <input type="date" class="form-control form-control-sm" id="${chartContainerId}-end-date">
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <button class="btn btn-sm btn-primary w-100" id="${chartContainerId}-apply-date">应用日期范围</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -174,7 +213,7 @@ export async function fetchETFHistoryData(etfCode) {
 
 // 准备图表数据
 function prepareChartData(historyData, options = {}) {
-    const { period = 'all' } = options;
+    const { period = 'all', startDate = null, endDate = null } = options;
     
     if (!historyData) {
         console.error('历史数据为空');
@@ -217,7 +256,12 @@ function prepareChartData(historyData, options = {}) {
     
     // 根据所选时间范围过滤数据
     let filteredDates = sortedDates;
-    if (period === 'month') {
+    
+    if (period === 'custom' && startDate && endDate) {
+        // 使用自定义日期范围
+        filteredDates = sortedDates.filter(date => date >= startDate && date <= endDate);
+        console.log(`应用自定义日期范围: ${startDate} 到 ${endDate}, 筛选到 ${filteredDates.length} 个日期`);
+    } else if (period === 'month') {
         // 过滤最近30天数据
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - 30);
@@ -272,6 +316,198 @@ function prepareChartData(historyData, options = {}) {
     };
 }
 
+// 计算历史数据的变化值
+function calculateHistoricalChanges(historyData) {
+    if (!historyData || (!historyData.attention || !historyData.holders)) {
+        return { error: "无足够历史数据计算变化值" };
+    }
+    
+    // 按日期降序排序
+    const sortAttention = [...historyData.attention].sort((a, b) => 
+        new Date(b.date) - new Date(a.date));
+    const sortHolders = [...historyData.holders].sort((a, b) => 
+        new Date(b.date) - new Date(a.date));
+    
+    // 获取最新日期
+    const latestAttentionDate = sortAttention.length > 0 ? sortAttention[0].date : null;
+    const latestHoldersDate = sortHolders.length > 0 ? sortHolders[0].date : null;
+    
+    // 初始化结果对象
+    const result = {
+        latestAttentionDate: latestAttentionDate, 
+        latestHoldersDate: latestHoldersDate,
+        attention: {
+            latest: null,
+            day5: null,
+            day10: null,
+            month: null,
+        },
+        holders: {
+            latest: null,
+            day5: null,
+            day10: null,
+            month: null,
+        },
+        amount: {
+            latest: null,
+            day5: null,
+            day10: null,
+            month: null,
+        }
+    };
+    
+    // 计算自选人数变化
+    if (sortAttention.length > 0) {
+        const latest = sortAttention[0].attention_count;
+        
+        // 最新一天变化 (需要至少两天数据)
+        if (sortAttention.length > 1) {
+            result.attention.latest = latest - sortAttention[1].attention_count;
+        }
+        
+        // 5日变化
+        const day5Index = findDateIndex(sortAttention, 5);
+        if (day5Index >= 0) {
+            result.attention.day5 = latest - sortAttention[day5Index].attention_count;
+        }
+        
+        // 10日变化
+        const day10Index = findDateIndex(sortAttention, 10);
+        if (day10Index >= 0) {
+            result.attention.day10 = latest - sortAttention[day10Index].attention_count;
+        }
+        
+        // 30日变化
+        const monthIndex = findDateIndex(sortAttention, 30);
+        if (monthIndex >= 0) {
+            result.attention.month = latest - sortAttention[monthIndex].attention_count;
+        }
+    }
+    
+    // 计算持有人数和持有金额变化
+    if (sortHolders.length > 0) {
+        const latestHolders = sortHolders[0].holder_count;
+        const latestAmount = sortHolders[0].holding_amount;
+        
+        // 最新一天变化 (需要至少两天数据)
+        if (sortHolders.length > 1) {
+            result.holders.latest = latestHolders - sortHolders[1].holder_count;
+            result.amount.latest = latestAmount - sortHolders[1].holding_amount;
+        }
+        
+        // 5日变化
+        const day5Index = findDateIndex(sortHolders, 5);
+        if (day5Index >= 0) {
+            result.holders.day5 = latestHolders - sortHolders[day5Index].holder_count;
+            result.amount.day5 = latestAmount - sortHolders[day5Index].holding_amount;
+        }
+        
+        // 10日变化
+        const day10Index = findDateIndex(sortHolders, 10);
+        if (day10Index >= 0) {
+            result.holders.day10 = latestHolders - sortHolders[day10Index].holder_count;
+            result.amount.day10 = latestAmount - sortHolders[day10Index].holding_amount;
+        }
+        
+        // 30日变化
+        const monthIndex = findDateIndex(sortHolders, 30);
+        if (monthIndex >= 0) {
+            result.holders.month = latestHolders - sortHolders[monthIndex].holder_count;
+            result.amount.month = latestAmount - sortHolders[monthIndex].holding_amount;
+        }
+    }
+    
+    return result;
+}
+
+// 辅助函数：查找n天前的数据索引
+function findDateIndex(sortedData, daysBefore) {
+    if (!sortedData || sortedData.length === 0) return -1;
+    
+    const latestDate = new Date(sortedData[0].date);
+    const targetDate = new Date(latestDate);
+    targetDate.setDate(targetDate.getDate() - daysBefore);
+    
+    // 找到最接近的日期
+    let closestIndex = -1;
+    let minDiff = Number.MAX_SAFE_INTEGER;
+    
+    for (let i = 0; i < sortedData.length; i++) {
+        const currentDate = new Date(sortedData[i].date);
+        if (currentDate <= targetDate) {
+            const diff = Math.abs(currentDate - targetDate);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIndex = i;
+            }
+        }
+    }
+    
+    return closestIndex;
+}
+
+// 显示历史数据变化统计
+function displayHistoricalChanges(containerId, changes) {
+    const statsContainer = document.getElementById(`${containerId}-stats`);
+    if (!statsContainer) return;
+    
+    const statsCardBody = statsContainer.querySelector('.card-body');
+    if (!statsCardBody) return;
+    
+    // 格式化日期为"M月D日"
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "无数据";
+        const date = new Date(dateStr);
+        return `${date.getMonth() + 1}月${date.getDate()}日`;
+    };
+    
+    // 生成变化值HTML，显示增长为绿色，下降为红色
+    const formatChange = (value) => {
+        if (value === null) return "<span>-</span>";
+        const color = value >= 0 ? "success" : "danger";
+        const sign = value >= 0 ? "+" : "";
+        return `<span class="text-${color}">${sign}${formatNumber(value)}</span>`;
+    };
+    
+    const attentionDate = formatDate(changes.latestAttentionDate);
+    const holdersDate = formatDate(changes.latestHoldersDate);
+    
+    const html = `
+    <div class="stats-container">
+        <div class="mb-3">
+            <h6 class="text-primary">自选人数变化</h6>
+            <div class="row small g-1">
+                <div class="col-12"><span class="text-muted">${attentionDate}：</span>${formatChange(changes.attention.latest)}</div>
+                <div class="col-12"><span class="text-muted">近5日：</span>${formatChange(changes.attention.day5)}</div>
+                <div class="col-12"><span class="text-muted">近10日：</span>${formatChange(changes.attention.day10)}</div>
+                <div class="col-12"><span class="text-muted">近一个月：</span>${formatChange(changes.attention.month)}</div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <h6 class="text-primary">持有人数变化</h6>
+            <div class="row small g-1">
+                <div class="col-12"><span class="text-muted">${holdersDate}：</span>${formatChange(changes.holders.latest)}</div>
+                <div class="col-12"><span class="text-muted">近5日：</span>${formatChange(changes.holders.day5)}</div>
+                <div class="col-12"><span class="text-muted">近10日：</span>${formatChange(changes.holders.day10)}</div>
+                <div class="col-12"><span class="text-muted">近一个月：</span>${formatChange(changes.holders.month)}</div>
+            </div>
+        </div>
+        
+        <div class="mb-0">
+            <h6 class="text-primary">持有金额变化</h6>
+            <div class="row small g-1">
+                <div class="col-12"><span class="text-muted">${holdersDate}：</span>${formatChange(changes.amount.latest)}</div>
+                <div class="col-12"><span class="text-muted">近5日：</span>${formatChange(changes.amount.day5)}</div>
+                <div class="col-12"><span class="text-muted">近10日：</span>${formatChange(changes.amount.day10)}</div>
+                <div class="col-12"><span class="text-muted">近一个月：</span>${formatChange(changes.amount.month)}</div>
+            </div>
+        </div>
+    </div>`;
+    
+    statsCardBody.innerHTML = html;
+}
+
 // 初始化苹果风格图表
 export async function initETFChart(containerId, historyData, options = {}) {
     try {
@@ -319,7 +555,21 @@ export async function initETFChart(containerId, historyData, options = {}) {
                 borderWidth: 2,
                 tension: 0.3,
                 pointRadius: 3,
-                yAxisID: 'y'
+                yAxisID: 'y',
+                // 添加数据点标签
+                datalabels: {
+                    align: 'top',
+                    anchor: 'end',
+                    display: function(context) {
+                        return context.dataIndex % 3 === 0 && context.dataset.data[context.dataIndex] !== null; 
+                    },
+                    formatter: function(value) {
+                        return value !== null ? formatNumber(value, 0) : '';
+                    },
+                    font: {
+                        size: 10
+                    }
+                }
             });
         }
         
@@ -332,7 +582,21 @@ export async function initETFChart(containerId, historyData, options = {}) {
                 borderWidth: 2,
                 tension: 0.3,
                 pointRadius: 3,
-                yAxisID: 'y'
+                yAxisID: 'y',
+                // 添加数据点标签
+                datalabels: {
+                    align: 'top',
+                    anchor: 'end',
+                    display: function(context) {
+                        return context.dataIndex % 3 === 0 && context.dataset.data[context.dataIndex] !== null;
+                    },
+                    formatter: function(value) {
+                        return value !== null ? formatNumber(value, 0) : '';
+                    },
+                    font: {
+                        size: 10
+                    }
+                }
             });
         }
         
@@ -363,6 +627,13 @@ export async function initETFChart(containerId, historyData, options = {}) {
                     intersect: false,
                 },
                 plugins: {
+                    // 启用数据标签插件
+                    datalabels: {
+                        color: 'rgba(0, 0, 0, 0.7)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                        borderRadius: 3,
+                        padding: 2
+                    },
                     tooltip: {
                         bodyFont: {
                             family: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif'
@@ -473,8 +744,15 @@ export async function initETFChart(containerId, historyData, options = {}) {
         
         console.log('图表初始化成功');
         
+        // 计算并显示历史数据变化
+        const changes = calculateHistoricalChanges(historyData);
+        displayHistoricalChanges(containerId, changes);
+        
         // 绑定时间范围选择事件
         bindPeriodButtons(chart, historyData, containerId);
+        
+        // 绑定自定义日期范围事件
+        bindCustomDateRange(chart, historyData, containerId);
         
         return chart;
     } catch (error) {
@@ -522,11 +800,61 @@ function bindPeriodButtons(chart, historyData, containerId) {
     });
 }
 
+// 绑定自定义日期范围事件
+function bindCustomDateRange(chart, historyData, containerId) {
+    const startDateInput = document.getElementById(`${containerId}-start-date`);
+    const endDateInput = document.getElementById(`${containerId}-end-date`);
+    const applyButton = document.getElementById(`${containerId}-apply-date`);
+    
+    if (!startDateInput || !endDateInput || !applyButton) return;
+    
+    // 设置初始日期范围
+    const dates = [...new Set([
+        ...(historyData.attention || []).map(item => item.date),
+        ...(historyData.holders || []).map(item => item.date)
+    ])].sort();
+    
+    if (dates.length > 0) {
+        startDateInput.value = dates[0];
+        endDateInput.value = dates[dates.length - 1];
+    }
+    
+    // 应用按钮点击事件
+    applyButton.addEventListener('click', function() {
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+        
+        if (!startDate || !endDate) {
+            alert('请选择有效的开始和结束日期');
+            return;
+        }
+        
+        // 更新图表数据
+        const customOptions = { 
+            period: 'custom',
+            startDate: startDate,
+            endDate: endDate
+        };
+        
+        // 修改prepareChartData函数处理自定义日期范围
+        const chartData = prepareChartData(historyData, customOptions);
+        
+        // 更新图表
+        chart.data.labels = chartData.labels;
+        chart.data.datasets.forEach((dataset, index) => {
+            if (index === 0 && chartData.attention) dataset.data = chartData.attention;
+            else if (index === 1 && chartData.holders) dataset.data = chartData.holders;
+            else if (index === 2 && chartData.amounts) dataset.data = chartData.amounts;
+        });
+        chart.update();
+    });
+}
+
 // 在ETF详情页面展示图表
-export async function displayETFCharts(etfCode, etfName, targetElement) {
+export async function displayETFCharts(etfCode, etfName, targetElement, manager = '') {
     try {
         // 创建图表容器
-        const { containerId, html } = createETFChartContainer(etfCode, etfName);
+        const { containerId, html } = createETFChartContainer(etfCode, etfName, manager);
         
         // 添加容器到页面
         if (typeof targetElement === 'string') {

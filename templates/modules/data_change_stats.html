@@ -1,0 +1,134 @@
+<!-- 数据变化统计 -->
+<div class="card stats-card">
+    <div class="card-header d-flex align-items-center">
+        <h5 class="mb-0"><i class="bi bi-graph-up"></i> 数据变化统计</h5>
+    </div>
+    <table class="table mb-0" id="data-change-stats-table">
+        <thead class="table-light">
+            <tr>
+                <th scope="col" class="text-center" style="width: 22%;">统计项</th>
+                <th scope="col" class="text-center" style="width: 26%;">自选人数</th>
+                <th scope="col" class="text-center" style="width: 26%;">持有人数</th>
+                <th scope="col" class="text-center" style="width: 26%;">持有金额</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row" class="text-center">4月2日总数</th>
+                <td class="text-center" id="attention-total">-</td>
+                <td class="text-center" id="holders-total">-</td>
+                <td class="text-center" id="amount-total">-</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">4月2日变化</th>
+                <td class="text-center" id="attention-latest">-</td>
+                <td class="text-center" id="holders-latest">-</td>
+                <td class="text-center" id="amount-latest">-</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近5日变化</th>
+                <td class="text-center" id="attention-day5">-</td>
+                <td class="text-center" id="holders-day5">-</td>
+                <td class="text-center" id="amount-day5">-</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近10日变化</th>
+                <td class="text-center" id="attention-day10">-</td>
+                <td class="text-center" id="holders-day10">-</td>
+                <td class="text-center" id="amount-day10">-</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近一个月变化</th>
+                <td class="text-center" id="attention-month1">-</td>
+                <td class="text-center" id="holders-month1">-</td>
+                <td class="text-center" id="amount-month1">-</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近两个月变化</th>
+                <td class="text-center" id="attention-month2">-</td>
+                <td class="text-center" id="holders-month2">-</td>
+                <td class="text-center" id="amount-month2">-</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近三个月变化</th>
+                <td class="text-center" id="attention-month3">-</td>
+                <td class="text-center" id="holders-month3">-</td>
+                <td class="text-center" id="amount-month3">-</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<style>
+.text-increase {
+    color: #dc3545; /* 红色 - Bootstrap danger */
+    font-weight: 600;
+}
+.text-decrease {
+    color: #198754; /* 绿色 - Bootstrap success */
+    font-weight: 600;
+}
+
+/* 苹果风格表格样式 */
+.stats-card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.stats-card .card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 0.8rem 1rem;
+}
+
+.stats-card .card-header h5 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1d1d1f;
+}
+
+#data-change-stats-table {
+    margin-bottom: 0;
+    border: none;
+    font-size: 0.95rem;
+}
+
+#data-change-stats-table th,
+#data-change-stats-table td {
+    padding: 0.75rem 0.5rem;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+#data-change-stats-table thead th {
+    background-color: #f5f5f7;
+    color: #1d1d1f;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+#data-change-stats-table tbody th {
+    background-color: rgba(245, 245, 247, 0.5);
+    font-weight: 500;
+    color: #1d1d1f;
+}
+
+#data-change-stats-table tbody tr:last-child th,
+#data-change-stats-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    #data-change-stats-table {
+        font-size: 0.85rem;
+    }
+    
+    #data-change-stats-table th, 
+    #data-change-stats-table td {
+        padding: 0.6rem 0.4rem;
+    }
+}
+</style> 

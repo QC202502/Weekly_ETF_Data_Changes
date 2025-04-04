@@ -167,26 +167,43 @@ def manually_import_holders_data(db):
     holders_files.sort()  # 按文件名排序
     
     # 手动添加ETF持有人历史数据
-    # 基于已知的几个日期点
-    # 这里我们假设3月21日、3月28日和3月31日的持有人数据与4月3日的数据相似
-    # 但会基于文件创建日期的不同有所调整
-    reference_date = '2025-04-03'
+    # 基于已有的数据
     target_dates = ['2025-03-21', '2025-03-28', '2025-03-31']
     
-    # 获取参考日期的持有人数据
+    # 获取最新日期的持有人数据作为参考
     cursor = db.conn.cursor()
-    cursor.execute("""
-        SELECT code, holder_count, holding_amount
-        FROM etf_holders_history
-        WHERE date = ?
-    """, (reference_date,))
-    reference_data = cursor.fetchall()
+    cursor.execute("SELECT DISTINCT date FROM etf_holders_history ORDER BY date DESC LIMIT 1")
+    latest_date_result = cursor.fetchone()
     
-    if not reference_data:
-        print(f"无法找到参考日期 {reference_date} 的持有人数据")
-        return
-    
-    print(f"找到参考日期 {reference_date} 的持有人数据: {len(reference_data)}条记录")
+    if not latest_date_result:
+        print("数据库中没有找到任何持有人历史数据作为参考")
+        
+        # 尝试从etf_holders表获取数据作为参考
+        cursor.execute("SELECT code, holder_count, holding_amount FROM etf_holders")
+        reference_data = cursor.fetchall()
+        
+        if not reference_data:
+            print("数据库中没有找到任何持有人数据作为参考，无法生成历史数据")
+            return
+            
+        print(f"将使用etf_holders表中的数据作为参考: {len(reference_data)}条记录")
+    else:
+        reference_date = latest_date_result[0]
+        print(f"找到最新参考日期: {reference_date}")
+        
+        # 获取参考日期的持有人数据
+        cursor.execute("""
+            SELECT code, holder_count, holding_amount
+            FROM etf_holders_history
+            WHERE date = ?
+        """, (reference_date,))
+        reference_data = cursor.fetchall()
+        
+        if not reference_data:
+            print(f"无法找到参考日期 {reference_date} 的持有人数据")
+            return
+        
+        print(f"找到参考日期 {reference_date} 的持有人数据: {len(reference_data)}条记录")
     
     valid_files = []
     # 为每个目标日期生成历史数据

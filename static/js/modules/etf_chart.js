@@ -30,6 +30,20 @@ function formatNumber(num, decimals = 0) {
         return '-';
     }
     
+    // 持仓金额单位自动转换
+    if (arguments.length > 2 && arguments[2] === 'amount') {
+        if (Math.abs(num) >= 100000000) { // 1亿及以上
+            return (num / 100000000).toFixed(2) + '亿';
+        } else if (Math.abs(num) >= 10000) { // 1万及以上
+            return (num / 10000).toFixed(2) + '万';
+        } else {
+            return num.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+    }
+    
     // 如果是整数且不需要小数位
     if (Number.isInteger(num) && decimals === 0) {
         // 大于100万显示为"xx.x万"
@@ -143,11 +157,11 @@ export function createETFChartContainer(etfCode, etfName, manager = '') {
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card" id="${chartContainerId}-stats">
-                            <div class="card-header">
+                        <div class="card stats-card" id="${chartContainerId}-stats">
+                            <div class="card-header d-flex align-items-center">
                                 <h6 class="mb-0">数据变化统计</h6>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body p-0">
                                 <div class="text-center py-3">
                                     <div class="spinner-border spinner-border-sm text-primary" role="status">
                                         <span class="visually-hidden">计算中...</span>
@@ -156,8 +170,8 @@ export function createETFChartContainer(etfCode, etfName, manager = '') {
                                 </div>
                             </div>
                         </div>
-                        <div class="card mt-3">
-                            <div class="card-header">
+                        <div class="card stats-card mt-3">
+                            <div class="card-header d-flex align-items-center">
                                 <h6 class="mb-0">时间范围选择</h6>
                             </div>
                             <div class="card-body">
@@ -337,22 +351,31 @@ function calculateHistoricalChanges(historyData) {
         latestAttentionDate: latestAttentionDate, 
         latestHoldersDate: latestHoldersDate,
         attention: {
+            total: sortAttention.length > 0 ? sortAttention[0].attention_count : null,
             latest: null,
             day5: null,
             day10: null,
-            month: null,
+            month1: null,
+            month2: null,
+            month3: null,
         },
         holders: {
+            total: sortHolders.length > 0 ? sortHolders[0].holder_count : null,
             latest: null,
             day5: null,
             day10: null,
-            month: null,
+            month1: null,
+            month2: null,
+            month3: null,
         },
         amount: {
+            total: sortHolders.length > 0 ? sortHolders[0].holding_amount : null,
             latest: null,
             day5: null,
             day10: null,
-            month: null,
+            month1: null,
+            month2: null,
+            month3: null,
         }
     };
     
@@ -377,10 +400,22 @@ function calculateHistoricalChanges(historyData) {
             result.attention.day10 = latest - sortAttention[day10Index].attention_count;
         }
         
-        // 30日变化
-        const monthIndex = findDateIndex(sortAttention, 30);
-        if (monthIndex >= 0) {
-            result.attention.month = latest - sortAttention[monthIndex].attention_count;
+        // 一个月变化 (30日)
+        const month1Index = findDateIndex(sortAttention, 30);
+        if (month1Index >= 0) {
+            result.attention.month1 = latest - sortAttention[month1Index].attention_count;
+        }
+        
+        // 两个月变化 (60日)
+        const month2Index = findDateIndex(sortAttention, 60);
+        if (month2Index >= 0) {
+            result.attention.month2 = latest - sortAttention[month2Index].attention_count;
+        }
+        
+        // 三个月变化 (90日)
+        const month3Index = findDateIndex(sortAttention, 90);
+        if (month3Index >= 0) {
+            result.attention.month3 = latest - sortAttention[month3Index].attention_count;
         }
     }
     
@@ -409,11 +444,25 @@ function calculateHistoricalChanges(historyData) {
             result.amount.day10 = latestAmount - sortHolders[day10Index].holding_amount;
         }
         
-        // 30日变化
-        const monthIndex = findDateIndex(sortHolders, 30);
-        if (monthIndex >= 0) {
-            result.holders.month = latestHolders - sortHolders[monthIndex].holder_count;
-            result.amount.month = latestAmount - sortHolders[monthIndex].holding_amount;
+        // 一个月变化 (30日)
+        const month1Index = findDateIndex(sortHolders, 30);
+        if (month1Index >= 0) {
+            result.holders.month1 = latestHolders - sortHolders[month1Index].holder_count;
+            result.amount.month1 = latestAmount - sortHolders[month1Index].holding_amount;
+        }
+        
+        // 两个月变化 (60日)
+        const month2Index = findDateIndex(sortHolders, 60);
+        if (month2Index >= 0) {
+            result.holders.month2 = latestHolders - sortHolders[month2Index].holder_count;
+            result.amount.month2 = latestAmount - sortHolders[month2Index].holding_amount;
+        }
+        
+        // 三个月变化 (90日)
+        const month3Index = findDateIndex(sortHolders, 90);
+        if (month3Index >= 0) {
+            result.holders.month3 = latestHolders - sortHolders[month3Index].holder_count;
+            result.amount.month3 = latestAmount - sortHolders[month3Index].holding_amount;
         }
     }
     
@@ -454,6 +503,9 @@ function displayHistoricalChanges(containerId, changes) {
     const statsCardBody = statsContainer.querySelector('.card-body');
     if (!statsCardBody) return;
     
+    // 更新数据变化统计表格
+    updateDataChangeStatsTable(changes);
+    
     // 格式化日期为"M月D日"
     const formatDate = (dateStr) => {
         if (!dateStr) return "无数据";
@@ -461,51 +513,158 @@ function displayHistoricalChanges(containerId, changes) {
         return `${date.getMonth() + 1}月${date.getDate()}日`;
     };
     
-    // 生成变化值HTML，显示增长为绿色，下降为红色
-    const formatChange = (value) => {
-        if (value === null) return "<span>-</span>";
-        const color = value >= 0 ? "success" : "danger";
+    // 格式化变化值
+    const formatChangeValue = (value, isAmount = false) => {
+        if (value === null) return "-";
         const sign = value >= 0 ? "+" : "";
-        return `<span class="text-${color}">${sign}${formatNumber(value)}</span>`;
+        if (isAmount) {
+            return `${sign}${formatNumber(value, 0, 'amount')}`;
+        }
+        return `${sign}${formatNumber(value)}`;
     };
     
+    // 获取格式化日期
     const attentionDate = formatDate(changes.latestAttentionDate);
     const holdersDate = formatDate(changes.latestHoldersDate);
     
-    const html = `
-    <div class="stats-container">
-        <div class="mb-3">
-            <h6 class="text-primary">自选人数变化</h6>
-            <div class="row small g-1">
-                <div class="col-12"><span class="text-muted">${attentionDate}：</span>${formatChange(changes.attention.latest)}</div>
-                <div class="col-12"><span class="text-muted">近5日：</span>${formatChange(changes.attention.day5)}</div>
-                <div class="col-12"><span class="text-muted">近10日：</span>${formatChange(changes.attention.day10)}</div>
-                <div class="col-12"><span class="text-muted">近一个月：</span>${formatChange(changes.attention.month)}</div>
-            </div>
-        </div>
-        
-        <div class="mb-3">
-            <h6 class="text-primary">持有人数变化</h6>
-            <div class="row small g-1">
-                <div class="col-12"><span class="text-muted">${holdersDate}：</span>${formatChange(changes.holders.latest)}</div>
-                <div class="col-12"><span class="text-muted">近5日：</span>${formatChange(changes.holders.day5)}</div>
-                <div class="col-12"><span class="text-muted">近10日：</span>${formatChange(changes.holders.day10)}</div>
-                <div class="col-12"><span class="text-muted">近一个月：</span>${formatChange(changes.holders.month)}</div>
-            </div>
-        </div>
-        
-        <div class="mb-0">
-            <h6 class="text-primary">持有金额变化</h6>
-            <div class="row small g-1">
-                <div class="col-12"><span class="text-muted">${holdersDate}：</span>${formatChange(changes.amount.latest)}</div>
-                <div class="col-12"><span class="text-muted">近5日：</span>${formatChange(changes.amount.day5)}</div>
-                <div class="col-12"><span class="text-muted">近10日：</span>${formatChange(changes.amount.day10)}</div>
-                <div class="col-12"><span class="text-muted">近一个月：</span>${formatChange(changes.amount.month)}</div>
-            </div>
-        </div>
-    </div>`;
+    // 构建表格HTML - 使用苹果风格，确保统计项居中
+    const tableHTML = `
+    <table class="table mb-0" id="${containerId}-data-table">
+        <thead class="table-light">
+            <tr>
+                <th scope="col" class="text-center" style="width: 22%;">统计项</th>
+                <th scope="col" class="text-center" style="width: 26%;">自选人数</th>
+                <th scope="col" class="text-center" style="width: 26%;">持有人数</th>
+                <th scope="col" class="text-center" style="width: 26%;">持有金额</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row" class="text-center">${attentionDate}总数</th>
+                <td class="text-center">${formatNumber(changes.attention.total)}</td>
+                <td class="text-center">${formatNumber(changes.holders.total)}</td>
+                <td class="text-center">${formatNumber(changes.amount.total, 0, 'amount')}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">${attentionDate}变化</th>
+                <td class="text-center ${changes.attention.latest >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.attention.latest)}</td>
+                <td class="text-center ${changes.holders.latest >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.holders.latest)}</td>
+                <td class="text-center ${changes.amount.latest >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.amount.latest, true)}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近5日变化</th>
+                <td class="text-center ${changes.attention.day5 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.attention.day5)}</td>
+                <td class="text-center ${changes.holders.day5 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.holders.day5)}</td>
+                <td class="text-center ${changes.amount.day5 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.amount.day5, true)}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近10日变化</th>
+                <td class="text-center ${changes.attention.day10 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.attention.day10)}</td>
+                <td class="text-center ${changes.holders.day10 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.holders.day10)}</td>
+                <td class="text-center ${changes.amount.day10 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.amount.day10, true)}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近一个月变化</th>
+                <td class="text-center ${changes.attention.month1 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.attention.month1)}</td>
+                <td class="text-center ${changes.holders.month1 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.holders.month1)}</td>
+                <td class="text-center ${changes.amount.month1 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.amount.month1, true)}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近两个月变化</th>
+                <td class="text-center ${changes.attention.month2 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.attention.month2)}</td>
+                <td class="text-center ${changes.holders.month2 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.holders.month2)}</td>
+                <td class="text-center ${changes.amount.month2 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.amount.month2, true)}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-center">近三个月变化</th>
+                <td class="text-center ${changes.attention.month3 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.attention.month3)}</td>
+                <td class="text-center ${changes.holders.month3 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.holders.month3)}</td>
+                <td class="text-center ${changes.amount.month3 >= 0 ? 'text-increase' : 'text-decrease'}">${formatChangeValue(changes.amount.month3, true)}</td>
+            </tr>
+        </tbody>
+    </table>`;
     
-    statsCardBody.innerHTML = html;
+    // 更新卡片内容 - 直接替换卡片内容，使用更精简的标题
+    const cardHTML = `
+    <div class="card-header d-flex align-items-center">
+        <h6 class="mb-0">数据变化统计</h6>
+    </div>
+    ${tableHTML}`;
+    
+    statsContainer.innerHTML = cardHTML;
+    
+    // 应用苹果风格
+    statsContainer.classList.add('stats-card');
+}
+
+// 更新数据变化统计表格
+function updateDataChangeStatsTable(changes) {
+    // 更新总数
+    updateTableCell('attention-total', formatNumber(changes.attention.total));
+    updateTableCell('holders-total', formatNumber(changes.holders.total));
+    updateTableCell('amount-total', formatNumber(changes.amount.total, 0, 'amount'));
+    
+    // 更新最新变化
+    updateTableCellWithChange('attention-latest', changes.attention.latest);
+    updateTableCellWithChange('holders-latest', changes.holders.latest);
+    updateTableCellWithChange('amount-latest', changes.amount.latest, true);
+    
+    // 更新5日变化
+    updateTableCellWithChange('attention-day5', changes.attention.day5);
+    updateTableCellWithChange('holders-day5', changes.holders.day5);
+    updateTableCellWithChange('amount-day5', changes.amount.day5, true);
+    
+    // 更新10日变化
+    updateTableCellWithChange('attention-day10', changes.attention.day10);
+    updateTableCellWithChange('holders-day10', changes.holders.day10);
+    updateTableCellWithChange('amount-day10', changes.amount.day10, true);
+    
+    // 更新一个月变化
+    updateTableCellWithChange('attention-month1', changes.attention.month1);
+    updateTableCellWithChange('holders-month1', changes.holders.month1);
+    updateTableCellWithChange('amount-month1', changes.amount.month1, true);
+    
+    // 更新两个月变化
+    updateTableCellWithChange('attention-month2', changes.attention.month2);
+    updateTableCellWithChange('holders-month2', changes.holders.month2);
+    updateTableCellWithChange('amount-month2', changes.amount.month2, true);
+    
+    // 更新三个月变化
+    updateTableCellWithChange('attention-month3', changes.attention.month3);
+    updateTableCellWithChange('holders-month3', changes.holders.month3);
+    updateTableCellWithChange('amount-month3', changes.amount.month3, true);
+}
+
+// 更新表格单元格
+function updateTableCell(cellId, value) {
+    const cell = document.getElementById(cellId);
+    if (cell) {
+        cell.textContent = value || '-';
+    }
+}
+
+// 更新带变化的表格单元格（增长为红色，减少为绿色）
+function updateTableCellWithChange(cellId, value) {
+    const cell = document.getElementById(cellId);
+    if (!cell) return;
+    
+    if (value === null) {
+        cell.textContent = '-';
+        cell.className = 'text-center';
+        return;
+    }
+    
+    const isAmount = cellId.startsWith('amount-');
+    const isIncrease = value >= 0;
+    const className = isIncrease ? 'text-increase' : 'text-decrease';
+    const sign = isIncrease ? '+' : '';
+    
+    if (isAmount) {
+        cell.textContent = `${sign}${formatNumber(value, 0, 'amount')}`;
+    } else {
+        cell.textContent = `${sign}${formatNumber(value)}`;
+    }
+    cell.className = `text-center ${className}`;
 }
 
 // 初始化苹果风格图表

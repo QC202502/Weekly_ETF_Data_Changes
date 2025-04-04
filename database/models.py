@@ -930,7 +930,7 @@ class Database:
             
             print(f"成功保存ETF商务协议数据，共{len(df)}条记录")
             return True
-            
+        
         except Exception as e:
             print(f"保存ETF商务协议数据失败: {str(e)}")
             if self.conn:

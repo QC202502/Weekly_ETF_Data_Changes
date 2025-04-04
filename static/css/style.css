@@ -1,0 +1,34 @@
+/* ETF历史数据图表样式 */
+.etf-chart-section {
+    margin-bottom: 30px;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* 苹果风格按钮组 */
+.etf-chart-section .btn-group .btn-outline-secondary {
+    color: #007aff;
+    border-color: #007aff;
+    background-color: white;
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.etf-chart-section .btn-group .btn-outline-secondary:hover {
+    background-color: rgba(0, 122, 255, 0.05);
+}
+
+.etf-chart-section .btn-group .btn-outline-secondary.active {
+    background-color: #007aff;
+    color: white;
+} 

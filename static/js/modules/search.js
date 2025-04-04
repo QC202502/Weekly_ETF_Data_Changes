@@ -1,12 +1,13 @@
 /**
  * ETF搜索模块
  * 处理搜索请求和结果展示
- * 版本: 2.0.1 (2025-04-04) - 添加持仓人数和持仓金额支持
+ * 版本: 2.1.0 (2025-04-04) - 添加ETF历史数据趋势图表
  */
 
 import { showLoading, hideLoading, showAlert, formatNumber, showMessage } from './utils.js';
+import { displayETFCharts } from './etf_chart.js';
 
-console.log("搜索模块已加载 v2.0.1 (2025-04-04)");
+console.log("搜索模块已加载 v2.1.0 (2025-04-04)");
 
 // 搜索ETF函数
 export function searchETF() {
@@ -243,6 +244,12 @@ export function handleSearchResult(data) {
             
             // 生成单一表格
             htmlContent += generateETFTable(allETFs, `${data.index_name || ''}跟踪ETF (${allETFs.length}个)`);
+            
+            // 添加容器用于显示ETF历史数据图表
+            if (data.results && data.results.length > 0) {
+                const mainETF = data.results[0];
+                htmlContent += `<div id="etf-charts-container"></div>`;
+            }
         } else if (data.is_grouped && (data.search_type === '通用搜索(按指数分组)' || data.search_type === '跟踪指数名称(按指数分组)')) {
             // 显示按指数分组的搜索结果
             htmlContent += renderIndexGroupResults(data);
@@ -254,8 +261,18 @@ export function handleSearchResult(data) {
             htmlContent += generateETFTable(data.results, data.search_type || '搜索结果');
         }
         
-        // 更新结果容器
+        // 设置HTML内容
         resultsContainer.innerHTML = htmlContent;
+        
+        // 如果是ETF代码搜索，添加历史数据图表
+        if (data.search_type === 'ETF基金代码' && data.results && data.results.length > 0) {
+            const mainETF = data.results[0];
+            const etfCode = mainETF.code;
+            const etfName = mainETF.name;
+            
+            // 初始化并显示ETF历史数据图表
+            displayETFCharts(etfCode, etfName, 'etf-charts-container');
+        }
     }
 }
 
@@ -886,4 +903,157 @@ function renderETFTableRows(etfs) {
     `;
     
     return { etfRows, summaryRow };
+}
+
+// 搜索ETF代码获取详细信息
+export async function searchETFByCode(code) {
+    if (!code || code.trim() === '') {
+        console.error('ETF代码不能为空');
+        displaySearchError('请输入ETF代码');
+        return null;
+    }
+    
+    try {
+        console.log(`开始搜索ETF代码: ${code}`);
+        const response = await fetch(`/search?code=${encodeURIComponent(code.trim())}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`API请求失败: ${response.status} ${response.statusText}`, errorText);
+            displaySearchError(`查询失败 (${response.status}): ${response.statusText}`);
+            return null;
+        }
+        
+        const data = await response.json();
+        console.log(`收到ETF数据:`, data);
+        
+        if (data.error) {
+            console.error('API返回错误:', data.error);
+            displaySearchError(data.error);
+            return null;
+        }
+        
+        if (!data.results || data.results.length === 0) {
+            console.warn('API没有返回ETF结果');
+            displaySearchError('未找到匹配的ETF');
+            return null;
+        }
+        
+        // 加载成功，显示结果
+        displaySearchResults(data.results);
+        
+        // 查询历史数据
+        loadHistoricalData(code);
+        
+        return data.results;
+    } catch (error) {
+        console.error('ETF搜索出错:', error);
+        displaySearchError(`查询过程出错: ${error.message}`);
+        return null;
+    }
+}
+
+// 加载历史数据
+async function loadHistoricalData(code) {
+    try {
+        console.log(`开始加载ETF历史数据: ${code}`);
+        
+        // 显示加载状态
+        document.getElementById('etf-chart-container').innerHTML = `
+            <div class="d-flex justify-content-center align-items-center p-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <span class="ms-2">加载历史数据...</span>
+            </div>
+        `;
+        
+        // 并行加载自选和持有人历史数据
+        const [attentionResponse, holdersResponse] = await Promise.all([
+            fetch(`/etf_attention_history?code=${encodeURIComponent(code)}`),
+            fetch(`/etf_holders_history?code=${encodeURIComponent(code)}`)
+        ]);
+        
+        // 处理自选历史数据
+        let attentionData = [];
+        if (attentionResponse.ok) {
+            attentionData = await attentionResponse.json();
+            console.log(`ETF自选历史数据加载成功, 记录数: ${attentionData.length}`, 
+                attentionData.length > 0 ? attentionData[0] : '无记录');
+            
+            if (attentionResponse.headers.get('Content-Type') !== 'application/json') {
+                console.warn('警告: ETF自选历史数据响应Content-Type不是json:', 
+                    attentionResponse.headers.get('Content-Type'));
+            }
+        } else {
+            const errorText = await attentionResponse.text();
+            console.error(`ETF自选历史数据API请求失败: ${attentionResponse.status}`, errorText);
+        }
+        
+        // 处理持有人历史数据
+        let holdersData = [];
+        if (holdersResponse.ok) {
+            holdersData = await holdersResponse.json();
+            console.log(`ETF持有人历史数据加载成功, 记录数: ${holdersData.length}`,
+                holdersData.length > 0 ? holdersData[0] : '无记录');
+            
+            if (holdersResponse.headers.get('Content-Type') !== 'application/json') {
+                console.warn('警告: ETF持有人历史数据响应Content-Type不是json:', 
+                    holdersResponse.headers.get('Content-Type'));
+            }
+        } else {
+            const errorText = await holdersResponse.text();
+            console.error(`ETF持有人历史数据API请求失败: ${holdersResponse.status}`, errorText);
+        }
+        
+        // 初始化历史数据图表
+        const historyData = {
+            attention: attentionData,
+            holders: holdersData
+        };
+        
+        // 检查历史数据
+        const hasAttention = Array.isArray(attentionData) && attentionData.length > 0;
+        const hasHolders = Array.isArray(holdersData) && holdersData.length > 0;
+        
+        console.log(`历史数据检查: 有自选数据=${hasAttention}, 有持有人数据=${hasHolders}`);
+        
+        if (!hasAttention && !hasHolders) {
+            document.getElementById('etf-chart-container').innerHTML = `
+                <div class="alert alert-warning my-3">
+                    <i class="bi bi-info-circle me-2"></i>暂无历史数据
+                </div>
+            `;
+            return;
+        }
+        
+        // 导入图表模块
+        import('./etf_chart.js')
+            .then(async (module) => {
+                console.log('ETF图表模块加载成功');
+                const chart = await module.initETFChart('etf-chart-container', historyData);
+                if (chart) {
+                    console.log('ETF历史数据图表初始化成功');
+                } else {
+                    console.error('ETF历史数据图表初始化失败');
+                }
+            })
+            .catch(error => {
+                console.error('加载ETF图表模块失败:', error);
+                document.getElementById('etf-chart-container').innerHTML = `
+                    <div class="alert alert-danger my-3">
+                        <p><i class="bi bi-exclamation-triangle-fill me-2"></i>加载图表模块失败</p>
+                        <small class="text-muted">${error.message}</small>
+                    </div>
+                `;
+            });
+    } catch (error) {
+        console.error('加载ETF历史数据出错:', error);
+        document.getElementById('etf-chart-container').innerHTML = `
+            <div class="alert alert-danger my-3">
+                <p><i class="bi bi-exclamation-triangle-fill me-2"></i>加载历史数据失败</p>
+                <small class="text-muted">${error.message}</small>
+            </div>
+        `;
+    }
 }

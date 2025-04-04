@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 import pandas as pd
 import traceback
 from datetime import datetime
@@ -1215,3 +1215,103 @@ def api_company_search():
             'error': f'搜索处理错误: {str(e)}',
             'trace': traceback.format_exc()
         }), 500
+
+@search_bp.route('/etf_attention_history', methods=['GET'])
+def etf_attention_history():
+    """返回ETF自选历史数据"""
+    code = request.args.get('code', '')
+    
+    if not code:
+        current_app.logger.error("ETF自选历史API: 未提供代码参数")
+        return jsonify({"error": "请提供ETF代码"}), 400
+    
+    try:
+        # 记录查询参数
+        current_app.logger.info(f"ETF自选历史查询: 代码={code}")
+        
+        # 获取历史数据
+        db = Database()
+        results = db.get_etf_attention_history(code)
+        
+        # 记录结果信息
+        current_app.logger.info(f"ETF自选历史查询结果: 代码={code}, 记录数={len(results) if results else 0}")
+        
+        # 格式化为API响应
+        records = []
+        for row in results:
+            # 记录详细日志以便调试
+            current_app.logger.debug(f"处理ETF自选历史记录: {row}")
+            
+            # 确保记录有效，含有date和attention_count字段
+            if row and 'date' in row and 'attention_count' in row:
+                records.append({
+                    'date': row['date'],
+                    'attention_count': row['attention_count']
+                })
+            else:
+                current_app.logger.warning(f"ETF自选历史: 跳过无效记录 {row}")
+        
+        return jsonify(records)
+    except Exception as e:
+        current_app.logger.exception(f"ETF自选历史API错误: {str(e)}")
+        return jsonify({"error": f"获取数据失败: {str(e)}"}), 500
+
+@search_bp.route('/etf_holders_history', methods=['GET'])
+def etf_holders_history():
+    """返回ETF持有人历史数据"""
+    code = request.args.get('code', '')
+    
+    if not code:
+        current_app.logger.error("ETF持有人历史API: 未提供代码参数")
+        return jsonify({"error": "请提供ETF代码"}), 400
+    
+    try:
+        # 记录查询参数
+        current_app.logger.info(f"ETF持有人历史查询: 代码={code}")
+        
+        # 获取历史数据
+        db = Database()
+        results = db.get_etf_holders_history(code)
+        
+        # 记录结果信息
+        current_app.logger.info(f"ETF持有人历史查询结果: 代码={code}, 记录数={len(results) if results else 0}")
+        
+        # 格式化为API响应
+        records = []
+        for row in results:
+            # 记录详细日志以便调试
+            current_app.logger.debug(f"处理ETF持有人历史记录: {row}")
+            
+            # 确保记录有效，含有必要字段
+            if row and 'date' in row and 'holder_count' in row and 'holding_amount' in row:
+                records.append({
+                    'date': row['date'],
+                    'holder_count': row['holder_count'],
+                    'holding_amount': row['holding_amount']
+                })
+            else:
+                current_app.logger.warning(f"ETF持有人历史: 跳过无效记录 {row}")
+        
+        return jsonify(records)
+    except Exception as e:
+        current_app.logger.exception(f"ETF持有人历史API错误: {str(e)}")
+        return jsonify({"error": f"获取数据失败: {str(e)}"}), 500
+
+@search_bp.route('/etf_fund_size_history', methods=['GET'])
+def etf_fund_size_history():
+    """获取ETF规模历史数据"""
+    try:
+        # 获取ETF代码
+        etf_code = request.args.get('code', '')
+        if not etf_code:
+            return jsonify({"error": "请提供ETF代码"})
+        
+        # 查询数据库
+        db = Database()
+        history_data = db.get_etf_fund_size_history(etf_code)
+        
+        return jsonify(history_data)
+    except Exception as e:
+        print(f"获取ETF规模历史数据出错: {str(e)}")
+        traceback.print_exc()
+        return jsonify({"error": f"获取ETF规模历史数据出错: {str(e)}"})

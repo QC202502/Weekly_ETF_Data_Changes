@@ -1,0 +1,115 @@
+<!-- ETF推荐 -->
+<div class="content-section" id="section-recommendations">
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-star"></i> ETF推荐</h5>
+        </div>
+        <div class="card-body">
+            <ul class="nav nav-tabs" id="recommendationTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="price-return-tab" data-bs-toggle="tab" href="#price-return" role="tab" aria-controls="price-return" aria-selected="true">涨幅TOP20</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="attention-tab" data-bs-toggle="tab" href="#attention" role="tab" aria-controls="attention" aria-selected="false">关注度TOP20</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="holders-tab" data-bs-toggle="tab" href="#holders" role="tab" aria-controls="holders" aria-selected="false">持有人数TOP20</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="amount-tab" data-bs-toggle="tab" href="#amount" role="tab" aria-controls="amount" aria-selected="false">成交额TOP20</a>
+                </li>
+            </ul>
+            <div class="tab-content mt-3" id="recommendationTabContent">
+                <!-- 涨幅TOP20 -->
+                <div class="tab-pane fade show active" id="price-return" role="tabpanel" aria-labelledby="price-return-tab">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th width="15%">代码</th>
+                                    <th width="40%">名称</th>
+                                    <th width="15%">涨跌幅(%)</th>
+                                    <th width="30%">跟踪指数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="price-return-recommendations">
+                                <tr><td colspan="4" class="text-center">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- 关注度TOP20 -->
+                <div class="tab-pane fade" id="attention" role="tabpanel" aria-labelledby="attention-tab">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th width="15%">代码</th>
+                                    <th width="40%">名称</th>
+                                    <th width="15%">关注度变化</th>
+                                    <th width="30%">跟踪指数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attention-recommendations">
+                                <tr><td colspan="4" class="text-center">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- 持有人数TOP20 -->
+                <div class="tab-pane fade" id="holders" role="tabpanel" aria-labelledby="holders-tab">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th width="15%">代码</th>
+                                    <th width="40%">名称</th>
+                                    <th width="15%">持有人数变化</th>
+                                    <th width="30%">跟踪指数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="holders-recommendations">
+                                <tr><td colspan="4" class="text-center">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- 成交额TOP20 -->
+                <div class="tab-pane fade" id="amount" role="tabpanel" aria-labelledby="amount-tab">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th width="15%">代码</th>
+                                    <th width="40%">名称</th>
+                                    <th width="15%">成交额变化</th>
+                                    <th width="30%">跟踪指数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="amount-recommendations">
+                                <tr><td colspan="4" class="text-center">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 推荐提示工具 -->
+<div id="recommendation-tooltip" class="tooltip-card" style="display: none;">
+    <div class="tooltip-header">
+        <small>基金详情</small>
+    </div>
+    <div class="tooltip-body">
+        <div id="tooltip-change-container">
+            <small>当日涨幅: </small>
+            <span id="tooltip-change">-</span>
+        </div>
+        <div>
+            <small>跟踪指数: </small>
+            <span id="tooltip-index">-</span>
+        </div>
+    </div>
+</div> 

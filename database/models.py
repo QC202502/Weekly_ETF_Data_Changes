@@ -320,6 +320,16 @@ class Database:
             # 标准化列名（去除多余的空格和换行符）
             df.columns = [col.strip().replace('\n', '') for col in df.columns]
             
+            # 导入normalize_etf_code函数用于标准化ETF代码
+            from utils.etf_code import normalize_etf_code
+            
+            # 如果原始列中存在证券代码列，先进行标准化处理
+            if '证券代码' in df.columns:
+                print("标准化ETF代码...")
+                print("标准化前示例：", df['证券代码'].head(5).tolist())
+                df['证券代码'] = df['证券代码'].apply(lambda x: str(x))  # 确保代码是字符串类型
+                print("标准化后示例：", df['证券代码'].head(5).tolist())
+            
             # 定义列名映射
             column_mapping = {
                 '证券代码': 'code',
@@ -372,6 +382,14 @@ class Database:
             # 重命名列
             df = df.rename(columns=actual_mappings)
             print("\n重命名后的列名：", df.columns.tolist())
+            
+            # 在重命名列后，标准化code列（去除.SH/.SZ后缀）
+            if 'code' in df.columns:
+                print("\n标准化ETF代码...")
+                print("标准化前示例：", df['code'].head(5).tolist())
+                df['code'] = df['code'].apply(normalize_etf_code)
+                print("标准化后示例：", df['code'].head(5).tolist())
+                print(f"标准化后唯一代码数量: {df['code'].nunique()}")
             
             # 选择需要的列
             required_columns = ['code', 'name', 'fund_manager']
@@ -578,8 +596,17 @@ class Database:
     def save_etf_price(self, df: pd.DataFrame) -> bool:
         """保存ETF价格数据"""
         try:
+            print("开始处理ETF价格数据...")
+            
+            # 导入normalize_etf_code函数用于标准化ETF代码
+            from utils.etf_code import normalize_etf_code
+            
             # 标准化ETF代码
-            df['证券代码'] = df['证券代码'].apply(normalize_etf_code)
+            if '证券代码' in df.columns:
+                print("标准化ETF代码...")
+                print("标准化前示例：", df['证券代码'].head(5).tolist())
+                df['证券代码'] = df['证券代码'].apply(normalize_etf_code)
+                print("标准化后示例：", df['证券代码'].head(5).tolist())
             
             # 标准化列名（去除多余的空格和换行符）
             df.columns = [col.strip().replace('\n', '') for col in df.columns]

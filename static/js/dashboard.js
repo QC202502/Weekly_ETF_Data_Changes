@@ -132,8 +132,8 @@ function handleSearchResult(data) {
                                         <th>管理费率(%)</th>
                                         <th>规模(亿元)</th>
                                         <th>是否为商务品</th>
-                                        <th>关注人数</th>
-                                        <th>本周新增关注</th>
+                                        <th>自选人数</th>
+                                        <th>本周新增自选</th>
                                         <th>持仓人数</th>
                                         <th>本周新增持仓</th>
                                         <th>保有规模(亿元)</th>
@@ -243,8 +243,8 @@ function handleSearchResult(data) {
                             <th>管理费率(%)</th>
                             <th>规模(亿元)</th>
                             <th>是否为商务品</th>
-                            <th>关注人数</th>
-                            <th>本周新增关注</th>
+                            <th>自选人数</th>
+                            <th>本周新增自选</th>
                             <th>持仓人数</th>
                             <th>本周新增持仓</th>
                             <th>保有规模(亿元)</th>
@@ -356,8 +356,8 @@ function handleSearchResult(data) {
                             <th>管理费率(%)</th>
                             <th>规模(亿元)</th>
                             <th>是否为商务品</th>
-                            <th>关注人数</th>
-                            <th>本周新增关注</th>
+                            <th>自选人数</th>
+                            <th>本周新增自选</th>
                             <th>持仓人数</th>
                             <th>本周新增持仓</th>
                             <th>保有规模(亿元)</th>
@@ -465,8 +465,8 @@ function handleSearchResult(data) {
                             <th>管理费率(%)</th>
                             <th>规模(亿元)</th>
                             <th>是否为商务品</th>
-                            <th>关注人数</th>
-                            <th>本周新增关注</th>
+                            <th>自选人数</th>
+                            <th>本周新增自选</th>
                             <th>持仓人数</th>
                             <th>本周新增持仓</th>
                             <th>保有规模(亿元)</th>
@@ -787,7 +787,7 @@ function loadRecommendations() {
 function renderRecommendations(recommendations) {
     console.log('渲染推荐数据:', recommendations);
     
-    // 渲染关注人数推荐
+    // 渲染自选人数推荐
     renderRecommendationList('attention', recommendations.attention);
     
     // 渲染持仓客户推荐
@@ -922,7 +922,7 @@ function showRecommendationTooltip(item) {
     const type = item.dataset.type;
     const changeTitle = document.querySelector('#tooltip-change-container small');
     if (type === 'attention') {
-        changeTitle.textContent = '本周新增关注: ';
+        changeTitle.textContent = '本周新增自选: ';
     } else if (type === 'holders') {
         changeTitle.textContent = '本周新增持仓: ';
     } else if (type === 'amount') {

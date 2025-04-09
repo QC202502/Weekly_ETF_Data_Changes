@@ -353,7 +353,7 @@ function generateETFTable(etfs, title = '搜索结果') {
                                 <th>规模(亿)</th>
                                 <th>管理费率</th>
                                 <th>类型</th>
-                                <th>关注人数</th>
+                                <th>自选人数</th>
                                 <th>持仓人数</th>
                                 <th>持仓金额(元)</th>
                                 <th>最近交易日成交额(亿)</th>
@@ -566,7 +566,7 @@ function renderIndexGroupResults(data) {
                                     <th>规模(亿)</th>
                                     <th>管理费率</th>
                                     <th>类型</th>
-                                    <th>关注人数</th>
+                                    <th>自选人数</th>
                                     <th>持仓人数</th>
                                     <th>持仓金额(元)</th>
                                     <th>最近交易日成交额(亿)</th>
@@ -725,8 +725,8 @@ function renderCompanyResults(data) {
                         <th>管理费率(%)</th>
                         <th>规模(亿元)</th>
                         <th>是否为商务品</th>
-                        <th>关注人数</th>
-                        <th>本周新增关注</th>
+                        <th>自选人数</th>
+                        <th>本周新增自选</th>
                         <th>持仓人数</th>
                         <th>本周新增持仓</th>
                         <th>保有规模(亿元)</th>
@@ -773,8 +773,8 @@ function renderETFCodeResults(data) {
                         <th>管理费率(%)</th>
                         <th>规模(亿元)</th>
                         <th>是否为商务品</th>
-                        <th>关注人数</th>
-                        <th>本周新增关注</th>
+                        <th>自选人数</th>
+                        <th>本周新增自选</th>
                         <th>持仓人数</th>
                         <th>本周新增持仓</th>
                         <th>保有规模(亿元)</th>
@@ -815,8 +815,8 @@ function renderGeneralResults(data) {
                         <th>管理费率(%)</th>
                         <th>规模(亿元)</th>
                         <th>是否为商务品</th>
-                        <th>关注人数</th>
-                        <th>本周新增关注</th>
+                        <th>自选人数</th>
+                        <th>本周新增自选</th>
                         <th>持仓人数</th>
                         <th>本周新增持仓</th>
                         <th>保有规模(亿元)</th>

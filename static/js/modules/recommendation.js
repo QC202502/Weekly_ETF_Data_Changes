@@ -76,7 +76,7 @@ function renderRecommendations(recommendations) {
         priceReturnTab.textContent = `3月19日涨幅TOP20`;
     }
     
-    // 渲染关注人数推荐
+    // 渲染自选人数推荐
     renderRecommendationList('attention', recommendations.attention);
     
     // 渲染持仓客户推荐

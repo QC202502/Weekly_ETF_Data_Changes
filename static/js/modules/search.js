@@ -354,8 +354,14 @@ function generateETFTable(etfs, title = '搜索结果') {
                                 <th>管理费率</th>
                                 <th>类型</th>
                                 <th>自选人数</th>
+                                <th>自选日变化</th>
+                                <th>自选5日变化</th>
                                 <th>持仓人数</th>
+                                <th>持仓日变化</th>
+                                <th>持仓5日变化</th>
                                 <th>持仓金额(元)</th>
+                                <th>金额日变化</th>
+                                <th>金额5日变化</th>
                                 <th>最近交易日成交额(亿)</th>
                                 <th>总持有人数</th>
                                 <th>跟踪误差(%)</th>
@@ -374,6 +380,12 @@ function generateETFTable(etfs, title = '搜索结果') {
     let totalHoldingAmount = 0;
     let totalDailyAvgVolume = 0;
     let totalDailyVolume = 0;
+    let totalAttentionDailyChange = 0;
+    let totalAttentionFiveDayChange = 0;
+    let totalHolderDailyChange = 0;
+    let totalHolderFiveDayChange = 0;
+    let totalAmountDailyChange = 0;
+    let totalAmountFiveDayChange = 0;
     
     etfs.forEach((etf, index) => {
         try {
@@ -387,8 +399,14 @@ function generateETFTable(etfs, title = '搜索结果') {
                 tracking_error: Number(etf.tracking_error || 0),
                 total_holder_count: Number(etf.total_holder_count || 0),
                 holder_count: Number(etf.holder_count || 0),
+                holder_daily_change: Number(etf.holder_daily_change || 0),
+                holder_five_day_change: Number(etf.holder_five_day_change || 0),
                 holding_amount: Number(etf.holding_amount || 0),
+                amount_daily_change: Number(etf.amount_daily_change || 0),
+                amount_five_day_change: Number(etf.amount_five_day_change || 0),
                 attention_count: Number(etf.attention_count || 0),
+                attention_daily_change: Number(etf.attention_daily_change || 0),
+                attention_five_day_change: Number(etf.attention_five_day_change || 0),
                 is_business: Boolean(etf.is_business),
                 business_text: etf.business_text || (etf.is_business ? '商务品' : '非商务品'),
                 daily_avg_volume: Number(etf.daily_avg_volume || 0),
@@ -404,6 +422,12 @@ function generateETFTable(etfs, title = '搜索结果') {
             totalAttention += etfSafe.attention_count;
             totalDailyAvgVolume += etfSafe.daily_avg_volume;
             totalDailyVolume += etfSafe.daily_volume;
+            totalAttentionDailyChange += etfSafe.attention_daily_change;
+            totalAttentionFiveDayChange += etfSafe.attention_five_day_change;
+            totalHolderDailyChange += etfSafe.holder_daily_change;
+            totalHolderFiveDayChange += etfSafe.holder_five_day_change;
+            totalAmountDailyChange += etfSafe.amount_daily_change;
+            totalAmountFiveDayChange += etfSafe.amount_five_day_change;
             if (etfSafe.is_business) businessCount++;
             
             // 检查是否需要高亮
@@ -457,8 +481,14 @@ function generateETFTable(etfs, title = '搜索结果') {
                     <td>${feeDisplay}</td>
                     <td>${etfSafe.business_text}</td>
                     <td>${formatNumber(etfSafe.attention_count, 0)}</td>
+                    <td>${formatNumber(etfSafe.attention_daily_change, 0)}</td>
+                    <td>${formatNumber(etfSafe.attention_five_day_change, 0)}</td>
                     <td>${formatNumber(etfSafe.holder_count, 0)}</td>
+                    <td>${formatNumber(etfSafe.holder_daily_change, 0)}</td>
+                    <td>${formatNumber(etfSafe.holder_five_day_change, 0)}</td>
                     <td>${formatNumber(etfSafe.holding_amount, 2)}</td>
+                    <td>${formatNumber(etfSafe.amount_daily_change, 2)}</td>
+                    <td>${formatNumber(etfSafe.amount_five_day_change, 2)}</td>
                     <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
                     <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
                     <td>${formatNumber(etfSafe.tracking_error)}</td>
@@ -482,8 +512,14 @@ function generateETFTable(etfs, title = '搜索结果') {
                         <td>${formatNumber(avgFeeRate, 4)}</td>
                         <td>${etfs.length > 0 ? formatNumber((businessCount / etfs.length) * 100, 1)+'%' : '-'}</td>
                         <td>${formatNumber(totalAttention, 0)}</td>
+                        <td>${formatNumber(totalAttentionDailyChange, 0)}</td>
+                        <td>${formatNumber(totalAttentionFiveDayChange, 0)}</td>
                         <td>${formatNumber(totalHolderCount, 0)}</td>
+                        <td>${formatNumber(totalHolderDailyChange, 0)}</td>
+                        <td>${formatNumber(totalHolderFiveDayChange, 0)}</td>
                         <td>${formatNumber(totalHoldingAmount, 2)}</td>
+                        <td>${formatNumber(totalAmountDailyChange, 2)}</td>
+                        <td>${formatNumber(totalAmountFiveDayChange, 2)}</td>
                         <td>${formatNumber(totalDailyVolume, 2)}</td>
                         <td>${formatNumber(totalHolders, 0)}</td>
                         <td>-</td>
@@ -567,8 +603,14 @@ function renderIndexGroupResults(data) {
                                     <th>管理费率</th>
                                     <th>类型</th>
                                     <th>自选人数</th>
+                                    <th>自选日变化</th>
+                                    <th>自选5日变化</th>
                                     <th>持仓人数</th>
+                                    <th>持仓日变化</th>
+                                    <th>持仓5日变化</th>
                                     <th>持仓金额(元)</th>
+                                    <th>金额日变化</th>
+                                    <th>金额5日变化</th>
                                     <th>最近交易日成交额(亿)</th>
                                     <th>总持有人数</th>
                                     <th>跟踪误差(%)</th>
@@ -600,8 +642,14 @@ function renderIndexGroupResults(data) {
                 tracking_error: Number(etf.tracking_error || 0),
                 total_holder_count: Number(etf.holders_count || etf.total_holder_count || 0),
                 holder_count: Number(etf.holder_count || 0),
+                holder_daily_change: Number(etf.holder_daily_change || 0),
+                holder_five_day_change: Number(etf.holder_five_day_change || 0),
                 holding_amount: Number(etf.holding_amount || 0),
+                amount_daily_change: Number(etf.amount_daily_change || 0),
+                amount_five_day_change: Number(etf.amount_five_day_change || 0),
                 attention_count: Number(etf.attention_count || 0),
+                attention_daily_change: Number(etf.attention_daily_change || 0),
+                attention_five_day_change: Number(etf.attention_five_day_change || 0),
                 is_business: Boolean(etf.is_business),
                 business_text: etf.business_text || (etf.is_business ? '商务品' : '非商务品'),
                 daily_avg_volume: Number(etf.daily_avg_volume || etf.volume || 0),
@@ -669,8 +717,14 @@ function renderIndexGroupResults(data) {
                     <td>${feeDisplay}</td>
                     <td>${etfSafe.business_text}</td>
                     <td>${formatNumber(etfSafe.attention_count, 0)}</td>
+                    <td>${formatNumber(etfSafe.attention_daily_change, 0)}</td>
+                    <td>${formatNumber(etfSafe.attention_five_day_change, 0)}</td>
                     <td>${formatNumber(etfSafe.holder_count, 0)}</td>
+                    <td>${formatNumber(etfSafe.holder_daily_change, 0)}</td>
+                    <td>${formatNumber(etfSafe.holder_five_day_change, 0)}</td>
                     <td>${formatNumber(etfSafe.holding_amount, 2)}</td>
+                    <td>${formatNumber(etfSafe.amount_daily_change, 2)}</td>
+                    <td>${formatNumber(etfSafe.amount_five_day_change, 2)}</td>
                     <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
                     <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
                     <td>${formatNumber(etfSafe.tracking_error)}</td>
@@ -682,26 +736,26 @@ function renderIndexGroupResults(data) {
         const avgFeeRate = group.etfs.length > 0 ? totalFeeRate / group.etfs.length : 0;
         
         html += `
-                            </tbody>
-                    <tfoot>
-                        <tr class="table-info">
-                            <td colspan="3">汇总 (${group.etfs.length}个ETF${businessCount > 0 ? '，其中'+businessCount+'个商务品' : ''})</td>
-                            <td>${formatNumber(totalDailyAvgVolume, 2)}</td>
-                            <td>${formatNumber(totalScale)}</td>
-                            <td>${formatNumber(avgFeeRate, 4)}</td>
-                            <td>${group.etfs.length > 0 ? formatNumber((businessCount / group.etfs.length) * 100, 1)+'%' : '-'}</td>
-                            <td>${formatNumber(totalAttention, 0)}</td>
-                            <td>${formatNumber(totalHolderCount, 0)}</td>
-                            <td>${formatNumber(totalHoldingAmount, 2)}</td>
-                            <td>${formatNumber(totalDailyVolume, 2)}</td>
-                            <td>${formatNumber(totalHolders, 0)}</td>
-                            <td>-</td>
-                        </tr>
-                    </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                    </tbody>
+                <tfoot>
+                    <tr class="table-info">
+                        <td colspan="3">汇总 (${group.etfs.length}个ETF${businessCount > 0 ? '，其中'+businessCount+'个商务品' : ''})</td>
+                        <td>${formatNumber(totalDailyAvgVolume, 2)}</td>
+                        <td>${formatNumber(totalScale)}</td>
+                        <td>${formatNumber(avgFeeRate, 4)}</td>
+                        <td>${group.etfs.length > 0 ? formatNumber((businessCount / group.etfs.length) * 100, 1)+'%' : '-'}</td>
+                        <td>${formatNumber(totalAttention, 0)}</td>
+                        <td>${formatNumber(totalHolderCount, 0)}</td>
+                        <td>${formatNumber(totalHoldingAmount, 2)}</td>
+                        <td>${formatNumber(totalDailyVolume, 2)}</td>
+                        <td>${formatNumber(totalHolders, 0)}</td>
+                        <td>-</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
 `
     });
     

@@ -336,7 +336,14 @@ def normalize_etf_results(results):
             'holder_count': int(result.get('holder_count', 0)),
             'holding_amount': float(result.get('holding_amount', 0)),
             'daily_avg_volume': float(result.get('daily_avg_volume', 0)),
-            'daily_volume': float(result.get('daily_volume', 0))
+            'daily_volume': float(result.get('daily_volume', 0)),
+            # 添加变化数据
+            'attention_daily_change': result.get('attention_daily_change', 0),
+            'attention_five_day_change': result.get('attention_five_day_change', 0),
+            'holder_daily_change': result.get('holder_daily_change', 0),
+            'holder_five_day_change': result.get('holder_five_day_change', 0),
+            'amount_daily_change': result.get('amount_daily_change', 0),
+            'amount_five_day_change': result.get('amount_five_day_change', 0)
         }
         
         # 打印第一个结果的持仓人数和持仓金额
@@ -346,6 +353,12 @@ def normalize_etf_results(results):
             print(f"持仓金额: {normalized_etf['holding_amount']}")
             print(f"区间日均成交额: {normalized_etf['daily_avg_volume']}")
             print(f"最近交易日成交额: {normalized_etf['daily_volume']}")
+            print(f"关注人数日变化: {normalized_etf['attention_daily_change']}")
+            print(f"关注人数五日变化: {normalized_etf['attention_five_day_change']}")
+            print(f"持仓人数日变化: {normalized_etf['holder_daily_change']}")
+            print(f"持仓人数五日变化: {normalized_etf['holder_five_day_change']}")
+            print(f"持仓金额日变化: {normalized_etf['amount_daily_change']}")
+            print(f"持仓金额五日变化: {normalized_etf['amount_five_day_change']}")
         
         normalized_results.append(normalized_etf)
     
@@ -799,162 +812,189 @@ def safe_float(value, default=0.0):
 @search_bp.route('/recommendations', methods=['GET'])
 def get_recommendations():
     """获取ETF推荐数据"""
-    # 从data_service导入数据
-    from services.data_service import etf_data, business_etfs, current_date_str, previous_date_str
-    import os
-    import json
+    # 导入所需模块
+    from database.models import Database
+    import traceback
     from datetime import datetime
-    
-    if etf_data is None:
-        return jsonify({"error": "数据未加载，请先加载数据"})
-    
+
     try:
         # 准备推荐榜单数据
         recommendations = {
             "attention": [],  # 本周新增关注TOP20
-            "holders": [],   # 本周新增持仓客户TOP20
-            "amount": [],    # 本周新增保有金额TOP20
+            "holders": [],    # 本周新增持仓客户TOP20
+            "amount": [],     # 本周新增保有金额TOP20
             "price_return": [] # 最新交易日涨幅最大的ETF
         }
         
-        # 获取列名
-        attention_current = f'关注人数（{current_date_str}）'
-        attention_previous = f'关注人数（{previous_date_str}）'
-        holders_current = f'持仓客户数（{current_date_str}）'
-        holders_previous = f'持仓客户数（{previous_date_str}）'
-        amount_current = f'保有金额（{current_date_str}）'
-        amount_previous = f'保有金额（{previous_date_str}）'
-        name_col = f'证券名称（{current_date_str}）'
+        # 初始化数据库连接
+        db = Database()
+        conn = None
         
-        # 确保所有必要的列都存在
-        required_columns = [attention_current, attention_previous, holders_current, 
-                          holders_previous, amount_current, amount_previous]
-        
-        # 检查列是否存在
-        missing_columns = [col for col in required_columns if col not in etf_data.columns]
-        if missing_columns:
-            print(f"警告：缺少以下列：{missing_columns}")
-            return jsonify({"error": "数据列不完整，无法生成推荐"})
-        
-        # 计算变化值
-        etf_data['attention_change'] = etf_data[attention_current] - etf_data[attention_previous]
-        etf_data['holders_change'] = etf_data[holders_current] - etf_data[holders_previous]
-        etf_data['amount_change'] = (etf_data[amount_current] - etf_data[amount_previous]) / 1e8  # 转换为亿元
-        
-        # 获取本周新增关注TOP20
-        attention_top = etf_data.sort_values(by='attention_change', ascending=False).head(20)
-        for _, row in attention_top.iterrows():
-            etf_code = row['证券代码']
-            is_business = etf_code in business_etfs
-            recommendations["attention"].append({
-                'code': etf_code,
-                'name': row[name_col] if name_col in row else row['证券代码'],
-                'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
-                'is_business': is_business,
-                'business_text': "商务品" if is_business else "非商务品",
-                'index_code': row['跟踪指数代码'],
-                'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
-                'attention_change': int(row['attention_change']) if pd.notna(row['attention_change']) else 0
-            })
-        
-        # 获取本周新增持仓客户TOP20
-        holders_top = etf_data.sort_values(by='holders_change', ascending=False).head(20)
-        for _, row in holders_top.iterrows():
-            etf_code = row['证券代码']
-            is_business = etf_code in business_etfs
-            recommendations["holders"].append({
-                'code': etf_code,
-                'name': row[name_col] if name_col in row else row['证券代码'],
-                'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
-                'is_business': is_business,
-                'business_text': "商务品" if is_business else "非商务品",
-                'index_code': row['跟踪指数代码'],
-                'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
-                'holders_change': int(row['holders_change']) if pd.notna(row['holders_change']) else 0
-            })
-        
-        # 获取本周新增保有金额TOP20
-        amount_top = etf_data.sort_values(by='amount_change', ascending=False).head(20)
-        for _, row in amount_top.iterrows():
-            etf_code = row['证券代码']
-            is_business = etf_code in business_etfs
-            recommendations["amount"].append({
-                'code': etf_code,
-                'name': row[name_col] if name_col in row else row['证券代码'],
-                'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
-                'is_business': is_business,
-                'business_text': "商务品" if is_business else "非商务品",
-                'index_code': row['跟踪指数代码'],
-                'scale': round(float(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) if pd.notna(row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元']) else 0, 2),
-                'amount_change': round(float(row['amount_change']) if pd.notna(row['amount_change']) else 0, 2)
-            })
-        
-        # 尝试加载ETF价格推荐数据
         try:
-            # 查找最新的ETF价格推荐数据文件
-            data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
-            today = datetime.now().strftime('%Y%m%d')
-            price_recommendation_file = os.path.join(data_dir, f"etf_price_recommendations_{today}.json")
+            conn = db.connect()
+            cursor = conn.cursor()
             
-            # 如果当天的文件不存在，尝试查找最新的推荐数据文件
-            if not os.path.exists(price_recommendation_file):
-                print(f"当天的ETF价格推荐数据文件不存在: {price_recommendation_file}")
-                # 查找匹配模式的最新文件
-                latest_file = None
-                latest_date = None
-                
-                for file in os.listdir(data_dir):
-                    if file.startswith("etf_price_recommendations_") and file.endswith(".json"):
-                        try:
-                            # 从文件名中提取日期
-                            date_str = file.replace("etf_price_recommendations_", "").replace(".json", "")
-                            file_date = datetime.strptime(date_str, "%Y%m%d")
-                            if latest_date is None or file_date > latest_date:
-                                latest_date = file_date
-                                latest_file = os.path.join(data_dir, file)
-                        except Exception as e:
-                            print(f"解析文件日期出错: {file}, {str(e)}")
-                
-                # 如果找到了最新文件，使用它
-                if latest_file:
-                    price_recommendation_file = latest_file
-                    print(f"使用最新的ETF价格推荐数据文件: {price_recommendation_file}")
-                else:
-                    # 如果没找到任何匹配的文件，尝试先获取最新ETF数据，然后生成新的推荐数据
-                    print("未找到任何ETF价格推荐数据文件，尝试获取最新数据并生成...")
-                    try:
-                        # 先尝试获取最新ETF数据
-                        from get_latest_etf_data import main as get_latest_data
-                        get_latest_result = get_latest_data()
-                        if get_latest_result != 0:
-                            print("获取最新ETF数据失败，尝试直接生成推荐数据")
-                        
-                        # 无论获取数据是否成功，都尝试生成推荐
-                        from etf_price_recommendation import main as generate_price_recommendations
-                        generate_price_recommendations()
-                        # 重新检查当天生成的文件
-                        price_recommendation_file = os.path.join(data_dir, f"etf_price_recommendations_{today}.json")
-                    except Exception as gen_e:
-                        print(f"获取最新数据或生成推荐时出错: {str(gen_e)}")
-                        import traceback
-                        traceback.print_exc()
+            # 使用当前日期作为交易日期
+            current_date = datetime.now()
+            recommendations["trade_date"] = f"{current_date.month}月{current_date.day}日"
             
-            # 读取ETF价格推荐数据
-            if os.path.exists(price_recommendation_file):
-                with open(price_recommendation_file, 'r', encoding='utf-8') as f:
-                    price_data = json.load(f)
-                    recommendations["price_return"] = price_data.get("price_return", [])
-                    # 获取交易日期信息
-                    recommendations["trade_date"] = price_data.get("trade_date", "3月19日")
-                    print(f"成功加载ETF价格推荐数据，共{len(recommendations['price_return'])}条记录，交易日期：{recommendations['trade_date']}")
-            else:
-                print(f"警告：无法找到或生成ETF价格推荐数据文件")
-
+            # 1. 获取涨幅最大的ETF (Top 20 Gainers)
+            # 为每个指数只选取涨幅最大的一个ETF
+            cursor.execute("""
+                SELECT p.code, i.name, p.change_rate, i.tracking_index_code, i.fund_manager, 
+                       CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
+                       i.fund_size
+                FROM etf_price p
+                JOIN etf_info i ON p.code = i.code
+                LEFT JOIN etf_business b ON p.code = b.code
+                WHERE p.change_rate IS NOT NULL
+                ORDER BY p.change_rate DESC
+            """)
+            
+            results = cursor.fetchall()
+            processed_indices = set()  # 记录已处理的指数代码
+            count = 0
+            
+            for row in results:
+                code, name, change_rate, tracking_index_code, manager, is_business, scale = row
+                
+                # 如果已经处理过该指数，则跳过
+                if tracking_index_code in processed_indices:
+                    continue
+                
+                # 添加到结果集
+                recommendations["price_return"].append({
+                    'code': code,
+                    'name': name,
+                    'change_rate': round(float(change_rate) * 100, 2) if change_rate else 0,
+                    'manager': manager,
+                    'is_business': bool(is_business),
+                    'business_text': "商务品" if is_business else "非商务品",
+                    'index_code': tracking_index_code,
+                    'scale': round(float(scale), 2) if scale else 0,
+                    'type': 'gainers'
+                })
+                
+                # 记录已处理的指数
+                if tracking_index_code:
+                    processed_indices.add(tracking_index_code)
+                count += 1
+                
+                # 只取前20个
+                if count >= 20:
+                    break
+            
+            print(f"成功加载ETF价格推荐数据，共{len(recommendations['price_return'])}条记录，交易日期：{recommendations['trade_date']}")
+            
+            # 因为历史表中可能没有数据，以下部分暂时注释
+            # 后续可以从etf_attention、etf_holders表中直接获取数据
+            
+            # 2. 尝试获取关注数据
+            try:
+                cursor.execute("""
+                    SELECT a.code, i.name, a.attention_count, i.fund_manager, i.fund_size, i.tracking_index_code,
+                           CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business
+                    FROM etf_attention a
+                    JOIN etf_info i ON a.code = i.code
+                    LEFT JOIN etf_business b ON a.code = b.code
+                    ORDER BY a.attention_count DESC
+                    LIMIT 20
+                """)
+                
+                for row in cursor.fetchall():
+                    code, name, attention_count, manager, scale, tracking_index_code, is_business = row
+                    
+                    recommendations["attention"].append({
+                        'code': code,
+                        'name': name,
+                        'attention_change': int(attention_count) if attention_count else 0,  # 使用总数而非变化
+                        'manager': manager,
+                        'scale': round(float(scale), 2) if scale else 0,
+                        'is_business': bool(is_business),
+                        'business_text': "商务品" if is_business else "非商务品",
+                        'index_code': tracking_index_code,
+                        'type': 'attention'
+                    })
+                
+                print(f"成功加载ETF关注推荐数据，共{len(recommendations['attention'])}条记录")
+            except Exception as e:
+                print(f"获取关注数据出错: {str(e)}")
+            
+            # 3. 尝试获取持有人数据
+            try:
+                cursor.execute("""
+                    SELECT h.code, i.name, h.holder_count, i.fund_manager, i.fund_size, i.tracking_index_code,
+                           CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business
+                    FROM etf_holders h
+                    JOIN etf_info i ON h.code = i.code
+                    LEFT JOIN etf_business b ON h.code = b.code
+                    ORDER BY h.holder_count DESC
+                    LIMIT 20
+                """)
+                
+                for row in cursor.fetchall():
+                    code, name, holder_count, manager, scale, tracking_index_code, is_business = row
+                    
+                    recommendations["holders"].append({
+                        'code': code,
+                        'name': name,
+                        'holders_change': int(holder_count) if holder_count else 0,  # 使用总数而非变化
+                        'manager': manager,
+                        'scale': round(float(scale), 2) if scale else 0,
+                        'is_business': bool(is_business),
+                        'business_text': "商务品" if is_business else "非商务品",
+                        'index_code': tracking_index_code,
+                        'type': 'holders'
+                    })
+                
+                print(f"成功加载ETF持有人推荐数据，共{len(recommendations['holders'])}条记录")
+            except Exception as e:
+                print(f"获取持有人数据出错: {str(e)}")
+            
+            # 4. 尝试获取保有金额数据
+            try:
+                cursor.execute("""
+                    SELECT h.code, i.name, h.holding_value, i.fund_manager, i.fund_size, i.tracking_index_code,
+                           CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business
+                    FROM etf_holders h
+                    JOIN etf_info i ON h.code = i.code
+                    LEFT JOIN etf_business b ON h.code = b.code
+                    WHERE h.holding_value IS NOT NULL
+                    ORDER BY h.holding_value DESC
+                    LIMIT 20
+                """)
+                
+                for row in cursor.fetchall():
+                    code, name, holding_value, manager, scale, tracking_index_code, is_business = row
+                    
+                    # 转换为亿元单位
+                    holding_value_billion = round(float(holding_value) / 1e8, 2) if holding_value else 0
+                    
+                    recommendations["amount"].append({
+                        'code': code,
+                        'name': name,
+                        'amount_change': holding_value_billion,  # 使用总数而非变化
+                        'manager': manager,
+                        'scale': round(float(scale), 2) if scale else 0,
+                        'is_business': bool(is_business),
+                        'business_text': "商务品" if is_business else "非商务品",
+                        'index_code': tracking_index_code,
+                        'type': 'amount'
+                    })
+                
+                print(f"成功加载ETF保有金额推荐数据，共{len(recommendations['amount'])}条记录")
+            except Exception as e:
+                print(f"获取保有金额数据出错: {str(e)}")
+                
         except Exception as e:
-            print(f"加载ETF价格推荐数据出错: {str(e)}")
-            import traceback
+            print(f"获取推荐数据出错: {str(e)}")
             traceback.print_exc()
         
+        finally:
+            # 关闭数据库连接
+            if conn:
+                conn.close()
+            
         return jsonify({
             "success": True,
             "recommendations": recommendations

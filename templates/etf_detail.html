@@ -161,7 +161,14 @@
                                             <th>管理费率(%)</th>
                                             <th>跟踪误差(%)</th>
                                             <th>持有人数</th>
+                                            <th>当日变动</th>
+                                            <th>近5日变动</th>
                                             <th>自选人数</th>
+                                            <th>当日变动</th>
+                                            <th>近5日变动</th>
+                                            <th>持仓金额(元)</th>
+                                            <th>当日变动</th>
+                                            <th>近5日变动</th>
                                             <th>类型</th>
                                         </tr>
                                     </thead>
@@ -173,6 +180,24 @@
                             const rowClass = item.code === data.code ? 'table-primary' : '';
                             const businessClass = item.is_business ? 'text-danger' : '';
                             
+                            // 处理变化格式化
+                            const formatChange = (value, decimals = 0) => {
+                                if (!value || value === 0) return '0';
+                                const formatted = Math.abs(value).toLocaleString(undefined, {
+                                    minimumFractionDigits: decimals,
+                                    maximumFractionDigits: decimals
+                                });
+                                return value > 0 ? `+${formatted}` : `-${formatted}`;
+                            };
+                            
+                            // 变化值的CSS类
+                            const getChangeClass = (value) => {
+                                if (!value) return '';
+                                if (value > 0) return 'text-danger';
+                                if (value < 0) return 'text-success';
+                                return '';
+                            };
+                            
                             html += `
                                 <tr class="${rowClass}">
                                     <td>${item.code}</td>
@@ -182,7 +207,14 @@
                                     <td>${item.management_fee_rate ? item.management_fee_rate.toFixed(4) : '-'}</td>
                                     <td>${item.tracking_error ? item.tracking_error.toFixed(4) : '-'}</td>
                                     <td>${item.holder_count ? item.holder_count.toLocaleString() : '-'}</td>
+                                    <td class="${getChangeClass(item.holders_day_change)}">${formatChange(item.holders_day_change, 0)}</td>
+                                    <td class="${getChangeClass(item.holders_5day_change)}">${formatChange(item.holders_5day_change, 0)}</td>
                                     <td>${item.attention_count ? item.attention_count.toLocaleString() : '-'}</td>
+                                    <td class="${getChangeClass(item.attention_day_change)}">${formatChange(item.attention_day_change, 0)}</td>
+                                    <td class="${getChangeClass(item.attention_5day_change)}">${formatChange(item.attention_5day_change, 0)}</td>
+                                    <td>${item.holding_amount ? item.holding_amount.toLocaleString(undefined, {maximumFractionDigits: 2}) : '-'}</td>
+                                    <td class="${getChangeClass(item.holding_day_change)}">${formatChange(item.holding_day_change, 2)}</td>
+                                    <td class="${getChangeClass(item.holding_5day_change)}">${formatChange(item.holding_5day_change, 2)}</td>
                                     <td class="${businessClass}">${item.is_business ? '商务品' : '非商务品'}</td>
                                 </tr>
                             `;

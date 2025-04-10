@@ -1016,6 +1016,210 @@ class Database:
             print(f"检查指数名称是否存在时出错: {str(e)}")
             return False
     
+    def get_attention_changes(self, code: str) -> dict:
+        """获取ETF自选人数变化（当日和近5日）"""
+        try:
+            # 标准化ETF代码
+            code = normalize_etf_code(code)
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询最近日期的自选人数
+            cursor.execute("""
+                SELECT date, attention_count
+                FROM etf_attention_history
+                WHERE code = ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (code,))
+            
+            latest_data = cursor.fetchone()
+            
+            if not latest_data:
+                return {'daily_change': 0, 'five_day_change': 0}
+                
+            latest_date, latest_count = latest_data
+            
+            # 查询前一天的自选人数
+            cursor.execute("""
+                SELECT date, attention_count
+                FROM etf_attention_history
+                WHERE code = ? AND date < ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (code, latest_date))
+            
+            previous_data = cursor.fetchone()
+            previous_count = previous_data[1] if previous_data else latest_count
+            
+            # 查询5天前的自选人数
+            cursor.execute("""
+                SELECT date, attention_count
+                FROM etf_attention_history
+                WHERE code = ?
+                ORDER BY date DESC
+                LIMIT 6
+            """, (code,))
+            
+            all_data = cursor.fetchall()
+            # 安全获取五天前的数据
+            five_day_before_count = latest_count  # 默认值
+            if len(all_data) >= 6:
+                five_day_before_count = all_data[5][1]
+            
+            # 计算变化
+            daily_change = latest_count - previous_count
+            five_day_change = latest_count - five_day_before_count
+            
+            return {
+                'daily_change': daily_change,
+                'five_day_change': five_day_change
+            }
+            
+        except Exception as e:
+            print(f"获取ETF自选人数变化出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return {'daily_change': 0, 'five_day_change': 0}
+    
+    def get_holder_changes(self, code: str) -> dict:
+        """获取ETF持仓人数变化（当日和近5日）"""
+        try:
+            # 标准化ETF代码
+            code = normalize_etf_code(code)
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询最近日期的持仓人数
+            cursor.execute("""
+                SELECT date, holder_count
+                FROM etf_holders_history
+                WHERE code = ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (code,))
+            
+            latest_data = cursor.fetchone()
+            
+            if not latest_data:
+                return {'daily_change': 0, 'five_day_change': 0}
+                
+            latest_date, latest_count = latest_data
+            
+            # 查询前一天的持仓人数
+            cursor.execute("""
+                SELECT date, holder_count
+                FROM etf_holders_history
+                WHERE code = ? AND date < ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (code, latest_date))
+            
+            previous_data = cursor.fetchone()
+            previous_count = previous_data[1] if previous_data else latest_count
+            
+            # 查询5天前的持仓人数
+            cursor.execute("""
+                SELECT date, holder_count
+                FROM etf_holders_history
+                WHERE code = ?
+                ORDER BY date DESC
+                LIMIT 6
+            """, (code,))
+            
+            all_data = cursor.fetchall()
+            # 安全获取五天前的数据
+            five_day_before_count = latest_count  # 默认值
+            if len(all_data) >= 6:
+                five_day_before_count = all_data[5][1]
+            
+            # 计算变化
+            daily_change = latest_count - previous_count
+            five_day_change = latest_count - five_day_before_count
+            
+            return {
+                'daily_change': daily_change,
+                'five_day_change': five_day_change
+            }
+            
+        except Exception as e:
+            print(f"获取ETF持仓人数变化出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return {'daily_change': 0, 'five_day_change': 0}
+    
+    def get_amount_changes(self, code: str) -> dict:
+        """获取ETF持仓金额变化（当日和近5日）"""
+        try:
+            # 标准化ETF代码
+            code = normalize_etf_code(code)
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询最近日期的持仓金额
+            cursor.execute("""
+                SELECT date, holding_amount
+                FROM etf_holders_history
+                WHERE code = ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (code,))
+            
+            latest_data = cursor.fetchone()
+            
+            if not latest_data:
+                return {'daily_change': 0, 'five_day_change': 0}
+                
+            latest_date, latest_amount = latest_data
+            
+            # 查询前一天的持仓金额
+            cursor.execute("""
+                SELECT date, holding_amount
+                FROM etf_holders_history
+                WHERE code = ? AND date < ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (code, latest_date))
+            
+            previous_data = cursor.fetchone()
+            previous_amount = previous_data[1] if previous_data else latest_amount
+            
+            # 查询5天前的持仓金额
+            cursor.execute("""
+                SELECT date, holding_amount
+                FROM etf_holders_history
+                WHERE code = ?
+                ORDER BY date DESC
+                LIMIT 6
+            """, (code,))
+            
+            all_data = cursor.fetchall()
+            # 安全获取五天前的数据
+            five_day_before_amount = latest_amount  # 默认值
+            if len(all_data) >= 6:
+                five_day_before_amount = all_data[5][1]
+            
+            # 计算变化
+            daily_change = latest_amount - previous_amount
+            five_day_change = latest_amount - five_day_before_amount
+            
+            return {
+                'daily_change': daily_change,
+                'five_day_change': five_day_change
+            }
+            
+        except Exception as e:
+            print(f"获取ETF持仓金额变化出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return {'daily_change': 0, 'five_day_change': 0}
+    
     def search_by_etf_code(self, code: str) -> List[Dict]:
         """根据ETF代码搜索"""
         try:
@@ -1072,8 +1276,15 @@ class Database:
             # 处理结果
             processed_results = []
             for row in results:
+                etf_code = row[0]
+                
+                # 获取变化数据
+                attention_changes = self.get_attention_changes(etf_code)
+                holder_changes = self.get_holder_changes(etf_code)
+                amount_changes = self.get_amount_changes(etf_code)
+                
                 result = {
-                    'code': row[0],
+                    'code': etf_code,
                     'name': row[1],
                     'manager': row[2],
                     'fund_size': float(row[3]) if row[3] is not None else 0.0,
@@ -1092,7 +1303,14 @@ class Database:
                     'holder_count': int(row[16]) if row[16] is not None else 0,
                     'holding_amount': float(row[17]) if row[17] is not None else 0.0,
                     'daily_avg_volume': float(row[18]) if row[18] is not None else 0.0,
-                    'daily_volume': float(row[19]) if row[19] is not None else 0.0
+                    'daily_volume': float(row[19]) if row[19] is not None else 0.0,
+                    # 添加变化数据
+                    'attention_daily_change': attention_changes['daily_change'],
+                    'attention_five_day_change': attention_changes['five_day_change'],
+                    'holder_daily_change': holder_changes['daily_change'],
+                    'holder_five_day_change': holder_changes['five_day_change'],
+                    'amount_daily_change': amount_changes['daily_change'],
+                    'amount_five_day_change': amount_changes['five_day_change']
                 }
                 processed_results.append(result)
             
@@ -1148,13 +1366,18 @@ class Database:
                 index_code = row[7] or '未知指数'
                 index_name = row[8] or '未知指数名称'
                 
+                # 获取变化数据
+                attention_changes = self.get_attention_changes(etf_code)
+                holder_changes = self.get_holder_changes(etf_code)
+                amount_changes = self.get_amount_changes(etf_code)
+                
                 # 构建ETF数据记录
                 etf_data = {
                     'code': etf_code,
                     'name': row[1],
                     'manager': row[2],
                     'fund_size': float(row[3] or 0),
-                    'management_fee_rate': float(row[4] or 0),
+                    'management_fee_rate': float(row[4] or 0), 
                     'tracking_error': float(row[5] or 0),
                     'total_holder_count': int(row[6] or 0),
                     'tracking_index_code': index_code,
@@ -1165,7 +1388,14 @@ class Database:
                     'holder_count': int(row[11] or 0),
                     'holding_amount': float(row[12] or 0),
                     'daily_avg_volume': float(row[13] or 0),
-                    'daily_volume': float(row[14] or 0)
+                    'daily_volume': float(row[14] or 0),
+                    # 添加变化数据
+                    'attention_daily_change': attention_changes['daily_change'],
+                    'attention_five_day_change': attention_changes['five_day_change'],
+                    'holder_daily_change': holder_changes['daily_change'],
+                    'holder_five_day_change': holder_changes['five_day_change'],
+                    'amount_daily_change': amount_changes['daily_change'],
+                    'amount_five_day_change': amount_changes['five_day_change']
                 }
                 
                 # 添加到结果列表
@@ -1282,7 +1512,14 @@ class Database:
                     'holder_count': int(row[16]) if row[16] is not None else 0,
                     'holding_amount': float(row[17]) if row[17] is not None else 0.0,
                     'daily_avg_volume': float(row[18]) if row[18] is not None else 0.0,
-                    'daily_volume': float(row[19]) if row[19] is not None else 0.0
+                    'daily_volume': float(row[19]) if row[19] is not None else 0.0,
+                    # 添加变化数据
+                    'attention_daily_change': self.get_attention_changes(row[0])['daily_change'],
+                    'attention_five_day_change': self.get_attention_changes(row[0])['five_day_change'],
+                    'holder_daily_change': self.get_holder_changes(row[0])['daily_change'],
+                    'holder_five_day_change': self.get_holder_changes(row[0])['five_day_change'],
+                    'amount_daily_change': self.get_amount_changes(row[0])['daily_change'],
+                    'amount_five_day_change': self.get_amount_changes(row[0])['five_day_change']
                 }
                 processed_results.append(result)
             
@@ -1357,7 +1594,14 @@ class Database:
                     'holder_count': int(row[16]) if row[16] is not None else 0,
                     'holding_amount': float(row[17]) if row[17] is not None else 0.0,
                     'daily_avg_volume': float(row[18]) if row[18] is not None else 0.0,
-                    'daily_volume': float(row[19]) if row[19] is not None else 0.0
+                    'daily_volume': float(row[19]) if row[19] is not None else 0.0,
+                    # 添加变化数据
+                    'attention_daily_change': self.get_attention_changes(row[0])['daily_change'],
+                    'attention_five_day_change': self.get_attention_changes(row[0])['five_day_change'],
+                    'holder_daily_change': self.get_holder_changes(row[0])['daily_change'],
+                    'holder_five_day_change': self.get_holder_changes(row[0])['five_day_change'],
+                    'amount_daily_change': self.get_amount_changes(row[0])['daily_change'],
+                    'amount_five_day_change': self.get_amount_changes(row[0])['five_day_change']
                 }
                 processed_results.append(result)
             
@@ -1439,13 +1683,18 @@ class Database:
                 index_code = row[7] or '未知指数'
                 index_name = row[8] or '未知指数名称'
                 
+                # 获取变化数据
+                attention_changes = self.get_attention_changes(etf_code)
+                holder_changes = self.get_holder_changes(etf_code)
+                amount_changes = self.get_amount_changes(etf_code)
+                
                 # 构建ETF数据记录
                 etf_data = {
                     'code': etf_code,
                     'name': row[1],
                     'manager': row[2],
                     'fund_size': float(row[3] or 0),
-                    'management_fee_rate': float(row[4] or 0),
+                    'management_fee_rate': float(row[4] or 0), 
                     'tracking_error': float(row[5] or 0),
                     'total_holder_count': int(row[6] or 0),
                     'tracking_index_code': index_code,
@@ -1456,7 +1705,14 @@ class Database:
                     'holder_count': int(row[11] or 0),
                     'holding_amount': float(row[12] or 0),
                     'daily_avg_volume': float(row[13] or 0),
-                    'daily_volume': float(row[14] or 0)
+                    'daily_volume': float(row[14] or 0),
+                    # 添加变化数据
+                    'attention_daily_change': attention_changes['daily_change'],
+                    'attention_five_day_change': attention_changes['five_day_change'],
+                    'holder_daily_change': holder_changes['daily_change'],
+                    'holder_five_day_change': holder_changes['five_day_change'],
+                    'amount_daily_change': amount_changes['daily_change'],
+                    'amount_five_day_change': amount_changes['five_day_change']
                 }
                 
                 # 添加到结果列表

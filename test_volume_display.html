@@ -49,9 +49,17 @@
                                         <th>最近交易日成交额(亿)</th>
                                         <th>跟踪误差(%)</th>
                                         <th>总持有人数</th>
+                                        <th>当日变动</th>
+                                        <th>近5日变动</th>
                                         <th>持仓人数</th>
+                                        <th>当日变动</th>
+                                        <th>近5日变动</th>
                                         <th>持仓金额(元)</th>
+                                        <th>当日变动</th>
+                                        <th>近5日变动</th>
                                         <th>自选人数</th>
+                                        <th>当日变动</th>
+                                        <th>近5日变动</th>
                                         <th>类型</th>
                                     </tr>
                                 </thead>
@@ -88,7 +96,15 @@
                         is_business: Boolean(etf.is_business),
                         business_text: etf.business_text || (etf.is_business ? '商务品' : '非商务品'),
                         daily_avg_volume: Number(etf.daily_avg_volume || 0),
-                        daily_volume: Number(etf.daily_volume || 0)
+                        daily_volume: Number(etf.daily_volume || 0),
+                        attention_day_change: Number(etf.attention_day_change || 0),
+                        attention_5day_change: Number(etf.attention_5day_change || 0),
+                        holder_day_change: Number(etf.holder_day_change || 0),
+                        holder_5day_change: Number(etf.holder_5day_change || 0),
+                        holders_day_change: Number(etf.holders_day_change || 0),
+                        holders_5day_change: Number(etf.holders_5day_change || 0),
+                        holding_day_change: Number(etf.holding_day_change || 0),
+                        holding_5day_change: Number(etf.holding_5day_change || 0)
                     };
                     
                     // 累加统计数据
@@ -113,9 +129,17 @@
                             <td>${formatNumber(etfSafe.daily_volume)}</td>
                             <td>${formatNumber(etfSafe.tracking_error)}</td>
                             <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
+                            <td>${formatNumber(etfSafe.holders_day_change || 0, 0)}</td>
+                            <td>${formatNumber(etfSafe.holders_5day_change || 0, 0)}</td>
                             <td>${formatNumber(etfSafe.holder_count, 0)}</td>
+                            <td>${formatNumber(etfSafe.holder_day_change || 0, 0)}</td>
+                            <td>${formatNumber(etfSafe.holder_5day_change || 0, 0)}</td>
                             <td>${formatNumber(etfSafe.holding_amount, 2)}</td>
+                            <td>${formatNumber(etfSafe.holding_day_change || 0, 2)}</td>
+                            <td>${formatNumber(etfSafe.holding_5day_change || 0, 2)}</td>
                             <td>${formatNumber(etfSafe.attention_count, 0)}</td>
+                            <td>${formatNumber(etfSafe.attention_day_change || 0, 0)}</td>
+                            <td>${formatNumber(etfSafe.attention_5day_change || 0, 0)}</td>
                             <td>${etfSafe.business_text}</td>
                         </tr>
                     `;
@@ -138,9 +162,17 @@
                                 <td>${formatNumber(totalDailyVolume)}</td>
                                 <td>-</td>
                                 <td>${formatNumber(totalHolders, 0)}</td>
+                                <td>-</td>
+                                <td>-</td>
                                 <td>${formatNumber(totalHolderCount, 0)}</td>
+                                <td>-</td>
+                                <td>-</td>
                                 <td>${formatNumber(totalHoldingAmount, 2)}</td>
+                                <td>-</td>
+                                <td>-</td>
                                 <td>${formatNumber(totalAttention, 0)}</td>
+                                <td>-</td>
+                                <td>-</td>
                                 <td>${etfs.length > 0 ? formatNumber((businessCount / etfs.length) * 100, 1)+'%' : '-'}</td>
                             </tr>
                         </tfoot>
@@ -160,11 +192,19 @@
             "results": [
                 {
                     "attention_count": 3062,
+                    "attention_day_change": 16,
+                    "attention_5day_change": 21,
                     "business_text": "商务品",
                     "code": "560050.SH",
                     "fund_size": 57.3761,
                     "holder_count": 3046,
+                    "holder_day_change": 7,
+                    "holder_5day_change": 8,
+                    "holders_day_change": 5,
+                    "holders_5day_change": 12,
                     "holding_amount": 515202640.51,
+                    "holding_day_change": 12700000,
+                    "holding_5day_change": 17660000,
                     "is_business": true,
                     "management_fee_rate": 0.5,
                     "manager": "汇添富基金管理股份有限公司",
@@ -178,11 +218,19 @@
                 },
                 {
                     "attention_count": 1500,
+                    "attention_day_change": 8,
+                    "attention_5day_change": 15,
                     "business_text": "非商务品",
                     "code": "159005.SZ",
                     "fund_size": 45.147,
                     "holder_count": 987,
+                    "holder_day_change": 3,
+                    "holder_5day_change": 5,
+                    "holders_day_change": 2,
+                    "holders_5day_change": 4,
                     "holding_amount": 78302939.39,
+                    "holding_day_change": 5600000,
+                    "holding_5day_change": 8900000,
                     "is_business": false,
                     "management_fee_rate": 0.15,
                     "manager": "易方达基金管理有限公司",
@@ -196,11 +244,19 @@
                 },
                 {
                     "attention_count": 642,
+                    "attention_day_change": 4,
+                    "attention_5day_change": 10,
                     "business_text": "非商务品",
                     "code": "159321.SZ",
                     "fund_size": 28.7322,
                     "holder_count": 215,
+                    "holder_day_change": 1,
+                    "holder_5day_change": 3,
+                    "holders_day_change": 0,
+                    "holders_5day_change": 2,
                     "holding_amount": 24913202.05,
+                    "holding_day_change": 1850000,
+                    "holding_5day_change": 3700000,
                     "is_business": false,
                     "management_fee_rate": 0.5,
                     "manager": "华夏基金管理有限公司",

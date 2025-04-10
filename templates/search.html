@@ -216,7 +216,14 @@
                                     <th>管理费率(%)</th>
                                     <th>跟踪误差(%)</th>
                                     <th>持有人数</th>
+                                    <th>当日变动</th>
+                                    <th>近5日变动</th>
                                     <th>自选人数</th>
+                                    <th>当日变动</th>
+                                    <th>近5日变动</th>
+                                    <th>持仓金额(元)</th>
+                                    <th>当日变动</th>
+                                    <th>近5日变动</th>
                                     <th>类型</th>
                                 </tr>
                             </thead>
@@ -228,6 +235,7 @@
                 let totalFeeRate = 0;
                 let totalHolders = 0;
                 let totalAttention = 0;
+                let totalHoldingAmount = 0;
                 let businessCount = 0;
                 
                 // 添加ETF行
@@ -242,6 +250,13 @@
                         tracking_error: Number(etf.tracking_error || 0),
                         total_holder_count: Number(etf.total_holder_count || 0),
                         attention_count: Number(etf.attention_count || 0),
+                        holders_day_change: Number(etf.holders_day_change || 0),
+                        holders_5day_change: Number(etf.holders_5day_change || 0),
+                        attention_day_change: Number(etf.attention_day_change || 0),
+                        attention_5day_change: Number(etf.attention_5day_change || 0),
+                        holding_amount: Number(etf.holding_amount || 0),
+                        holding_day_change: Number(etf.holding_day_change || 0),
+                        holding_5day_change: Number(etf.holding_5day_change || 0),
                         is_business: Boolean(etf.is_business),
                         business_text: etf.business_text || (etf.is_business ? '商务品' : '非商务品')
                     };
@@ -251,7 +266,22 @@
                     totalFeeRate += safe.management_fee_rate;
                     totalHolders += safe.total_holder_count;
                     totalAttention += safe.attention_count;
+                    totalHoldingAmount += safe.holding_amount;
                     if (safe.is_business) businessCount++;
+                    
+                    // 格式化函数以处理正负变化
+                    const formatChange = (value, decimals = 0) => {
+                        if (value === 0) return '0';
+                        const formatted = formatNumber(Math.abs(value), decimals);
+                        return value > 0 ? `+${formatted}` : `-${formatted}`;
+                    };
+                    
+                    // 变化值的CSS类
+                    const getChangeClass = (value) => {
+                        if (value > 0) return 'text-danger';
+                        if (value < 0) return 'text-success';
+                        return '';
+                    };
                     
                     html += `
                         <tr>
@@ -262,7 +292,14 @@
                             <td>${formatNumber(safe.management_fee_rate)}</td>
                             <td>${formatNumber(safe.tracking_error)}</td>
                             <td>${formatNumber(safe.total_holder_count, 0)}</td>
+                            <td class="${getChangeClass(safe.holders_day_change)}">${formatChange(safe.holders_day_change, 0)}</td>
+                            <td class="${getChangeClass(safe.holders_5day_change)}">${formatChange(safe.holders_5day_change, 0)}</td>
                             <td>${formatNumber(safe.attention_count, 0)}</td>
+                            <td class="${getChangeClass(safe.attention_day_change)}">${formatChange(safe.attention_day_change, 0)}</td>
+                            <td class="${getChangeClass(safe.attention_5day_change)}">${formatChange(safe.attention_5day_change, 0)}</td>
+                            <td>${formatNumber(safe.holding_amount, 2)}</td>
+                            <td class="${getChangeClass(safe.holding_day_change)}">${formatChange(safe.holding_day_change, 2)}</td>
+                            <td class="${getChangeClass(safe.holding_5day_change)}">${formatChange(safe.holding_5day_change, 2)}</td>
                             <td>${safe.business_text}</td>
                         </tr>
                     `;
@@ -281,7 +318,14 @@
                                     <td>${formatNumber(avgFeeRate)}</td>
                                     <td>-</td>
                                     <td>${formatNumber(totalHolders, 0)}</td>
+                                    <td>-</td>
+                                    <td>-</td>
                                     <td>${formatNumber(totalAttention, 0)}</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>${formatNumber(totalHoldingAmount, 2)}</td>
+                                    <td>-</td>
+                                    <td>-</td>
                                     <td>${formatNumber((businessCount / data.results.length * 100), 1)}%</td>
                                 </tr>
                             </tfoot>

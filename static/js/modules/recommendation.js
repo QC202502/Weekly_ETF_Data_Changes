@@ -71,38 +71,41 @@ function renderRecommendations(recommendations) {
     console.log('渲染推荐数据:', recommendations);
     
     // 更新价格涨幅标签的文本
-    const priceReturnTab = document.querySelector('a[href="#price-return-tab"]');
+    const priceReturnTab = document.querySelector('#price-return-tab');
     if (priceReturnTab && recommendations.trade_date) {
-        priceReturnTab.textContent = `3月19日涨幅TOP20`;
+        priceReturnTab.textContent = `${recommendations.trade_date}涨幅TOP20`;
     }
     
+    // 渲染价格涨幅推荐
+    renderRecommendationTable('price-return', recommendations.price_return);
+    
     // 渲染自选人数推荐
-    renderRecommendationList('attention', recommendations.attention);
+    renderRecommendationTable('attention', recommendations.attention);
     
     // 渲染持仓客户推荐
-    renderRecommendationList('holders', recommendations.holders);
+    renderRecommendationTable('holders', recommendations.holders);
     
     // 渲染保有金额推荐
-    renderRecommendationList('amount', recommendations.amount);
-    
-    // 渲染价格涨幅推荐
-    renderRecommendationList('price-return', recommendations.price_return);
+    renderRecommendationTable('amount', recommendations.amount);
 }
 
-// 渲染推荐列表
-function renderRecommendationList(type, items) {
+// 渲染推荐表格
+function renderRecommendationTable(type, items) {
     const container = document.getElementById(`${type}-recommendations`);
     if (!container) return;
+    
+    // 如果没有数据，显示提示信息
+    if (!items || items.length === 0) {
+        container.innerHTML = '<tr><td colspan="4" class="text-center">暂无数据</td></tr>';
+        return;
+    }
     
     // 清空容器
     container.innerHTML = '';
     
     // 添加推荐项
-    items.forEach(item => {
-        const itemElement = document.createElement('div');
-        itemElement.className = 'recommendation-item';
-        itemElement.dataset.code = item.code;
-        itemElement.dataset.type = type;
+    items.forEach((item, index) => {
+        const row = document.createElement('tr');
         
         // 设置推荐项内容 - 确保ETF代码不包含sh/sz前缀
         let displayCode = item.code;
@@ -110,74 +113,56 @@ function renderRecommendationList(type, items) {
             displayCode = displayCode.substring(2);
         }
         
-        itemElement.innerHTML = `
-            <div class="etf-name">${item.name}</div>
-            <div class="etf-code">${displayCode}</div>
-        `;
-        
-        // 添加数据属性，用于悬浮卡片显示
-        itemElement.dataset.manager = item.manager || '未知';
-        itemElement.dataset.business = item.is_business ? 'true' : 'false';
-        itemElement.dataset.businessText = item.business_text || '非商务品';
-        itemElement.dataset.index = item.index_code || item.index_name || '未知';
-        itemElement.dataset.scale = item.scale || '0';
-        
-        // 根据推荐类型设置不同的变化值
-        if (type === 'attention') {
-            itemElement.dataset.change = `+${item.attention_change.toLocaleString()} 人`;
+        // 准备显示的变化值
+        let changeValue = '';
+        if (type === 'price-return') {
+            changeValue = `${item.change_rate}%`;
+        } else if (type === 'attention') {
+            changeValue = `+${item.attention_change.toLocaleString()}`;
         } else if (type === 'holders') {
-            itemElement.dataset.change = `+${item.holders_change.toLocaleString()} 人`;
+            changeValue = `+${item.holders_change.toLocaleString()}`;
         } else if (type === 'amount') {
-            itemElement.dataset.change = `+${item.amount_change.toFixed(2)} 亿元`;
-        } else if (type === 'price-return') {
-            itemElement.dataset.change = `${item.daily_return.toFixed(2)}%`;
+            changeValue = `+${item.amount_change.toFixed(2)}亿元`;
         }
         
-        // 绑定点击事件
-        itemElement.addEventListener('click', function() {
-            handleRecommendationClick(this);
+        // 准备指数信息
+        const indexInfo = item.index_code || '未知';
+        
+        // 设置行内容
+        row.innerHTML = `
+            <td>${displayCode}</td>
+            <td>${item.name}</td>
+            <td>${changeValue}</td>
+            <td>${indexInfo}</td>
+        `;
+        
+        // 添加数据属性，用于点击搜索
+        row.dataset.code = item.code;
+        
+        // 绑定点击事件 - 点击行时搜索该ETF
+        row.addEventListener('click', function() {
+            // 处理可能带有sh/sz前缀的ETF代码
+            let searchCode = this.dataset.code;
+            if (searchCode.startsWith('sh') || searchCode.startsWith('sz')) {
+                searchCode = searchCode.substring(2);
+            }
+            
+            // 填充搜索框
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.value = searchCode;
+            }
+            
+            // 触发搜索
+            searchETF();
         });
         
-        // 绑定鼠标悬停事件
-        itemElement.addEventListener('mouseenter', function() {
-            showRecommendationTooltip(this);
-        });
+        // 添加指针样式，表示可点击
+        row.style.cursor = 'pointer';
         
-        itemElement.addEventListener('mouseleave', function() {
-            hideRecommendationTooltip();
-        });
-        
-        container.appendChild(itemElement);
+        // 将行添加到表格中
+        container.appendChild(row);
     });
-}
-
-// 处理推荐项点击
-function handleRecommendationClick(item) {
-    // 获取ETF代码
-    const code = item.dataset.code;
-    
-    // 处理可能带有sh/sz前缀的ETF代码
-    let searchCode = code;
-    if (searchCode.startsWith('sh') || searchCode.startsWith('sz')) {
-        searchCode = searchCode.substring(2);
-    }
-    
-    // 移除所有选中状态
-    document.querySelectorAll('.recommendation-item').forEach(i => {
-        i.classList.remove('selected');
-    });
-    
-    // 添加选中状态
-    item.classList.add('selected');
-    
-    // 填充搜索框
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) {
-        searchInput.value = searchCode;
-    }
-    
-    // 触发搜索
-    searchETF();
 }
 
 // 显示推荐项悬浮卡片

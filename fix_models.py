@@ -1,0 +1,1 @@
+import re; with open('database/models.py', 'r') as f: content = f.read(); content = content.replace('holding_amount', 'holding_value'); with open('database/models.py', 'w') as f: f.write(content); print('替换完成')

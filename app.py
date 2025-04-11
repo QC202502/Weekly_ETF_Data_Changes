@@ -24,8 +24,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息
-__version__ = "3.4.0"   
-RELEASE_DATE = "2025-04-09"
+__version__ = "3.4.1"   
+RELEASE_DATE = "2025-04-11"
 
 # 创建Flask应用
 app = Flask(__name__)
@@ -71,7 +71,7 @@ def index():
     recommendations = {
         "attention": [],
         "holders": [],
-        "amount": [],
+        "value": [],
         "price_return": [],
         "trade_date": datetime.now().strftime("%m月%d日")
     }
@@ -95,10 +95,10 @@ def index():
         if attention_data is not None:
             recommendations["attention"] = attention_data
         
-        # 获取ETF成交额数据
-        amount_data = db.get_etf_amount_recommendations()
-        if amount_data is not None:
-            recommendations["amount"] = amount_data
+        # 获取ETF持仓价值数据
+        value_data = db.get_etf_value_recommendations()
+        if value_data is not None:
+            recommendations["value"] = value_data
             
     except Exception as e:
         print(f"加载ETF推荐数据出错: {str(e)}")
@@ -138,7 +138,7 @@ def preload_data():
         price_recommendations = db.get_etf_price_recommendations()
         holders_recommendations = db.get_etf_holders_recommendations()
         attention_recommendations = db.get_etf_attention_recommendations()
-        amount_recommendations = db.get_etf_amount_recommendations()
+        value_recommendations = db.get_etf_value_recommendations()
         
         # 读取价格建议文件
         today = datetime.now().strftime('%Y%m%d')
@@ -158,12 +158,12 @@ def preload_data():
         app.config['PRICE_RECOMMENDATIONS'] = price_recommendations
         app.config['HOLDERS_RECOMMENDATIONS'] = holders_recommendations
         app.config['ATTENTION_RECOMMENDATIONS'] = attention_recommendations
-        app.config['AMOUNT_RECOMMENDATIONS'] = amount_recommendations
+        app.config['VALUE_RECOMMENDATIONS'] = value_recommendations
         
         print(f"ETF价格推荐数据: {len(price_recommendations)}条记录")
         print(f"ETF持有人推荐数据: {len(holders_recommendations)}条记录")
         print(f"ETF自选推荐数据: {len(attention_recommendations)}条记录")
-        print(f"ETF成交额推荐数据: {len(amount_recommendations)}条记录")
+        print(f"ETF持仓价值推荐数据: {len(value_recommendations)}条记录")
         
         # 写入价格推荐文件
         try:

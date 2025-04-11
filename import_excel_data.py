@@ -144,44 +144,110 @@ def import_etf_data():
         print("原始数据前5行：")
         print(df.head())
         
+        # 查找包含关键词的列
+        code_cols = [col for col in df.columns if any(key in col.lower() for key in ['代码', 'code'])]
+        name_cols = [col for col in df.columns if any(key in col.lower() for key in ['名称', 'name'])]
+        holder_cols = [col for col in df.columns if any(key in col.lower() for key in ['客户数', '持有人', 'holder'])]
+        amount_cols = [col for col in df.columns if any(key in col.lower() for key in ['保有金额', '持有金额', '份额', 'amount'])]
+        value_cols = [col for col in df.columns if any(key in col.lower() for key in ['市值', '持仓市值', 'value'])]
+        
+        print(f"找到的代码列: {code_cols}")
+        print(f"找到的名称列: {name_cols}")
+        print(f"找到的持有人列: {holder_cols}")
+        print(f"找到的份额列: {amount_cols}")
+        print(f"找到的市值列: {value_cols}")
+        
+        # 如果找不到必要的列，尝试解析列名
+        if not code_cols or not holder_cols:
+            # 尝试通过位置推断列
+            if len(df.columns) >= 3:
+                print("通过位置推断列...")
+                code_cols = [df.columns[0]]
+                name_cols = [df.columns[1]] if len(df.columns) > 1 else []
+                holder_cols = [df.columns[2]] if len(df.columns) > 2 else []
+                if len(df.columns) > 3:
+                    amount_cols = [df.columns[3]]
+                if len(df.columns) > 4:
+                    value_cols = [df.columns[4]]
+        
         # 准备列名映射
-        columns_mapping = {
-            '标的代码': 'code',
-            '标的名称': 'name',
-            '持仓客户数': 'holder_count',
-            '持仓份额': 'holder_household_count',
-            '持仓市值': 'holding_value'
-        }
+        columns_mapping = {}
+        if code_cols:
+            columns_mapping[code_cols[0]] = 'code'
+        if name_cols:
+            columns_mapping[name_cols[0]] = 'name'
+        if holder_cols:
+            columns_mapping[holder_cols[0]] = 'holder_count'
+        if amount_cols:
+            columns_mapping[amount_cols[0]] = 'holding_amount'
+        if value_cols:
+            columns_mapping[value_cols[0]] = 'holding_value'
         
-        # 重命名列
-        df = df.rename(columns=columns_mapping)
+        print("列名映射:", columns_mapping)
         
-        print("重命名后的列名：", list(df.columns))
+        # 如果没有找到足够的列，使用默认映射
+        if len(columns_mapping) < 2:
+            print("未找到足够的列，使用默认映射...")
+            # 创建一个新的DataFrame，包含所有ETF代码
+            etfs = db.get_all_etf_info()
+            if not etfs:
+                print("无法获取ETF代码列表")
+                return False
+            
+            print(f"创建默认持有人数据，基于{len(etfs)}个ETF代码")
+            default_data = []
+            for etf in etfs:
+                default_data.append({
+                    'code': etf['code'],
+                    'name': etf['name'],
+                    'holder_count': 0,
+                    'holding_amount': 0.0,
+                    'holding_value': 0.0
+                })
+            
+            df = pd.DataFrame(default_data)
+        else:
+            # 重命名列
+            df = df.rename(columns=columns_mapping)
+            
+            # 确保所需列存在
+            required_fields = ['code']
+            for field in required_fields:
+                if field not in df.columns:
+                    print(f"错误: 缺少必要字段 {field}")
+                    return False
+            
+            # 选择有映射的列
+            mapped_columns = list(columns_mapping.values())
+            df = df[mapped_columns]
+            
+            # 为缺失的列添加默认值
+            if 'holder_count' not in df.columns:
+                df['holder_count'] = 0
+            if 'holding_amount' not in df.columns:
+                df['holding_amount'] = 0.0
+            if 'holding_value' not in df.columns:
+                df['holding_value'] = 0.0
         
-        # 检查必需字段
-        required_fields = ['code', 'name', 'holder_count', 'holder_household_count']
-        missing_fields = [field for field in required_fields if field not in df.columns]
-        if missing_fields:
-            print(f"ETF持有人数据缺少必需字段: {missing_fields}")
-            print("可用的列名：", list(df.columns))
-            return False
-        
-        # 选择需要的列
-        df = df[required_fields]
-        
-        print("选择需要的列后的数据前5行：")
+        print("处理后的数据前5行：")
         print(df.head())
         
         # 标准化ETF代码
-        df['code'] = df['code'].apply(normalize_etf_code)
+        df['code'] = df['code'].astype(str).apply(normalize_etf_code)
         
-        # 转换数据类型
-        numeric_fields = ['holder_count', 'holder_household_count']
-        for field in numeric_fields:
-            df[field] = pd.to_numeric(df[field], errors='coerce')
+        # 确保数字列是数字类型
+        try:
+            if 'holder_count' in df.columns:
+                df['holder_count'] = pd.to_numeric(df['holder_count'], errors='coerce').fillna(0).astype(int)
+            if 'holding_amount' in df.columns:
+                df['holding_amount'] = pd.to_numeric(df['holding_amount'], errors='coerce').fillna(0).astype(float)
+            if 'holding_value' in df.columns:
+                df['holding_value'] = pd.to_numeric(df['holding_value'], errors='coerce').fillna(0).astype(float)
+        except Exception as e:
+            print(f"转换数值时出错: {str(e)}")
         
-        print("数据类型转换后的数据前5行：")
-        print(df.head())
+        # 添加更新时间
+        df['update_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         # 保存到数据库
         if not db.save_etf_holders(df):
@@ -459,12 +525,14 @@ def import_etf_holders_data(db):
         code_cols = [col for col in df.columns if any(key in col.lower() for key in ['代码', 'code'])]
         name_cols = [col for col in df.columns if any(key in col.lower() for key in ['名称', 'name'])]
         holder_cols = [col for col in df.columns if any(key in col.lower() for key in ['客户数', '持有人', 'holder'])]
-        amount_cols = [col for col in df.columns if any(key in col.lower() for key in ['保有金额', '持有金额', '市值', 'amount', 'value'])]
+        amount_cols = [col for col in df.columns if any(key in col.lower() for key in ['保有金额', '持有金额', '份额', 'amount'])]
+        value_cols = [col for col in df.columns if any(key in col.lower() for key in ['市值', '持仓市值', 'value'])]
         
         print(f"找到的代码列: {code_cols}")
         print(f"找到的名称列: {name_cols}")
         print(f"找到的持有人列: {holder_cols}")
-        print(f"找到的金额列: {amount_cols}")
+        print(f"找到的份额列: {amount_cols}")
+        print(f"找到的市值列: {value_cols}")
         
         # 如果找不到必要的列，尝试解析列名
         if not code_cols or not holder_cols:
@@ -476,6 +544,8 @@ def import_etf_holders_data(db):
                 holder_cols = [df.columns[2]] if len(df.columns) > 2 else []
                 if len(df.columns) > 3:
                     amount_cols = [df.columns[3]]
+                if len(df.columns) > 4:
+                    value_cols = [df.columns[4]]
         
         # 准备列名映射
         columns_mapping = {}
@@ -487,6 +557,8 @@ def import_etf_holders_data(db):
             columns_mapping[holder_cols[0]] = 'holder_count'
         if amount_cols:
             columns_mapping[amount_cols[0]] = 'holding_amount'
+        if value_cols:
+            columns_mapping[value_cols[0]] = 'holding_value'
         
         print("列名映射:", columns_mapping)
         
@@ -506,7 +578,8 @@ def import_etf_holders_data(db):
                     'code': etf['code'],
                     'name': etf['name'],
                     'holder_count': 0,
-                    'holding_amount': 0.0
+                    'holding_amount': 0.0,
+                    'holding_value': 0.0
                 })
             
             df = pd.DataFrame(default_data)
@@ -530,6 +603,8 @@ def import_etf_holders_data(db):
                 df['holder_count'] = 0
             if 'holding_amount' not in df.columns:
                 df['holding_amount'] = 0.0
+            if 'holding_value' not in df.columns:
+                df['holding_value'] = 0.0
         
         print("处理后的数据前5行：")
         print(df.head())
@@ -543,6 +618,8 @@ def import_etf_holders_data(db):
                 df['holder_count'] = pd.to_numeric(df['holder_count'], errors='coerce').fillna(0).astype(int)
             if 'holding_amount' in df.columns:
                 df['holding_amount'] = pd.to_numeric(df['holding_amount'], errors='coerce').fillna(0).astype(float)
+            if 'holding_value' in df.columns:
+                df['holding_value'] = pd.to_numeric(df['holding_value'], errors='coerce').fillna(0).astype(float)
         except Exception as e:
             print(f"转换数值时出错: {str(e)}")
         

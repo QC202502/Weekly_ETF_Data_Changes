@@ -156,7 +156,7 @@ export function handleSearchResult(data) {
         console.log('第一个index_group示例:', data.index_groups[0]);
     }
     console.log('关键词 (keyword):', data.keyword);
-    console.log('v2.0.1 持仓人数:', data.results && data.results[0] ? data.results[0].holder_count : 'N/A', '持仓金额:', data.results && data.results[0] ? data.results[0].holding_amount : 'N/A');
+    console.log('v2.0.1 持仓人数:', data.results && data.results[0] ? data.results[0].holder_count : 'N/A', '持仓价值:', data.results && data.results[0] ? data.results[0].holding_value : 'N/A');
     
     // 针对ETF基金代码搜索的调试信息
     if (data.search_type === "ETF基金代码") {
@@ -295,7 +295,14 @@ function generateETFTable(etfs, title = '搜索结果') {
         const firstETF = etfs[0];
         console.log("第一条ETF数据:", firstETF);
         console.log("持仓人数:", firstETF.holder_count);
-        console.log("持仓金额:", firstETF.holding_amount);
+        console.log("持仓价值:", firstETF.holding_value);
+        console.log("持仓价值日变化:", firstETF.holding_value_daily_change || firstETF.holding_amount_daily_change);
+        console.log("持仓价值5日变化:", firstETF.holding_value_five_day_change || firstETF.holding_amount_five_day_change);
+        console.log("holding_day_change:", firstETF.holding_day_change);
+        console.log("holding_5day_change:", firstETF.holding_5day_change);
+        // 检查旧的字段名是否存在
+        console.log("amount_daily_change:", firstETF.amount_daily_change);
+        console.log("amount_five_day_change:", firstETF.amount_five_day_change);
     }
     
     // 简化公司名称的函数
@@ -359,9 +366,9 @@ function generateETFTable(etfs, title = '搜索结果') {
                                 <th>持仓人数</th>
                                 <th>持仓日变化</th>
                                 <th>持仓5日变化</th>
-                                <th>持仓金额(元)</th>
-                                <th>金额日变化</th>
-                                <th>金额5日变化</th>
+                                <th>持仓价值(万元)</th>
+                                <th>持仓价值日变化</th>
+                                <th>持仓价值5日变化</th>
                                 <th>最近交易日成交额(亿)</th>
                                 <th>总持有人数</th>
                                 <th>跟踪误差(%)</th>
@@ -399,14 +406,19 @@ function generateETFTable(etfs, title = '搜索结果') {
                 tracking_error: Number(etf.tracking_error || 0),
                 total_holder_count: Number(etf.total_holder_count || 0),
                 holder_count: Number(etf.holder_count || 0),
-                holder_daily_change: Number(etf.holder_daily_change || 0),
-                holder_five_day_change: Number(etf.holder_five_day_change || 0),
+                holder_daily_change: Number(etf.holder_daily_change || etf.holders_day_change || 0),
+                holder_five_day_change: Number(etf.holder_five_day_change || etf.holders_5day_change || 0),
                 holding_amount: Number(etf.holding_amount || 0),
+                holding_value: Number(etf.holding_value || etf.holding_amount || 0),
+                attention_count: Number(etf.attention_count || 0),
+                attention_daily_change: Number(etf.attention_daily_change || etf.attention_day_change || 0),
+                attention_five_day_change: Number(etf.attention_five_day_change || etf.attention_5day_change || 0),
                 amount_daily_change: Number(etf.amount_daily_change || 0),
                 amount_five_day_change: Number(etf.amount_five_day_change || 0),
-                attention_count: Number(etf.attention_count || 0),
-                attention_daily_change: Number(etf.attention_daily_change || 0),
-                attention_five_day_change: Number(etf.attention_five_day_change || 0),
+                holding_value_daily_change: Number(etf.holding_value_daily_change || etf.amount_daily_change || 0),
+                holding_value_five_day_change: Number(etf.holding_value_five_day_change || etf.amount_five_day_change || 0),
+                holding_day_change: Number(etf.holding_day_change || etf.holding_value_daily_change || etf.amount_daily_change || 0),
+                holding_5day_change: Number(etf.holding_5day_change || etf.holding_value_five_day_change || etf.amount_five_day_change || 0),
                 is_business: Boolean(etf.is_business),
                 business_text: etf.business_text || (etf.is_business ? '商务品' : '非商务品'),
                 daily_avg_volume: Number(etf.daily_avg_volume || 0),
@@ -418,7 +430,7 @@ function generateETFTable(etfs, title = '搜索结果') {
             totalFeeRate += etfSafe.management_fee_rate;
             totalHolders += etfSafe.total_holder_count;
             totalHolderCount += etfSafe.holder_count;
-            totalHoldingAmount += etfSafe.holding_amount;
+            totalHoldingAmount += etfSafe.holding_value;
             totalAttention += etfSafe.attention_count;
             totalDailyAvgVolume += etfSafe.daily_avg_volume;
             totalDailyVolume += etfSafe.daily_volume;
@@ -426,8 +438,8 @@ function generateETFTable(etfs, title = '搜索结果') {
             totalAttentionFiveDayChange += etfSafe.attention_five_day_change;
             totalHolderDailyChange += etfSafe.holder_daily_change;
             totalHolderFiveDayChange += etfSafe.holder_five_day_change;
-            totalAmountDailyChange += etfSafe.amount_daily_change;
-            totalAmountFiveDayChange += etfSafe.amount_five_day_change;
+            totalAmountDailyChange += etfSafe.holding_day_change;
+            totalAmountFiveDayChange += etfSafe.holding_5day_change;
             if (etfSafe.is_business) businessCount++;
             
             // 检查是否需要高亮
@@ -486,9 +498,9 @@ function generateETFTable(etfs, title = '搜索结果') {
                     <td>${formatNumber(etfSafe.holder_count, 0)}</td>
                     <td>${formatNumber(etfSafe.holder_daily_change, 0)}</td>
                     <td>${formatNumber(etfSafe.holder_five_day_change, 0)}</td>
-                    <td>${formatNumber(etfSafe.holding_amount, 2)}</td>
-                    <td>${formatNumber(etfSafe.amount_daily_change, 2)}</td>
-                    <td>${formatNumber(etfSafe.amount_five_day_change, 2)}</td>
+                    <td>${formatNumber(etfSafe.holding_value, 2)}</td>
+                    <td>${formatNumber(etfSafe.holding_day_change, 2)}</td>
+                    <td>${formatNumber(etfSafe.holding_5day_change, 2)}</td>
                     <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
                     <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
                     <td>${formatNumber(etfSafe.tracking_error)}</td>
@@ -608,9 +620,9 @@ function renderIndexGroupResults(data) {
                                     <th>持仓人数</th>
                                     <th>持仓日变化</th>
                                     <th>持仓5日变化</th>
-                                    <th>持仓金额(元)</th>
-                                    <th>金额日变化</th>
-                                    <th>金额5日变化</th>
+                                    <th>持仓价值(万元)</th>
+                                    <th>持仓价值日变化</th>
+                                    <th>持仓价值5日变化</th>
                                     <th>最近交易日成交额(亿)</th>
                                     <th>总持有人数</th>
                                     <th>跟踪误差(%)</th>
@@ -645,6 +657,7 @@ function renderIndexGroupResults(data) {
                 holder_daily_change: Number(etf.holder_daily_change || 0),
                 holder_five_day_change: Number(etf.holder_five_day_change || 0),
                 holding_amount: Number(etf.holding_amount || 0),
+                holding_value: Number(etf.holding_value || 0),
                 amount_daily_change: Number(etf.amount_daily_change || 0),
                 amount_five_day_change: Number(etf.amount_five_day_change || 0),
                 attention_count: Number(etf.attention_count || 0),
@@ -661,7 +674,7 @@ function renderIndexGroupResults(data) {
             totalFeeRate += etfSafe.management_fee_rate;
             totalHolders += etfSafe.total_holder_count;
             totalHolderCount += etfSafe.holder_count;
-            totalHoldingAmount += etfSafe.holding_amount;
+            totalHoldingAmount += etfSafe.holding_value;
             totalAttention += etfSafe.attention_count;
             totalDailyAvgVolume += etfSafe.daily_avg_volume;
             totalDailyVolume += etfSafe.daily_volume;
@@ -722,9 +735,9 @@ function renderIndexGroupResults(data) {
                     <td>${formatNumber(etfSafe.holder_count, 0)}</td>
                     <td>${formatNumber(etfSafe.holder_daily_change, 0)}</td>
                     <td>${formatNumber(etfSafe.holder_five_day_change, 0)}</td>
-                    <td>${formatNumber(etfSafe.holding_amount, 2)}</td>
-                    <td>${formatNumber(etfSafe.amount_daily_change, 2)}</td>
-                    <td>${formatNumber(etfSafe.amount_five_day_change, 2)}</td>
+                    <td>${formatNumber(etfSafe.holding_value, 2)}</td>
+                    <td>${formatNumber(etfSafe.holding_day_change, 2)}</td>
+                    <td>${formatNumber(etfSafe.holding_5day_change, 2)}</td>
                     <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
                     <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
                     <td>${formatNumber(etfSafe.tracking_error)}</td>

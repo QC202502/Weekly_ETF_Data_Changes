@@ -1,6 +1,6 @@
 /**
  * ETF图表模块
- * 用于展示ETF自选人数、持仓人数和持仓金额的时序图
+ * 用于展示ETF自选人数、持仓人数和持仓价值的时序图
  * 使用Chart.js实现苹果风格的交互式图表
  * 版本: 1.0.0 (2025-04-04)
  */
@@ -30,7 +30,7 @@ function formatNumber(num, decimals = 0) {
         return '-';
     }
     
-    // 持仓金额单位自动转换
+    // 持仓价值单位自动转换
     if (arguments.length > 2 && arguments[2] === 'amount') {
         if (Math.abs(num) >= 100000000) { // 1亿及以上
             return (num / 100000000).toFixed(2) + '亿';
@@ -312,7 +312,7 @@ function prepareChartData(historyData, options = {}) {
         // 查找该日期的持有人数和持有金额
         const holdersItem = holders.find(item => item && item.date === date);
         holderData.push(holdersItem ? holdersItem.holder_count : null);
-        amountData.push(holdersItem ? holdersItem.holding_amount : null);
+        amountData.push(holdersItem ? holdersItem.holding_value : null);
     });
     
     console.log('准备图表数据结果：', {
@@ -369,7 +369,7 @@ function calculateHistoricalChanges(historyData) {
             month3: null,
         },
         amount: {
-            total: sortHolders.length > 0 ? sortHolders[0].holding_amount : null,
+            total: sortHolders.length > 0 ? sortHolders[0].holding_value : null,
             latest: null,
             day5: null,
             day10: null,
@@ -422,47 +422,47 @@ function calculateHistoricalChanges(historyData) {
     // 计算持有人数和持有金额变化
     if (sortHolders.length > 0) {
         const latestHolders = sortHolders[0].holder_count;
-        const latestAmount = sortHolders[0].holding_amount;
+        const latestAmount = sortHolders[0].holding_value;
         
         // 最新一天变化 (需要至少两天数据)
         if (sortHolders.length > 1) {
             result.holders.latest = latestHolders - sortHolders[1].holder_count;
-            result.amount.latest = latestAmount - sortHolders[1].holding_amount;
+            result.amount.latest = latestAmount - sortHolders[1].holding_value;
         }
         
         // 5日变化
         const day5Index = findDateIndex(sortHolders, 5);
         if (day5Index >= 0) {
             result.holders.day5 = latestHolders - sortHolders[day5Index].holder_count;
-            result.amount.day5 = latestAmount - sortHolders[day5Index].holding_amount;
+            result.amount.day5 = latestAmount - sortHolders[day5Index].holding_value;
         }
         
         // 10日变化
         const day10Index = findDateIndex(sortHolders, 10);
         if (day10Index >= 0) {
             result.holders.day10 = latestHolders - sortHolders[day10Index].holder_count;
-            result.amount.day10 = latestAmount - sortHolders[day10Index].holding_amount;
+            result.amount.day10 = latestAmount - sortHolders[day10Index].holding_value;
         }
         
         // 一个月变化 (30日)
         const month1Index = findDateIndex(sortHolders, 30);
         if (month1Index >= 0) {
             result.holders.month1 = latestHolders - sortHolders[month1Index].holder_count;
-            result.amount.month1 = latestAmount - sortHolders[month1Index].holding_amount;
+            result.amount.month1 = latestAmount - sortHolders[month1Index].holding_value;
         }
         
         // 两个月变化 (60日)
         const month2Index = findDateIndex(sortHolders, 60);
         if (month2Index >= 0) {
             result.holders.month2 = latestHolders - sortHolders[month2Index].holder_count;
-            result.amount.month2 = latestAmount - sortHolders[month2Index].holding_amount;
+            result.amount.month2 = latestAmount - sortHolders[month2Index].holding_value;
         }
         
         // 三个月变化 (90日)
         const month3Index = findDateIndex(sortHolders, 90);
         if (month3Index >= 0) {
             result.holders.month3 = latestHolders - sortHolders[month3Index].holder_count;
-            result.amount.month3 = latestAmount - sortHolders[month3Index].holding_amount;
+            result.amount.month3 = latestAmount - sortHolders[month3Index].holding_value;
         }
     }
     

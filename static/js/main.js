@@ -1,11 +1,11 @@
 /**
  * 主入口文件
  * 负责导入各个模块并初始化应用
- * 版本: 1.0.2 (2025-04-04) - 添加持仓人数和持仓金额支持
+ * 版本: 1.0.2 (2025-04-04) - 添加持仓人数和持仓价值支持
  */
 
 // 版本日志
-console.log('ETF分析平台 v1.0.2 (2025-04-04) - 添加持仓人数和持仓金额支持');
+console.log('ETF分析平台 v1.0.2 (2025-04-04) - 添加持仓人数和持仓价值支持');
 
 import { showLoading, hideLoading, showMessage, showSection } from './modules/utils.js';
 import { searchETF, handleSearchResult } from './modules/search.js';

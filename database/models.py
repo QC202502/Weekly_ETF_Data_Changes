@@ -166,6 +166,29 @@ class Database:
             print(f"获取ETF成交额推荐数据失败: {str(e)}")
             return []
     
+    def get_etf_value_recommendations(self):
+        """获取ETF持仓价值推荐数据"""
+        try:
+            query = """
+            SELECT i.code, i.name, i.fund_size, i.total_holder_count
+            FROM etf_info i
+            ORDER BY i.fund_size DESC
+            LIMIT 10
+            """
+            result = self.execute_query(query)
+            return [
+                {
+                    'code': row[0],
+                    'name': row[1],
+                    'holding_value': float(row[2]) if row[2] else 0,  # 使用基金规模代替
+                    'turnover_rate': 0.0  # 暂时使用0
+                }
+                for row in result
+            ]
+        except Exception as e:
+            print(f"获取ETF持仓价值推荐数据失败: {str(e)}")
+            return []
+    
     def get_all_etf_info(self):
         """获取所有ETF基本信息"""
         try:
@@ -265,6 +288,7 @@ class Database:
                     code TEXT PRIMARY KEY,
                     holder_count INTEGER,
                     holding_amount REAL,
+                    holding_value REAL,
                     update_time TIMESTAMP,
                     FOREIGN KEY (code) REFERENCES etf_info(code)
                 )
@@ -770,16 +794,19 @@ class Database:
             # 移除空代码的行
             df = df[df['code'] != '']
             
-            # 确保holder_count和holding_amount列存在
+            # 确保holder_count、holding_amount和holding_value列存在
             if 'holder_count' not in df.columns:
                 df['holder_count'] = 0
             if 'holding_amount' not in df.columns:
                 df['holding_amount'] = 0.0
+            if 'holding_value' not in df.columns:
+                df['holding_value'] = 0.0
             
             # 转换为数字类型
             try:
                 df['holder_count'] = pd.to_numeric(df['holder_count'], errors='coerce').fillna(0).astype(int)
                 df['holding_amount'] = pd.to_numeric(df['holding_amount'], errors='coerce').fillna(0).astype(float)
+                df['holding_value'] = pd.to_numeric(df['holding_value'], errors='coerce').fillna(0).astype(float)
             except Exception as e:
                 print(f"转换数值时出错: {str(e)}")
             
@@ -792,7 +819,7 @@ class Database:
             df['date'] = current_date
             
             # 选择最终列
-            final_columns = ['code', 'holder_count', 'holding_amount', 'update_time', 'date']
+            final_columns = ['code', 'holder_count', 'holding_amount', 'holding_value', 'update_time', 'date']
             df = df[final_columns]
             
             # 保存到数据库
@@ -806,6 +833,7 @@ class Database:
                     code TEXT PRIMARY KEY,
                     holder_count INTEGER,
                     holding_amount REAL,
+                    holding_value REAL,
                     update_time TIMESTAMP,
                     FOREIGN KEY (code) REFERENCES etf_info(code)
                 )
@@ -818,16 +846,17 @@ class Database:
                     code TEXT,
                     holder_count INTEGER,
                     holding_amount REAL,
+                    holding_value REAL,
                     date TEXT,
                     update_time TIMESTAMP
                 )
             """)
             
             # 保存到主表
-            df[['code', 'holder_count', 'holding_amount', 'update_time']].to_sql('etf_holders', conn, if_exists='append', index=False)
+            df[['code', 'holder_count', 'holding_amount', 'holding_value', 'update_time']].to_sql('etf_holders', conn, if_exists='append', index=False)
             
             # 保存到历史表
-            df[['code', 'holder_count', 'holding_amount', 'date', 'update_time']].to_sql('etf_holders_history', conn, if_exists='append', index=False)
+            df[['code', 'holder_count', 'holding_amount', 'holding_value', 'date', 'update_time']].to_sql('etf_holders_history', conn, if_exists='append', index=False)
             
             conn.commit()
             cursor.close()  # 只关闭游标，不关闭连接
@@ -1152,8 +1181,8 @@ class Database:
             traceback.print_exc()
             return {'daily_change': 0, 'five_day_change': 0}
     
-    def get_amount_changes(self, code: str) -> dict:
-        """获取ETF持仓金额变化（当日和近5日）"""
+    def get_value_changes(self, code: str) -> dict:
+        """获取ETF持仓市值变化（当日和近5日）"""
         try:
             # 标准化ETF代码
             code = normalize_etf_code(code)
@@ -1162,7 +1191,75 @@ class Database:
             conn = self.connect()
             cursor = conn.cursor()
             
-            # 查询最近日期的持仓金额
+            # 查询最近日期的持仓市值
+            cursor.execute("""
+                SELECT date, holding_value
+                FROM etf_holders_history
+                WHERE code = ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (code,))
+            
+            latest_data = cursor.fetchone()
+            
+            if not latest_data:
+                return {'daily_change': 0, 'five_day_change': 0}
+                
+            latest_date, latest_value = latest_data
+            
+            # 查询前一天的持仓市值
+            cursor.execute("""
+                SELECT date, holding_value
+                FROM etf_holders_history
+                WHERE code = ? AND date < ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (code, latest_date))
+            
+            previous_data = cursor.fetchone()
+            previous_value = previous_data[1] if previous_data else latest_value
+            
+            # 查询5天前的持仓市值
+            cursor.execute("""
+                SELECT date, holding_value
+                FROM etf_holders_history
+                WHERE code = ?
+                ORDER BY date DESC
+                LIMIT 6
+            """, (code,))
+            
+            all_data = cursor.fetchall()
+            # 安全获取五天前的数据
+            five_day_before_value = latest_value  # 默认值
+            if len(all_data) >= 6:
+                five_day_before_value = all_data[5][1]
+            
+            # 计算变化
+            daily_change = latest_value - previous_value
+            five_day_change = latest_value - five_day_before_value
+            
+            return {
+                'daily_change': daily_change,
+                'five_day_change': five_day_change
+            }
+            
+        except Exception as e:
+            print(f"获取ETF持仓市值变化出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return {'daily_change': 0, 'five_day_change': 0}
+    
+    def get_amount_changes(self, code: str) -> dict:
+        """获取ETF持仓份额变化（当日和近5日）"""
+        try:
+            # 标准化ETF代码
+            code = normalize_etf_code(code)
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询最近日期的持仓份额
             cursor.execute("""
                 SELECT date, holding_amount
                 FROM etf_holders_history
@@ -1178,7 +1275,7 @@ class Database:
                 
             latest_date, latest_amount = latest_data
             
-            # 查询前一天的持仓金额
+            # 查询前一天的持仓份额
             cursor.execute("""
                 SELECT date, holding_amount
                 FROM etf_holders_history
@@ -1190,7 +1287,7 @@ class Database:
             previous_data = cursor.fetchone()
             previous_amount = previous_data[1] if previous_data else latest_amount
             
-            # 查询5天前的持仓金额
+            # 查询5天前的持仓份额
             cursor.execute("""
                 SELECT date, holding_amount
                 FROM etf_holders_history
@@ -1215,7 +1312,7 @@ class Database:
             }
             
         except Exception as e:
-            print(f"获取ETF持仓金额变化出错: {str(e)}")
+            print(f"获取ETF持仓份额变化出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return {'daily_change': 0, 'five_day_change': 0}
@@ -1235,7 +1332,7 @@ class Database:
             
             print(f"搜索ETF代码: {code}")
             
-            # 构建查询，获取所有必要字段，包括持仓人数和持仓金额
+            # 构建查询，获取所有必要字段，包括持仓人数和持仓价值
             # 使用 SUBSTR 来提取ETF代码的数字部分进行比较
             query = """
             SELECT 
@@ -1257,12 +1354,13 @@ class Database:
                 CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
                 h.holder_count,
                 h.holding_amount,
+                h.holding_value,
                 i.daily_avg_volume,
                 i.daily_volume
             FROM etf_info i
             LEFT JOIN etf_attention a ON SUBSTR(i.code, 1, 6) = SUBSTR(a.code, 1, 6)
             LEFT JOIN etf_business b ON SUBSTR(i.code, 1, 6) = SUBSTR(b.code, 1, 6)
-            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = h.code
+            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = SUBSTR(h.code, 1, 6)
             WHERE i.code LIKE ? OR i.code LIKE ?
             ORDER BY i.fund_size DESC
             """
@@ -1281,6 +1379,7 @@ class Database:
                 # 获取变化数据
                 attention_changes = self.get_attention_changes(etf_code)
                 holder_changes = self.get_holder_changes(etf_code)
+                value_changes = self.get_value_changes(etf_code)
                 amount_changes = self.get_amount_changes(etf_code)
                 
                 result = {
@@ -1298,19 +1397,23 @@ class Database:
                     'custody_fee_rate': float(row[11]) if row[11] is not None else 0.0,
                     'index_usage_fee': float(row[12]) if row[12] is not None else 0.0,
                     'total_annual_fee_rate': float(row[13]) if row[13] is not None else 0.0,
-                    'attention_count': int(row[14]) if row[14] is not None else 0,
+                    'attention_count': self.get_latest_attention_count(etf_code) or (int(row[14]) if row[14] is not None else 0),  # 优先使用历史表中的最新数据
                     'is_business': bool(row[15]),
+                    'business_text': '商务品' if row[15] else '非商务品',
                     'holder_count': int(row[16]) if row[16] is not None else 0,
                     'holding_amount': float(row[17]) if row[17] is not None else 0.0,
-                    'daily_avg_volume': float(row[18]) if row[18] is not None else 0.0,
-                    'daily_volume': float(row[19]) if row[19] is not None else 0.0,
+                    'holding_value': float(row[18]) if row[18] is not None else 0.0,
+                    'daily_avg_volume': float(row[19]) if row[19] is not None else 0.0,
+                    'daily_volume': float(row[20]) if row[20] is not None else 0.0,
                     # 添加变化数据
                     'attention_daily_change': attention_changes['daily_change'],
                     'attention_five_day_change': attention_changes['five_day_change'],
                     'holder_daily_change': holder_changes['daily_change'],
                     'holder_five_day_change': holder_changes['five_day_change'],
-                    'amount_daily_change': amount_changes['daily_change'],
-                    'amount_five_day_change': amount_changes['five_day_change']
+                    'holding_amount_daily_change': amount_changes['daily_change'],
+                    'holding_amount_five_day_change': amount_changes['five_day_change'],
+                    'holding_value_daily_change': value_changes['daily_change'],
+                    'holding_value_five_day_change': value_changes['five_day_change']
                 }
                 processed_results.append(result)
             
@@ -1339,12 +1442,13 @@ class Database:
                 CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
                 h.holder_count,
                 h.holding_amount,
+                h.holding_value,
                 i.daily_avg_volume,
                 i.daily_volume
             FROM etf_info i
             LEFT JOIN etf_attention a ON SUBSTR(i.code, 1, 6) = SUBSTR(a.code, 1, 6)
             LEFT JOIN etf_business b ON SUBSTR(i.code, 1, 6) = SUBSTR(b.code, 1, 6) 
-            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = h.code
+            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = SUBSTR(h.code, 1, 6)
             WHERE i.tracking_index_name LIKE ?
             ORDER BY i.fund_size DESC
             """
@@ -1369,10 +1473,10 @@ class Database:
                 # 获取变化数据
                 attention_changes = self.get_attention_changes(etf_code)
                 holder_changes = self.get_holder_changes(etf_code)
+                value_changes = self.get_value_changes(etf_code)
                 amount_changes = self.get_amount_changes(etf_code)
                 
-                # 构建ETF数据记录
-                etf_data = {
+                result = {
                     'code': etf_code,
                     'name': row[1],
                     'manager': row[2],
@@ -1382,24 +1486,27 @@ class Database:
                     'total_holder_count': int(row[6] or 0),
                     'tracking_index_code': index_code,
                     'tracking_index_name': index_name,
-                    'attention_count': int(row[9] or 0),
+                    'attention_count': self.get_latest_attention_count(etf_code) or int(row[9] or 0),  # 优先使用历史表中的最新数据
                     'is_business': bool(row[10]),
                     'business_text': '商务品' if row[10] else '非商务品',
                     'holder_count': int(row[11] or 0),
                     'holding_amount': float(row[12] or 0),
-                    'daily_avg_volume': float(row[13] or 0),
-                    'daily_volume': float(row[14] or 0),
+                    'holding_value': float(row[13] or 0),
+                    'daily_avg_volume': float(row[14] or 0),
+                    'daily_volume': float(row[15] or 0),
                     # 添加变化数据
                     'attention_daily_change': attention_changes['daily_change'],
                     'attention_five_day_change': attention_changes['five_day_change'],
                     'holder_daily_change': holder_changes['daily_change'],
                     'holder_five_day_change': holder_changes['five_day_change'],
-                    'amount_daily_change': amount_changes['daily_change'],
-                    'amount_five_day_change': amount_changes['five_day_change']
+                    'holding_amount_daily_change': amount_changes['daily_change'],
+                    'holding_amount_five_day_change': amount_changes['five_day_change'],
+                    'holding_value_daily_change': value_changes['daily_change'],
+                    'holding_value_five_day_change': value_changes['five_day_change']
                 }
                 
                 # 添加到结果列表
-                etf_results.append(etf_data)
+                etf_results.append(result)
                 
                 # 初始化当前指数组
                 if index_code not in index_groups:
@@ -1416,9 +1523,9 @@ class Database:
                         index_groups[index_code]['index_intro'] = index_intro
                 
                 # 添加到对应指数组
-                index_groups[index_code]['etfs'].append(etf_data)
+                index_groups[index_code]['etfs'].append(result)
                 # 累加该指数的总规模
-                index_groups[index_code]['total_scale'] += etf_data['fund_size']
+                index_groups[index_code]['total_scale'] += result['fund_size']
             
             # 将索引组转为列表并按总规模排序
             index_groups_list = list(index_groups.values())
@@ -1474,12 +1581,13 @@ class Database:
                 CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
                 h.holder_count,
                 h.holding_amount,
+                h.holding_value,
                 i.daily_avg_volume,
                 i.daily_volume
             FROM etf_info i
             LEFT JOIN etf_attention a ON SUBSTR(i.code, 1, 6) = SUBSTR(a.code, 1, 6)
             LEFT JOIN etf_business b ON SUBSTR(i.code, 1, 6) = SUBSTR(b.code, 1, 6)
-            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = h.code
+            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = SUBSTR(h.code, 1, 6)
             WHERE i.tracking_index_code LIKE ?
             ORDER BY i.fund_size DESC
             """
@@ -1509,17 +1617,21 @@ class Database:
                     'total_annual_fee_rate': float(row[13]) if row[13] is not None else 0.0,
                     'attention_count': int(row[14]) if row[14] is not None else 0,
                     'is_business': bool(row[15]),
+                    'business_text': '商务品' if row[15] else '非商务品',
                     'holder_count': int(row[16]) if row[16] is not None else 0,
                     'holding_amount': float(row[17]) if row[17] is not None else 0.0,
-                    'daily_avg_volume': float(row[18]) if row[18] is not None else 0.0,
-                    'daily_volume': float(row[19]) if row[19] is not None else 0.0,
+                    'holding_value': float(row[18]) if row[18] is not None else 0.0,
+                    'daily_avg_volume': float(row[19]) if row[19] is not None else 0.0,
+                    'daily_volume': float(row[20]) if row[20] is not None else 0.0,
                     # 添加变化数据
                     'attention_daily_change': self.get_attention_changes(row[0])['daily_change'],
                     'attention_five_day_change': self.get_attention_changes(row[0])['five_day_change'],
                     'holder_daily_change': self.get_holder_changes(row[0])['daily_change'],
                     'holder_five_day_change': self.get_holder_changes(row[0])['five_day_change'],
-                    'amount_daily_change': self.get_amount_changes(row[0])['daily_change'],
-                    'amount_five_day_change': self.get_amount_changes(row[0])['five_day_change']
+                    'holding_amount_daily_change': self.get_amount_changes(row[0])['daily_change'],
+                    'holding_amount_five_day_change': self.get_amount_changes(row[0])['five_day_change'],
+                    'holding_value_daily_change': self.get_value_changes(row[0])['daily_change'],
+                    'holding_value_five_day_change': self.get_value_changes(row[0])['five_day_change']
                 }
                 processed_results.append(result)
             
@@ -1555,12 +1667,13 @@ class Database:
                 CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
                 h.holder_count,
                 h.holding_amount,
+                h.holding_value,
                 i.daily_avg_volume,
                 i.daily_volume
             FROM etf_info i
             LEFT JOIN etf_attention a ON SUBSTR(i.code, 1, 6) = SUBSTR(a.code, 1, 6)
             LEFT JOIN etf_business b ON SUBSTR(i.code, 1, 6) = SUBSTR(b.code, 1, 6)
-            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = h.code
+            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = SUBSTR(h.code, 1, 6)
             WHERE i.fund_manager LIKE ?
             ORDER BY i.fund_size DESC
             """
@@ -1588,20 +1701,23 @@ class Database:
                     'custody_fee_rate': float(row[11]) if row[11] is not None else 0.0,
                     'index_usage_fee': float(row[12]) if row[12] is not None else 0.0,
                     'total_annual_fee_rate': float(row[13]) if row[13] is not None else 0.0,
-                    'attention_count': int(row[14]) if row[14] is not None else 0,
+                    'attention_count': self.get_latest_attention_count(row[0]) or (int(row[14]) if row[14] is not None else 0),  # 优先使用历史表中的最新数据
                     'is_business': bool(row[15]),
                     'business_text': '商务品' if row[15] else '非商务品',
                     'holder_count': int(row[16]) if row[16] is not None else 0,
                     'holding_amount': float(row[17]) if row[17] is not None else 0.0,
-                    'daily_avg_volume': float(row[18]) if row[18] is not None else 0.0,
-                    'daily_volume': float(row[19]) if row[19] is not None else 0.0,
+                    'holding_value': float(row[18]) if row[18] is not None else 0.0,
+                    'daily_avg_volume': float(row[19]) if row[19] is not None else 0.0,
+                    'daily_volume': float(row[20]) if row[20] is not None else 0.0,
                     # 添加变化数据
                     'attention_daily_change': self.get_attention_changes(row[0])['daily_change'],
                     'attention_five_day_change': self.get_attention_changes(row[0])['five_day_change'],
                     'holder_daily_change': self.get_holder_changes(row[0])['daily_change'],
                     'holder_five_day_change': self.get_holder_changes(row[0])['five_day_change'],
-                    'amount_daily_change': self.get_amount_changes(row[0])['daily_change'],
-                    'amount_five_day_change': self.get_amount_changes(row[0])['five_day_change']
+                    'holding_amount_daily_change': self.get_amount_changes(row[0])['daily_change'],
+                    'holding_amount_five_day_change': self.get_amount_changes(row[0])['five_day_change'],
+                    'holding_value_daily_change': self.get_value_changes(row[0])['daily_change'],
+                    'holding_value_five_day_change': self.get_value_changes(row[0])['five_day_change']
                 }
                 processed_results.append(result)
             
@@ -1652,12 +1768,13 @@ class Database:
                 CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
                 h.holder_count,
                 h.holding_amount,
+                h.holding_value,
                 i.daily_avg_volume,
                 i.daily_volume
             FROM etf_info i
             LEFT JOIN etf_attention a ON SUBSTR(i.code, 1, 6) = SUBSTR(a.code, 1, 6)
             LEFT JOIN etf_business b ON SUBSTR(i.code, 1, 6) = SUBSTR(b.code, 1, 6)
-            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = h.code
+            LEFT JOIN etf_holders h ON SUBSTR(i.code, 1, 6) = SUBSTR(h.code, 1, 6)
             WHERE i.code LIKE ? OR i.name LIKE ? OR i.fund_manager LIKE ? OR i.tracking_index_name LIKE ? OR i.tracking_index_code LIKE ?
             ORDER BY i.fund_size DESC
             """
@@ -1686,37 +1803,45 @@ class Database:
                 # 获取变化数据
                 attention_changes = self.get_attention_changes(etf_code)
                 holder_changes = self.get_holder_changes(etf_code)
+                value_changes = self.get_value_changes(etf_code)
                 amount_changes = self.get_amount_changes(etf_code)
                 
-                # 构建ETF数据记录
-                etf_data = {
+                result = {
                     'code': etf_code,
                     'name': row[1],
                     'manager': row[2],
-                    'fund_size': float(row[3] or 0),
-                    'management_fee_rate': float(row[4] or 0), 
-                    'tracking_error': float(row[5] or 0),
-                    'total_holder_count': int(row[6] or 0),
-                    'tracking_index_code': index_code,
-                    'tracking_index_name': index_name,
-                    'attention_count': int(row[9] or 0),
-                    'is_business': bool(row[10]),
-                    'business_text': '商务品' if row[10] else '非商务品',
-                    'holder_count': int(row[11] or 0),
-                    'holding_amount': float(row[12] or 0),
-                    'daily_avg_volume': float(row[13] or 0),
-                    'daily_volume': float(row[14] or 0),
+                    'fund_size': float(row[3]) if row[3] is not None else 0.0,
+                    'exchange': row[4],
+                    'tracking_index_code': row[5],
+                    'tracking_index_name': row[6],
+                    'tracking_error': float(row[7]) if row[7] is not None else 0.0,
+                    'information_ratio': float(row[8]) if row[8] is not None else 0.0,
+                    'total_holder_count': int(row[9]) if row[9] is not None else 0,
+                    'management_fee_rate': float(row[10]) if row[10] is not None else 0.0,
+                    'custody_fee_rate': float(row[11]) if row[11] is not None else 0.0,
+                    'index_usage_fee': float(row[12]) if row[12] is not None else 0.0,
+                    'total_annual_fee_rate': float(row[13]) if row[13] is not None else 0.0,
+                    'attention_count': self.get_latest_attention_count(etf_code) or (int(row[14]) if row[14] is not None else 0),  # 优先使用历史表中的最新数据
+                    'is_business': bool(row[15]),
+                    'business_text': '商务品' if row[15] else '非商务品',
+                    'holder_count': int(row[16]) if row[16] is not None else 0,
+                    'holding_amount': float(row[17]) if row[17] is not None else 0.0,
+                    'holding_value': float(row[18]) if row[18] is not None else 0.0,
+                    'daily_avg_volume': float(row[19]) if row[19] is not None else 0.0,
+                    'daily_volume': float(row[20]) if row[20] is not None else 0.0,
                     # 添加变化数据
                     'attention_daily_change': attention_changes['daily_change'],
                     'attention_five_day_change': attention_changes['five_day_change'],
                     'holder_daily_change': holder_changes['daily_change'],
                     'holder_five_day_change': holder_changes['five_day_change'],
-                    'amount_daily_change': amount_changes['daily_change'],
-                    'amount_five_day_change': amount_changes['five_day_change']
+                    'holding_amount_daily_change': amount_changes['daily_change'],
+                    'holding_amount_five_day_change': amount_changes['five_day_change'],
+                    'holding_value_daily_change': value_changes['daily_change'],
+                    'holding_value_five_day_change': value_changes['five_day_change']
                 }
                 
                 # 添加到结果列表
-                etf_results.append(etf_data)
+                etf_results.append(result)
                 
                 # 初始化当前指数组
                 if index_code not in index_groups:
@@ -1733,9 +1858,9 @@ class Database:
                         index_groups[index_code]['index_intro'] = index_intro
                 
                 # 添加到对应指数组
-                index_groups[index_code]['etfs'].append(etf_data)
+                index_groups[index_code]['etfs'].append(result)
                 # 累加该指数的总规模
-                index_groups[index_code]['total_scale'] += etf_data['fund_size']
+                index_groups[index_code]['total_scale'] += result['fund_size']
             
             # 将索引组转为列表并按总规模排序
             index_groups_list = list(index_groups.values())
@@ -1821,7 +1946,7 @@ class Database:
             
             # 查询指定ETF的历史持有人数据
             cursor.execute("""
-                SELECT date, holder_count, holding_amount
+                SELECT date, holder_count, holding_amount, holding_value
                 FROM etf_holders_history
                 WHERE code LIKE ?
                 ORDER BY date
@@ -1834,9 +1959,10 @@ class Database:
                 {
                     "date": date, 
                     "holder_count": holder_count,
-                    "holding_amount": holding_amount
+                    "holding_amount": holding_amount,
+                    "holding_value": holding_value
                 } 
-                for date, holder_count, holding_amount in history
+                for date, holder_count, holding_amount, holding_value in history
             ]
             
             return result
@@ -1898,3 +2024,46 @@ class Database:
             import traceback
             traceback.print_exc()
             return []
+    
+    def get_latest_attention_count(self, etf_code):
+        """获取ETF最新的自选数据（从历史表中）"""
+        try:
+            # 标准化ETF代码
+            etf_code = normalize_etf_code(etf_code)
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询最新日期的自选人数
+            cursor.execute("""
+                SELECT attention_count, date
+                FROM etf_attention_history 
+                WHERE code = ? 
+                ORDER BY date DESC 
+                LIMIT 1
+            """, (etf_code,))
+            
+            latest_data = cursor.fetchone()
+            if latest_data:
+                attention_count = latest_data[0]
+                date = latest_data[1]
+                print(f"获取ETF {etf_code} 最新自选数据: {attention_count}，日期: {date}")
+                return attention_count
+            else:
+                # 如果找不到历史数据，尝试从etf_attention表获取
+                cursor.execute("""
+                    SELECT attention_count
+                    FROM etf_attention 
+                    WHERE code = ? 
+                    LIMIT 1
+                """, (etf_code,))
+                
+                current_data = cursor.fetchone()
+                if current_data and current_data[0]:
+                    return current_data[0]
+                else:
+                    return 0
+        except Exception as e:
+            print(f"获取ETF最新自选数据出错: {str(e)}")
+            return 0

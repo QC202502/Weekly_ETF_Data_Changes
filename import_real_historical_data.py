@@ -469,17 +469,19 @@ def import_holders_data(db, force_reimport=False):
         
         print(f"文件 {filename} 的列名: {df.columns.tolist()}")
         
-        # 查找代码列、持有人数列和持有金额列
+        # 查找代码列、持有人数列、持仓份额列和持仓价值列
         code_column = None
         holder_count_column = None
         holding_amount_column = None
+        holding_value_column = None
         
         # 检查是否已经有处理过的列
-        if 'code' in df.columns and 'holder_count' in df.columns and 'holding_amount' in df.columns:
+        if 'code' in df.columns and 'holder_count' in df.columns and 'holding_amount' in df.columns and 'holding_value' in df.columns:
             code_column = 'code'
             holder_count_column = 'holder_count'
             holding_amount_column = 'holding_amount'
-            print("找到预处理的code、holder_count和holding_amount列")
+            holding_value_column = 'holding_value'
+            print("找到预处理的code、holder_count、holding_amount和holding_value列")
         else:
             # 尝试找到代码列
             possible_code_columns = ['标的代码', '代码', 'code', '基金代码', 'ETF代码']
@@ -495,18 +497,25 @@ def import_holders_data(db, force_reimport=False):
                     holder_count_column = col
                     break
             
-            # 尝试找到持有金额列
-            possible_holding_amount_columns = ['保有量', '持仓份额', '持仓市值', '持有份额', '持有金额', 'holding_amount', '份额', '金额']
+            # 尝试找到持仓份额列
+            possible_holding_amount_columns = ['持仓份额', '持有份额', 'holding_amount', '份额']
             for col in possible_holding_amount_columns:
                 if col in df.columns:
                     holding_amount_column = col
                     break
+            
+            # 尝试找到持仓价值列
+            possible_holding_value_columns = ['持仓市值', '持有市值', 'holding_value', '市值', '保有量', '持有金额', '持仓价值']
+            for col in possible_holding_value_columns:
+                if col in df.columns:
+                    holding_value_column = col
+                    break
         
-        if code_column is None or holder_count_column is None or holding_amount_column is None:
-            print(f"在文件 {filename} 中找不到必要的列（代码列、持有人数列和持有金额列）")
+        if code_column is None or holder_count_column is None or (holding_amount_column is None and holding_value_column is None):
+            print(f"在文件 {filename} 中找不到必要的列（代码列、持有人数列和至少一个持仓列）")
             continue
         
-        print(f"使用列: 代码列={code_column}, 持有人数列={holder_count_column}, 持有金额列={holding_amount_column}")
+        print(f"使用列: 代码列={code_column}, 持有人数列={holder_count_column}, 持仓份额列={holding_amount_column}, 持仓价值列={holding_value_column}")
         
         # 准备数据
         try:
@@ -524,15 +533,19 @@ def import_holders_data(db, force_reimport=False):
                 # 转换持有人数为整数
                 df['holder_count'] = pd.to_numeric(df[holder_count_column], errors='coerce').fillna(0).astype(int)
             
-            if 'holding_amount' not in df.columns:
-                # 转换持有金额为浮点数
+            if 'holding_amount' not in df.columns and holding_amount_column:
+                # 转换持仓份额为浮点数
                 df['holding_amount'] = pd.to_numeric(df[holding_amount_column], errors='coerce').fillna(0)
+            
+            if 'holding_value' not in df.columns and holding_value_column:
+                # 转换持仓价值为浮点数
+                df['holding_value'] = pd.to_numeric(df[holding_value_column], errors='coerce').fillna(0)
             
             # 添加日期和更新时间
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
             # 过滤有效数据
-            valid_data = df[['code', 'holder_count', 'holding_amount']].dropna(subset=['code'])
+            valid_data = df[['code', 'holder_count', 'holding_amount', 'holding_value']].dropna(subset=['code'])
             
             if len(valid_data) > 0:
                 # 如果是重新导入，先删除已存在的数据
@@ -545,9 +558,9 @@ def import_holders_data(db, force_reimport=False):
                 for _, row in valid_data.iterrows():
                     try:
                         cursor.execute("""
-                            INSERT INTO etf_holders_history (code, holder_count, holding_amount, date, update_time)
-                            VALUES (?, ?, ?, ?, ?)
-                        """, (row['code'], row['holder_count'], row['holding_amount'], date, current_time))
+                            INSERT INTO etf_holders_history (code, holder_count, holding_amount, holding_value, date, update_time)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """, (row['code'], row['holder_count'], row.get('holding_amount', 0), row.get('holding_value', 0), date, current_time))
                         count += 1
                     except Exception as e:
                         print(f"插入持有人数据时出错: {str(e)}")
@@ -599,8 +612,10 @@ def main():
             code TEXT,
             holder_count INTEGER,
             holding_amount REAL,
+            holding_value REAL,
             date TEXT,
-            update_time TIMESTAMP
+            update_time TIMESTAMP,
+            UNIQUE(code, date)
         )
     """)
     

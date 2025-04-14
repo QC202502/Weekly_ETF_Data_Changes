@@ -183,35 +183,73 @@ def import_etf_price():
         # 标准化列名
         df.columns = [str(col).strip() for col in df.columns]
 
-        # 检查所需列是否存在
-        # 为价格数据所需的列
-        required_columns = ['证券代码', '最新价', '涨跌幅', '成交量', '成交额']
-        missing_columns = [col for col in required_columns if col not in df.columns]
+        logger.info(f"原始列名: {list(df.columns)}")
 
-        if missing_columns:
-            logger.error(f"ETF价格数据文件缺少以下列: {missing_columns}")
+        # 定义需要的列名和映射关系
+        new_column_map = {
+            '证券代码': 'code',
+            '涨跌幅\n[交易日期] 最新收盘日\n[单位] %': 'change_rate',
+            '换手率\n[交易日期] 最新收盘日\n[单位] %': 'turnover_rate',
+            '成交额\n[交易日期] 最新收盘日\n[单位] 亿元': 'amount',
+            '成交笔数\n[交易日期] 最新收盘日\n[单位] 笔': 'transaction_count',
+            '总市值\n[交易日期] 最新收盘日\n[单位] 亿元': 'total_market_value',
+            '收盘价\n[交易日期] 最新收盘日\n[复权方式] 不复权\n[单位] 元': 'close_price',
+            '开盘价\n[交易日期] 最新收盘日\n[复权方式] 不复权\n[单位] 元': 'open_price',
+            '最高价\n[交易日期] 最新收盘日\n[复权方式] 不复权\n[单位] 元': 'high_price',
+            '最低价\n[交易日期] 最新收盘日\n[复权方式] 不复权\n[单位] 元': 'low_price',
+            '振幅\n[交易日期] 最新收盘日\n[单位] %': 'amplitude',
+            '升贴水\n[交易日期] 最新收盘日\n[单位] 元': 'premium_discount',
+            '升贴水率\n[交易日期] 最新收盘日\n[单位] %': 'premium_discount_rate'
+        }
+
+        # 识别并匹配列名（考虑换行符和空格的变化）
+        matched_columns = {}
+        for excel_col in df.columns:
+            excel_col_clean = str(excel_col).strip().replace('\n', '')
+            for pattern_col, db_col in new_column_map.items():
+                pattern_col_clean = pattern_col.replace('\n', '')
+                if excel_col_clean == pattern_col_clean or excel_col_clean.startswith(pattern_col_clean):
+                    matched_columns[excel_col] = db_col
+                    break
+
+        # 检查是否找到了证券代码列
+        if '证券代码' not in matched_columns.keys() and not any(col.startswith('证券代码') for col in df.columns):
+            logger.error("未找到证券代码列，无法继续导入")
             return False
 
-        # 重命名列
-        rename_map = {
-            '证券代码': 'code',
-            '最新价': 'current_price',
-            '涨跌幅': 'price_change',
-            '成交量': 'volume',
-            '成交额': 'turnover',
-            '换手率': 'turnover_rate',
-            '成交金额': 'total_value',
-            '区间日均成交额': 'daily_volume'
-        }
-        # 只重命名存在的列
-        rename_map = {k: v for k, v in rename_map.items() if k in df.columns}
-        df = df.rename(columns=rename_map)
+        # 重命名识别到的列
+        logger.info(f"匹配到的列映射: {matched_columns}")
+        df = df.rename(columns=matched_columns)
+        
+        # 确保code列存在
+        if 'code' not in df.columns:
+            # 尝试查找以"证券代码"开头的列
+            code_cols = [col for col in df.columns if str(col).startswith('证券代码')]
+            if code_cols:
+                df = df.rename(columns={code_cols[0]: 'code'})
+            else:
+                logger.error("未找到证券代码列，无法继续导入")
+                return False
 
         # 标准化ETF代码
         df['code'] = df['code'].apply(normalize_etf_code)
         
         # 添加日期列
         df['date'] = formatted_date
+        
+        # 添加更新时间列
+        df['update_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # 检查是否有足够的数据列
+        min_required_columns = ['code', 'date', 'update_time']
+        price_data_columns = [col for col in df.columns if col not in ['code', 'date', 'update_time']]
+        
+        if len(price_data_columns) < 2:
+            logger.error(f"ETF价格数据文件缺少足够的数据列，只找到: {price_data_columns}")
+            return False
+            
+        logger.info(f"最终列名: {list(df.columns)}")
+        logger.info(f"数据示例:\n{df.head()}")
 
         # 创建数据库连接
         db = Database()

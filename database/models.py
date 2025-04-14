@@ -342,161 +342,124 @@ class Database:
         try:
             print("开始处理ETF基本信息数据...")
             
-            # 显示原始列名和前几行数据
+            # 显示原始数据信息
             print("原始列名：", df.columns.tolist())
-            print("\n原始数据前5行：")
+            print("原始数据前5行：")
             print(df.head())
             
-            # 标准化列名（去除多余的空格和换行符）
-            df.columns = [col.strip().replace('\n', '') for col in df.columns]
-            
-            # 导入normalize_etf_code函数用于标准化ETF代码
+            # 标准化ETF代码
             from utils.etf_code import normalize_etf_code
             
-            # 如果原始列中存在证券代码列，先进行标准化处理
             if '证券代码' in df.columns:
                 print("标准化ETF代码...")
                 print("标准化前示例：", df['证券代码'].head(5).tolist())
-                df['证券代码'] = df['证券代码'].apply(lambda x: str(x))  # 确保代码是字符串类型
+                df['证券代码'] = df['证券代码'].apply(normalize_etf_code)
                 print("标准化后示例：", df['证券代码'].head(5).tolist())
             
-            # 定义列名映射
+            # 检查列名是否包含指定的关键词
+            column_keywords = {
+                '基金规模': 'fund_size',
+                '年化跟踪误差': 'tracking_error',
+                '信息比率': 'information_ratio',
+                '基金份额持有人户数': 'total_holder_count',
+                '管理费率': 'management_fee_rate',
+                '托管费率': 'custody_fee_rate',
+                '月成交额': 'monthly_volume',
+                '日均成交额': 'daily_avg_volume',
+                '换手率': 'turnover_rate',
+                '成交额': 'daily_volume',
+                '成交笔数': 'transaction_count',
+                '总市值': 'total_market_value'
+            }
+            
+            # 重命名包含关键词的列
+            for cn_keyword, en_name in column_keywords.items():
+                matching_cols = [col for col in df.columns if cn_keyword in col]
+                if matching_cols:
+                    # 用第一个匹配的列名
+                    print(f"列名映射: '{matching_cols[0]}' -> '{en_name}'")
+                    df = df.rename(columns={matching_cols[0]: en_name})
+            
+            # 将业绩比较基准、成立年限、成立日期、场内简称和跟踪指数名称映射为英文字段名
+            if '业绩比较基准' in df.columns:
+                df = df.rename(columns={'业绩比较基准': 'benchmark'})
+            
+            if '成立年限' in df.columns or any('成立年限' in col for col in df.columns):
+                matching_cols = [col for col in df.columns if '成立年限' in col]
+                if matching_cols:
+                    df = df.rename(columns={matching_cols[0]: 'years_since_establishment'})
+            
+            if '基金成立日' in df.columns:
+                df = df.rename(columns={'基金成立日': 'establishment_date'})
+            
+            if '基金场内简称' in df.columns:
+                df = df.rename(columns={'基金场内简称': 'fund_exchange_abbr'})
+            
+            if '跟踪指数名称' in df.columns:
+                df = df.rename(columns={'跟踪指数名称': 'tracking_index_name'})
+            
+            # 基本的列名映射
             column_mapping = {
                 '证券代码': 'code',
                 '证券简称': 'name',
                 '基金管理人': 'fund_manager',
-                '基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元': 'fund_size',
                 '基金上市地点': 'exchange',
-                '跟踪指数代码': 'tracking_index_code',
-                '跟踪指数名称': 'tracking_index_name',
-                '年化跟踪误差阈值(业绩基准)[单位]%': 'tracking_error',
-                '信息比率(年化)[起始交易日期]S_cal_date(enddate,-52,W,0)[截止交易日期]最新收盘日[计算周期]日[收益率计算方法]普通收益率[无风险收益率]一年定存利率（税前）[标的指数]上证综合指数': 'information_ratio',
-                '基金份额持有人户数[报告期]20240630[单位]户': 'total_holder_count',
-                '管理费率[单位]%': 'management_fee_rate',
-                '托管费率[单位]%': 'custody_fee_rate',
                 '指数使用费率': 'index_usage_fee',
-                # 添加新的映射
-                '月成交额[交易日期]最新收盘日[单位]百万元': 'monthly_volume',
-                '区间日均成交额[起始交易日期]S_cal_date(enddate,-1,M,0)[截止交易日期]最新收盘日[单位]亿元': 'daily_avg_volume',
-                '换手率[交易日期]最新收盘日[单位]%': 'turnover_rate',
-                '成交额[交易日期]最新收盘日[单位]亿元': 'daily_volume',
-                '成交笔数[交易日期]最新收盘日[单位]笔': 'transaction_count',
-                '总市值[交易日期]最新收盘日[单位]亿元': 'total_market_value',
-                # 添加新增字段的映射
-                '业绩比较基准': 'benchmark',
-                '成立年限[单位] 年': 'years_since_establishment',
-                '基金成立日': 'establishment_date',
-                '基金场内简称': 'fund_exchange_abbr'
+                '跟踪指数代码': 'tracking_index_code'
             }
             
-            # 查找最匹配的列名
-            actual_mappings = {}
-            for target_col, mapped_col in column_mapping.items():
-                # 尝试精确匹配
-                if target_col in df.columns:
-                    actual_mappings[target_col] = mapped_col
-                    continue
-                
-                # 尝试模糊匹配
-                potential_matches = [col for col in df.columns if target_col.split('[')[0].strip() in col]
-                if potential_matches:
-                    # 使用最短的可能匹配（通常最精确）
-                    best_match = min(potential_matches, key=len)
-                    actual_mappings[best_match] = mapped_col
-                    print(f"列名映射: '{best_match}' -> '{mapped_col}'")
+            # 重命名基本列
+            for old_name, new_name in column_mapping.items():
+                if old_name in df.columns:
+                    df = df.rename(columns={old_name: new_name})
             
-            # 检查是否找到基本的必要列
-            required_basic_cols = ['code', 'name', 'fund_manager']
-            found_basic_cols = [mapped_col for mapped_col in actual_mappings.values() if mapped_col in required_basic_cols]
+            print("重命名后的列名：", df.columns.tolist())
             
-            if len(found_basic_cols) < len(required_basic_cols):
-                missing_cols = [col for col in required_basic_cols if col not in found_basic_cols]
-                print(f"错误: 缺少基本必要列: {missing_cols}")
-                return False
-            
-            # 重命名列
-            df = df.rename(columns=actual_mappings)
-            print("\n重命名后的列名：", df.columns.tolist())
-            
-            # 在重命名列后，标准化code列（去除.SH/.SZ后缀）
+            # 标准化ETF代码（确保一致性）
             if 'code' in df.columns:
-                print("\n标准化ETF代码...")
+                print("标准化ETF代码...")
                 print("标准化前示例：", df['code'].head(5).tolist())
                 df['code'] = df['code'].apply(normalize_etf_code)
                 print("标准化后示例：", df['code'].head(5).tolist())
+                # 显示ETF代码的唯一数量
                 print(f"标准化后唯一代码数量: {df['code'].nunique()}")
-            
-            # 选择需要的列
-            required_columns = ['code', 'name', 'fund_manager']
-            optional_columns = ['fund_size', 'exchange', 'tracking_index_code', 'tracking_index_name', 
-                               'tracking_error', 'information_ratio', 'total_holder_count', 
-                               'management_fee_rate', 'custody_fee_rate', 'index_usage_fee',
-                               'monthly_volume', 'daily_avg_volume', 'turnover_rate', 'daily_volume',
-                               'transaction_count', 'total_market_value', 'benchmark',
-                               'years_since_establishment', 'establishment_date', 'fund_exchange_abbr',
-                               'date']
-            
-            final_columns = required_columns + [col for col in optional_columns if col in df.columns]
-            
-            # 确保所有必需的列都存在
-            for col in required_columns:
-                if col not in df.columns:
-                    print(f"错误：缺少必要列 {col}")
-                    return False
-            
-            # 选择存在的列
-            df = df[final_columns]
-            
-            # 为缺少的可选列添加默认值
-            for col in optional_columns:
-                if col not in df.columns:
-                    df[col] = None
-            
-            # 处理规模数据
-            def process_fund_size(value):
-                if pd.isna(value):
-                    return 0.0
-                if isinstance(value, str):
-                    # 移除可能的单位和其他字符
-                    value = value.replace('亿元', '').replace('亿', '').strip()
-                    try:
-                        return float(value)
-                    except (ValueError, TypeError):
-                        print(f"警告：无法转换规模值 '{value}' 为数字")
-                        return 0.0
-                try:
-                    return float(value)
-                except (ValueError, TypeError):
-                    print(f"警告：无法转换规模值 '{value}' 为数字")
-                    return 0.0
-            
-            # 处理规模数据
-            print("\n处理基金规模数据...")
+                
+            # 处理基金规模数据
             if 'fund_size' in df.columns:
-                print("基金规模列的数据类型：", df['fund_size'].dtype)
-                print("基金规模的唯一值：", df['fund_size'].unique())
+                print("\n处理基金规模数据...")
+                print(f"基金规模列的数据类型： {df['fund_size'].dtype}")
+                print(f"基金规模的唯一值： {df['fund_size'].unique()}")
                 
-                df['fund_size'] = df['fund_size'].apply(process_fund_size)
+                # 将基金规模转换为浮点数
+                df['fund_size'] = pd.to_numeric(df['fund_size'], errors='coerce')
                 
-                # 检查处理后的规模数据
+                # 显示基金规模的统计信息
                 print("\n处理后的基金规模统计：")
                 print(df['fund_size'].describe())
             
-            # 处理费率字段
+            # 处理费率数据
+            fee_columns = ['management_fee_rate', 'custody_fee_rate', 'index_usage_fee']
+            
+            # 定义处理费率的函数
             def process_fee_rate(value):
                 if pd.isna(value):
                     return 0.0
                 if isinstance(value, str):
-                    # 移除"费率"前缀和"%"后缀
-                    value = value.replace('费率', '').replace('%', '').strip()
+                    # 尝试提取数字部分
+                    value = value.replace('%', '').replace('％', '').strip()
+                    try:
+                        return float(value) / 100.0  # 转换为小数
+                    except ValueError:
+                        return 0.0
                 try:
-                    return float(value)
+                    # 如果是%格式（例如 0.5%），则除以100
+                    if value > 1.0:
+                        return value / 100.0
+                    return value
                 except (ValueError, TypeError):
-                    print(f"警告：无法转换费率值 '{value}' 为数字")
                     return 0.0
             
-            # 处理所有费率字段
-            fee_columns = ['management_fee_rate', 'custody_fee_rate', 'index_usage_fee']
+            # 处理费率列
             for col in fee_columns:
                 if col in df.columns:
                     df[col] = df[col].apply(process_fee_rate)
@@ -604,28 +567,8 @@ class Database:
                 )
             """)
             
-            # 创建ETF规模历史表（如果不存在）
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS etf_fund_size_history (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    code TEXT,
-                    fund_size REAL,
-                    date TEXT,
-                    update_time TIMESTAMP
-                )
-            """)
-            
             # 保存到主表
             df.to_sql('etf_info', conn, if_exists='append', index=False)
-            
-            # 保存规模历史数据
-            if 'fund_size' in df.columns:
-                fund_size_data = df[['code', 'fund_size', 'date', 'update_time']].copy()
-                # 过滤出非零规模的数据
-                fund_size_data = fund_size_data[fund_size_data['fund_size'] > 0]
-                if not fund_size_data.empty:
-                    fund_size_data.to_sql('etf_fund_size_history', conn, if_exists='append', index=False)
-                    print(f"同时保存了{len(fund_size_data)}条规模历史数据到etf_fund_size_history表")
             
             conn.commit()
             
@@ -648,83 +591,115 @@ class Database:
             # 导入normalize_etf_code函数用于标准化ETF代码
             from utils.etf_code import normalize_etf_code
             
-            # 标准化ETF代码
-            if '证券代码' in df.columns:
-                print("标准化ETF代码...")
-                print("标准化前示例：", df['证券代码'].head(5).tolist())
-                df['证券代码'] = df['证券代码'].apply(normalize_etf_code)
-                print("标准化后示例：", df['证券代码'].head(5).tolist())
+            # 显示原始数据信息
+            print("原始列名：", df.columns.tolist())
+            print("原始数据形状：", df.shape)
             
-            # 标准化列名（去除多余的空格和换行符）
-            df.columns = [col.strip().replace('\n', '') for col in df.columns]
-            
-            # 准备列名映射
-            columns_mapping = {
-                '证券代码': 'code',
-                '涨跌幅[交易日期] 最新收盘日[单位] %': 'change_rate',
-                '换手率[交易日期] 最新收盘日[单位] %': 'turnover_rate',
-                '成交额[交易日期] 最新收盘日[单位] 亿元': 'amount',
-                '成交笔数[交易日期] 最新收盘日[单位] 笔': 'transaction_count'
-            }
-            
-            # 重命名列
-            df = df.rename(columns=columns_mapping)
-            
-            # 检查必需字段
-            required_columns = ['code', 'change_rate', 'turnover_rate', 'amount', 'transaction_count']
-            missing_columns = [col for col in required_columns if col not in df.columns]
-            if missing_columns:
-                print(f"ETF价格数据缺少必需字段: {missing_columns}")
+            # 确保代码列正确
+            if 'code' not in df.columns:
+                print("缺少代码列，无法继续处理")
                 return False
             
-            # 确保date字段存在
+            # 确保数据日期和更新时间存在
             if 'date' not in df.columns:
-                # 添加日期列（仅取日期部分）
                 current_date = datetime.now().strftime('%Y-%m-%d')
-                print(f"未发现日期字段，使用当前日期：{current_date}")
                 df['date'] = current_date
+                print(f"未发现日期字段，使用当前日期：{current_date}")
             
-            # 添加更新时间
-            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            df['update_time'] = current_time
+            if 'update_time' not in df.columns:
+                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                df['update_time'] = current_time
+                print(f"未发现更新时间字段，使用当前时间：{current_time}")
             
-            # 选择需要的列（现在包括date字段）
-            columns_to_select = required_columns + ['date', 'update_time']
-            df = df[columns_to_select]
+            # 转换数据类型 - 对所有可能的数值列进行处理
+            numeric_columns = [
+                'change_rate', 'turnover_rate', 'amount', 'transaction_count', 'total_market_value',
+                'close_price', 'open_price', 'high_price', 'low_price', 'amplitude',
+                'premium_discount', 'premium_discount_rate'
+            ]
             
-            # 转换数据类型
-            numeric_columns = ['change_rate', 'turnover_rate', 'amount', 'transaction_count']
+            # 仅处理存在的列
+            numeric_columns = [col for col in numeric_columns if col in df.columns]
+            
+            # 转换数值类型
             for col in numeric_columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
+                try:
+                    # 如果列是字符串类型，尝试清理和转换
+                    if df[col].dtype == 'object':
+                        # 移除非数字字符（如%、,等）
+                        df[col] = df[col].astype(str).str.replace('%', '').str.replace(',', '').str.strip()
+                    # 转换为浮点数
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+                except Exception as e:
+                    print(f"转换列 {col} 时出错: {str(e)}")
+                    df[col] = 0.0  # 转换失败时设为默认值
             
             # 保存到数据库
             conn = self.connect()
             try:
-                # 修改表结构以包含日期字段
+                # 创建或替换现有表
                 cursor = conn.cursor()
                 cursor.execute("DROP TABLE IF EXISTS etf_price")
-                cursor.execute("""
-                    CREATE TABLE etf_price (
-                        code TEXT,
-                        change_rate REAL,
-                        turnover_rate REAL,
-                        amount REAL,
-                        transaction_count INTEGER,
-                        date TEXT,
-                        update_time TIMESTAMP,
-                        PRIMARY KEY (code, date)
-                    )
-                """)
                 
-                # 保存数据
-                df.to_sql('etf_price', conn, if_exists='append', index=False)
+                # 动态创建表字段列表
+                fields = ["code TEXT", "date TEXT"]
+                for col in numeric_columns:
+                    fields.append(f"{col} REAL")
+                fields.append("update_time TIMESTAMP")
+                fields.append("PRIMARY KEY (code, date)")
+                
+                # 创建表
+                create_table_sql = f"CREATE TABLE etf_price ({', '.join(fields)})"
+                print(f"创建表SQL: {create_table_sql}")
+                cursor.execute(create_table_sql)
+                
+                # 同时删除并重新创建历史表，确保结构一致
+                cursor.execute("DROP TABLE IF EXISTS etf_price_history")
+                
+                # 创建历史表，结构与主表相同，但主键改为ID
+                history_fields = ["id INTEGER PRIMARY KEY AUTOINCREMENT", "code TEXT", "date TEXT"]
+                for col in numeric_columns:
+                    history_fields.append(f"{col} REAL")
+                history_fields.append("update_time TIMESTAMP")
+                history_fields.append("UNIQUE(code, date)")
+                
+                create_history_sql = f"CREATE TABLE etf_price_history ({', '.join(history_fields)})"
+                print(f"创建历史表SQL: {create_history_sql}")
+                cursor.execute(create_history_sql)
+                
+                # 选择要保存的列 - 只保存表中定义的列
+                save_columns = ['code', 'date'] + numeric_columns + ['update_time']
+                # 确保所有列都存在于DataFrame中
+                for col in save_columns:
+                    if col not in df.columns:
+                        print(f"添加缺失的列 {col}")
+                        df[col] = None
+                
+                # 只保存定义的列
+                save_df = df[save_columns].copy()
+                print(f"保存到数据库的列: {save_df.columns.tolist()}")
+                print(f"保存的数据样本:\n{save_df.head(2)}")
+                
+                # 保存数据到主表
+                save_df.to_sql('etf_price', conn, if_exists='append', index=False)
+                
+                # 保存数据到历史表 - 使用与主表相同的列
+                save_df.to_sql('etf_price_history', conn, if_exists='append', index=False)
+                
+                conn.commit()
                 print(f"成功保存ETF价格数据，共{len(df)}条记录")
+                print(f"同时保存了{len(df)}条价格历史记录到etf_price_history表")
                 return True
             except Exception as e:
                 print(f"保存ETF价格数据失败: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                conn.rollback()
                 return False
         except Exception as e:
             print(f"处理ETF价格数据失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def save_etf_attention(self, df: pd.DataFrame) -> bool:

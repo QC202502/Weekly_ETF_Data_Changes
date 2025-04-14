@@ -587,116 +587,6 @@ def import_etf_business():
         logger.error(f"导入ETF商务协议数据时出错: {str(e)}", exc_info=True)
         return False
 
-def import_etf_fund_size():
-    """导入ETF规模数据到历史表"""
-    try:
-        logger.info("开始导入ETF规模数据到历史表...")
-        
-        # 查找最新的ETF数据文件
-        etf_file = find_latest_file("ETF_DATA_*.xlsx")
-        if not etf_file:
-            logger.error("未找到ETF数据文件")
-            return False
-        
-        logger.info(f"使用文件: {etf_file}")
-        
-        # 从文件名中提取日期
-        filename = os.path.basename(etf_file)
-        date_match = re.search(r'(\d{8})', filename)
-        if date_match:
-            data_date = date_match.group(1)
-            formatted_date = f"{data_date[:4]}-{data_date[4:6]}-{data_date[6:8]}"
-            logger.info(f"从文件名中提取的日期: {formatted_date}")
-        else:
-            # 如果无法从文件名中提取日期，使用当前日期，但记录警告
-            formatted_date = datetime.now().strftime('%Y-%m-%d')
-            logger.warning(f"无法从文件名中提取日期，使用当前日期: {formatted_date}")
-        
-        # 创建数据库连接
-        db = Database()
-        
-        # 检查该日期的数据是否已经存在
-        conn = db.connect()
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM etf_fund_size_history WHERE date = ?", (formatted_date,))
-        if cursor.fetchone()[0] > 0:
-            logger.info(f"日期 {formatted_date} 的ETF规模历史数据已存在，跳过导入")
-            return True
-        
-        # 读取Excel文件
-        df = pd.read_excel(etf_file, engine='openpyxl')
-        
-        # 处理ETF代码（确保是6位字符串）
-        if '证券代码' in df.columns:
-            code_column = '证券代码'
-        else:
-            # 查找可能的代码列
-            code_columns = [col for col in df.columns if '代码' in col]
-            if not code_columns:
-                logger.error(f"无法在文件 {etf_file} 中找到代码列")
-                return False
-            code_column = code_columns[0]
-        
-        # 处理规模列
-        scale_columns = [col for col in df.columns if '规模' in str(col) and '亿元' in str(col)]
-        if not scale_columns:
-            logger.error(f"无法在文件 {etf_file} 中找到规模列")
-            return False
-        scale_column = scale_columns[0]
-        
-        logger.info(f"使用列: 代码={code_column}, 规模={scale_column}")
-        
-        # 准备数据
-        df['code'] = df[code_column].astype(str)
-        df['fund_size'] = pd.to_numeric(df[scale_column], errors='coerce').fillna(0)
-        
-        # 添加日期和更新时间
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # 过滤有效数据
-        valid_data = df[['code', 'fund_size']].dropna(subset=['code'])
-        valid_data = valid_data[valid_data['fund_size'] > 0]
-        
-        if len(valid_data) == 0:
-            logger.error("没有找到有效的规模数据")
-            return False
-        
-        # 标准化ETF代码
-        valid_data['code'] = valid_data['code'].apply(normalize_etf_code)
-        
-        # 确保etf_fund_size_history表存在
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS etf_fund_size_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                code TEXT,
-                fund_size REAL,
-                date TEXT,
-                update_time TIMESTAMP
-            )
-        """)
-        
-        # 插入数据
-        count = 0
-        for _, row in valid_data.iterrows():
-            try:
-                cursor.execute("""
-                    INSERT INTO etf_fund_size_history (code, fund_size, date, update_time)
-                    VALUES (?, ?, ?, ?)
-                """, (row['code'], row['fund_size'], formatted_date, current_time))
-                count += 1
-            except Exception as e:
-                logger.error(f"插入规模数据时出错: {str(e)}")
-        
-        conn.commit()
-        logger.info(f"成功导入 {count} 条 {formatted_date} 的ETF规模历史数据")
-        return True
-    
-    except Exception as e:
-        logger.error(f"导入ETF规模历史数据时出错: {str(e)}", exc_info=True)
-        if 'conn' in locals() and conn:
-            conn.rollback()
-        return False
-
 def import_all_data():
     """导入所有ETF数据"""
     logger.info("=== 开始导入所有ETF数据 ===")
@@ -722,9 +612,6 @@ def import_all_data():
     # 导入ETF商务协议数据
     success_business = import_etf_business()
     
-    # 导入ETF规模数据
-    success_fund_size = import_etf_fund_size()
-    
     # 输出导入结果摘要
     logger.info("=== ETF数据导入完成 ===")
     logger.info(f"ETF基本信息: {'成功' if success_info else '失败'}")
@@ -733,7 +620,6 @@ def import_all_data():
     logger.info(f"ETF自选数据: {'成功' if success_attention else '失败'}")
     logger.info(f"ETF指数分类数据: {'成功' if success_classification else '失败'}")
     logger.info(f"ETF商务协议数据: {'成功' if success_business else '失败'}")
-    logger.info(f"ETF规模数据: {'成功' if success_fund_size else '失败'}")
     
     # 创建数据库连接以获取记录数
     try:
@@ -758,7 +644,7 @@ def import_all_data():
     except Exception as e:
         logger.error(f"获取数据库统计信息时出错: {str(e)}")
     
-    return all([success_info, success_price, success_holders, success_attention, success_classification, success_business, success_fund_size])
+    return all([success_info, success_price, success_holders, success_attention, success_classification, success_business])
 
 def show_menu():
     """显示导入菜单"""
@@ -770,7 +656,6 @@ def show_menu():
     print("5. 仅导入ETF自选数据")
     print("6. 仅导入ETF指数分类数据")
     print("7. 仅导入ETF商务协议数据")
-    print("8. 导入ETF规模数据")
     print("0. 退出")
     print("=========================")
 
@@ -785,13 +670,12 @@ def main():
     parser.add_argument('--attention', action='store_true', help='导入ETF自选数据')
     parser.add_argument('--classification', action='store_true', help='导入ETF指数分类数据')
     parser.add_argument('--business', action='store_true', help='导入ETF商务协议数据')
-    parser.add_argument('--fund_size', action='store_true', help='导入ETF规模数据')
     parser.add_argument('--menu', action='store_true', help='显示交互式菜单')
     
     args = parser.parse_args()
     
     # 检查是否有命令行参数
-    if args.all or args.info or args.price or args.holders or args.attention or args.classification or args.business or args.fund_size:
+    if args.all or args.info or args.price or args.holders or args.attention or args.classification or args.business:
         # 根据命令行参数导入指定数据
         if args.all:
             import_all_data()
@@ -808,13 +692,11 @@ def main():
                 import_etf_index_classification()
             if args.business:
                 import_etf_business()
-            if args.fund_size:
-                import_etf_fund_size()
     elif args.menu or len(sys.argv) == 1:
         # 显示交互式菜单
         while True:
             show_menu()
-            choice = input("请选择操作 (0-8): ")
+            choice = input("请选择操作 (0-7): ")
             
             if choice == '0':
                 print("退出程序")
@@ -833,8 +715,6 @@ def main():
                 import_etf_index_classification()
             elif choice == '7':
                 import_etf_business()
-            elif choice == '8':
-                import_etf_fund_size()
             else:
                 print("无效的选择，请重试")
             

@@ -2053,26 +2053,6 @@ class Database:
             traceback.print_exc()
             return []
             
-    def get_etf_fund_size_history(self, etf_code):
-        """获取ETF规模历史数据"""
-        try:
-            # 标准化ETF代码
-            etf_code = normalize_etf_code(etf_code)
-            
-            # 连接数据库
-            conn = self.connect()
-            cursor = conn.cursor()
-            
-            # 查询该ETF是否存在于etf_info表中
-            cursor.execute("""
-                SELECT COUNT(*) 
-                FROM etf_info 
-                WHERE code LIKE ?
-            """, (f"%{etf_code}%",))
-            
-            if cursor.fetchone()[0] == 0:
-                print(f"ETF代码 {etf_code} 不存在")
-                return []
             
             # 如果存在历史规模表，查询历史规模数据
             cursor.execute("""

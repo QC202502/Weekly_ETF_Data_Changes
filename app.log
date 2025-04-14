@@ -10441,3 +10441,15 @@ IndentationError: expected an indented block
 2025-04-14 14:24:27,428 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
 2025-04-14 14:24:27,866 - werkzeug - WARNING -  * Debugger is active!
 2025-04-14 14:24:28,041 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-14 17:36:40,493 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-14 17:36:40,496 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-14 17:36:41,565 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5007
+ * Running on http://192.168.88.85:5007
+2025-04-14 17:36:41,565 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-14 17:36:41,567 - werkzeug - INFO -  * Restarting with stat
+2025-04-14 17:36:42,506 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-14 17:36:42,508 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-14 17:36:43,042 - werkzeug - WARNING -  * Debugger is active!
+2025-04-14 17:36:43,215 - werkzeug - INFO -  * Debugger PIN: 513-303-707

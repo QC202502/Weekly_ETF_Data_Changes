@@ -113,7 +113,7 @@ def preprocess_data():
     classification_df = pd.read_excel(classification_path, engine='openpyxl')
     classification_df['跟踪指数代码'] = classification_df['跟踪指数代码'].astype(str).str.strip()
 
-    # 合并分类数据（假设基础数据中有“跟踪指数代码”列）
+    # 合并分类数据（假设基础数据中有"跟踪指数代码"列）
     result['跟踪指数代码'] = result['跟踪指数代码'].astype(str).str.strip()
     result = result.merge(
         classification_df[['跟踪指数代码', '一级分类', '二级分类', '三级分类']],
@@ -597,7 +597,7 @@ class ETFReporter:
                 cells[3].text = str(int(row[f'持仓客户数（{self.end_date}）']))  # 总持仓数
                 cells[4].text = str(int(row['持仓客户数变动']))  # 本周持仓数变化（取整数）
                 cells[5].text = self._format_value(row[f'保有金额（{self.end_date}）'], '保有金额')  # 总持仓市值（智能格式化）
-                cells[6].text = self._format_value(row['保有金额变动'], '保有金额')  # 本周持仓市值变化（智能格式化）
+                cells[6].text = self._format_value(row['保有金额变动'], '保有金额')  # 本周持仓价值变化（智能格式化）
 
 # 新增商务品分析方法
     def _add_business_analysis(self):
@@ -608,7 +608,7 @@ class ETFReporter:
         biz_data = self.data[self.data['是否商务品'] == '商务']
         total_count = len(biz_data['证券代码'].unique())
         
-        # 计算商务品在我司的合计规模（使用持仓金额而非基金总规模）
+        # 计算商务品在我司的合计规模（使用持仓价值而非基金总规模）
         total_scale = biz_data[f'保有金额（{self.end_date}）'].sum() / 1e8  # 转换为亿元
         
         # 计算所有ETF在我司的总规模

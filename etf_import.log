@@ -1,0 +1,1199 @@
+2025-04-12 22:19:08,320 - INFO - === 开始导入所有ETF数据 ===
+2025-04-12 22:19:08,321 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-12 22:19:08,321 - INFO - 开始导入ETF基本信息...
+2025-04-12 22:19:08,327 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:19:09,084 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-12 22:19:09,085 - INFO - 开始导入ETF价格数据...
+2025-04-12 22:19:09,085 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:19:09,586 - INFO - 成功导入ETF价格数据，共1128条记录
+2025-04-12 22:19:09,586 - INFO - 开始导入ETF持有人数据...
+2025-04-12 22:19:09,589 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-12 22:19:09,599 - ERROR - 导入ETF持有人数据时出错: 'code'
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2898, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "pandas/_libs/index.pyx", line 70, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 101, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1675, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1683, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'code'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "import_excel_data.py", line 210, in import_etf_holders
+    df['code'] = df['code'].apply(normalize_etf_code)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/frame.py", line 2906, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2900, in get_loc
+    raise KeyError(key) from err
+KeyError: 'code'
+2025-04-12 22:19:09,602 - INFO - 开始导入ETF自选数据...
+2025-04-12 22:19:09,604 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-12 22:19:09,615 - ERROR - 导入ETF自选数据时出错: 'code'
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2898, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "pandas/_libs/index.pyx", line 70, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 101, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1675, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1683, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'code'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "import_excel_data.py", line 260, in import_etf_attention
+    df['code'] = df['code'].apply(normalize_etf_code)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/frame.py", line 2906, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2900, in get_loc
+    raise KeyError(key) from err
+KeyError: 'code'
+2025-04-12 22:19:09,615 - INFO - 开始导入ETF指数分类数据...
+2025-04-12 22:19:09,616 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-12 22:19:09,666 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-12 22:19:09,667 - INFO - 开始导入ETF商务协议数据...
+2025-04-12 22:19:09,670 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-12 22:19:09,770 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-12 22:19:09,770 - INFO - === ETF数据导入完成 ===
+2025-04-12 22:19:09,770 - INFO - ETF基本信息: 成功
+2025-04-12 22:19:09,770 - INFO - ETF价格数据: 成功
+2025-04-12 22:19:09,770 - INFO - ETF持有人数据: 失败
+2025-04-12 22:19:09,771 - INFO - ETF自选数据: 失败
+2025-04-12 22:19:09,771 - INFO - ETF指数分类数据: 成功
+2025-04-12 22:19:09,771 - INFO - ETF商务协议数据: 成功
+2025-04-12 22:19:09,771 - INFO - === 数据库记录统计 ===
+2025-04-12 22:19:09,771 - INFO - ETF基本信息表: 1128条记录
+2025-04-12 22:19:09,772 - INFO - ETF价格数据表: 1128条记录
+2025-04-12 22:19:09,772 - INFO - ETF持有人数据表: 1120条记录
+2025-04-12 22:19:09,772 - INFO - ETF自选数据表: 1096条记录
+2025-04-12 22:19:09,772 - INFO - ETF商务协议数据表: 339条记录
+2025-04-12 22:24:17,013 - INFO - === 开始导入所有ETF数据 ===
+2025-04-12 22:24:17,016 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-12 22:24:17,016 - INFO - 开始导入ETF基本信息...
+2025-04-12 22:24:17,019 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:24:19,723 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-12 22:24:19,723 - INFO - 开始导入ETF价格数据...
+2025-04-12 22:24:19,723 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:24:20,215 - INFO - 成功导入ETF价格数据，共1128条记录
+2025-04-12 22:24:20,216 - INFO - 开始导入ETF持有人数据...
+2025-04-12 22:24:20,216 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-12 22:24:20,227 - ERROR - 找不到证券代码列
+2025-04-12 22:24:20,227 - ERROR - 导入ETF持有人数据时出错: 'holder_count'
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2898, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "pandas/_libs/index.pyx", line 70, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 101, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1675, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1683, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'holder_count'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/import_excel_data.py", line 217, in import_etf_holders
+    df['holder_count'] = pd.to_numeric(df['holder_count'], errors='coerce').fillna(0).astype(int)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/frame.py", line 2906, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2900, in get_loc
+    raise KeyError(key) from err
+KeyError: 'holder_count'
+2025-04-12 22:24:20,231 - INFO - 开始导入ETF自选数据...
+2025-04-12 22:24:20,231 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-12 22:24:20,241 - ERROR - 找不到证券代码列
+2025-04-12 22:24:20,241 - ERROR - 导入ETF自选数据时出错: 'attention_count'
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2898, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "pandas/_libs/index.pyx", line 70, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 101, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1675, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1683, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'attention_count'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/import_excel_data.py", line 276, in import_etf_attention
+    df['attention_count'] = pd.to_numeric(df['attention_count'], errors='coerce').fillna(0).astype(int)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/frame.py", line 2906, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2900, in get_loc
+    raise KeyError(key) from err
+KeyError: 'attention_count'
+2025-04-12 22:24:20,241 - INFO - 开始导入ETF指数分类数据...
+2025-04-12 22:24:20,243 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-12 22:24:20,293 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-12 22:24:20,293 - INFO - 开始导入ETF商务协议数据...
+2025-04-12 22:24:20,295 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-12 22:24:20,393 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-12 22:24:20,393 - INFO - === ETF数据导入完成 ===
+2025-04-12 22:24:20,393 - INFO - ETF基本信息: 成功
+2025-04-12 22:24:20,393 - INFO - ETF价格数据: 成功
+2025-04-12 22:24:20,393 - INFO - ETF持有人数据: 失败
+2025-04-12 22:24:20,393 - INFO - ETF自选数据: 失败
+2025-04-12 22:24:20,393 - INFO - ETF指数分类数据: 成功
+2025-04-12 22:24:20,393 - INFO - ETF商务协议数据: 成功
+2025-04-12 22:24:20,394 - INFO - === 数据库记录统计 ===
+2025-04-12 22:24:20,394 - INFO - ETF基本信息表: 1128条记录
+2025-04-12 22:24:20,394 - INFO - ETF价格数据表: 1128条记录
+2025-04-12 22:24:20,394 - INFO - ETF持有人数据表: 1120条记录
+2025-04-12 22:24:20,394 - INFO - ETF自选数据表: 1096条记录
+2025-04-12 22:24:20,394 - INFO - ETF商务协议数据表: 339条记录
+2025-04-12 22:25:23,682 - INFO - === 开始导入所有ETF数据 ===
+2025-04-12 22:25:23,686 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-12 22:25:23,686 - INFO - 开始导入ETF基本信息...
+2025-04-12 22:25:23,688 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:25:24,467 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-12 22:25:24,467 - INFO - 开始导入ETF价格数据...
+2025-04-12 22:25:24,467 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:25:24,967 - INFO - 成功导入ETF价格数据，共1128条记录
+2025-04-12 22:25:24,967 - INFO - 开始导入ETF持有人数据...
+2025-04-12 22:25:24,968 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-12 22:25:24,978 - ERROR - 找不到证券代码列
+2025-04-12 22:25:24,978 - ERROR - 导入ETF持有人数据时出错: 'holder_count'
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2898, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "pandas/_libs/index.pyx", line 70, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 101, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1675, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1683, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'holder_count'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/import_excel_data.py", line 217, in import_etf_holders
+    df['holder_count'] = pd.to_numeric(df['holder_count'], errors='coerce').fillna(0).astype(int)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/frame.py", line 2906, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2900, in get_loc
+    raise KeyError(key) from err
+KeyError: 'holder_count'
+2025-04-12 22:25:24,981 - INFO - 开始导入ETF自选数据...
+2025-04-12 22:25:24,981 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-12 22:25:24,993 - ERROR - 找不到证券代码列
+2025-04-12 22:25:24,993 - ERROR - 导入ETF自选数据时出错: 'attention_count'
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2898, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "pandas/_libs/index.pyx", line 70, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 101, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1675, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1683, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'attention_count'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/import_excel_data.py", line 276, in import_etf_attention
+    df['attention_count'] = pd.to_numeric(df['attention_count'], errors='coerce').fillna(0).astype(int)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/frame.py", line 2906, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/venv/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 2900, in get_loc
+    raise KeyError(key) from err
+KeyError: 'attention_count'
+2025-04-12 22:25:24,994 - INFO - 开始导入ETF指数分类数据...
+2025-04-12 22:25:24,995 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-12 22:25:25,045 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-12 22:25:25,045 - INFO - 开始导入ETF商务协议数据...
+2025-04-12 22:25:25,047 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-12 22:25:25,147 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-12 22:25:25,147 - INFO - === ETF数据导入完成 ===
+2025-04-12 22:25:25,147 - INFO - ETF基本信息: 成功
+2025-04-12 22:25:25,147 - INFO - ETF价格数据: 成功
+2025-04-12 22:25:25,147 - INFO - ETF持有人数据: 失败
+2025-04-12 22:25:25,147 - INFO - ETF自选数据: 失败
+2025-04-12 22:25:25,147 - INFO - ETF指数分类数据: 成功
+2025-04-12 22:25:25,147 - INFO - ETF商务协议数据: 成功
+2025-04-12 22:25:25,148 - INFO - === 数据库记录统计 ===
+2025-04-12 22:25:25,148 - INFO - ETF基本信息表: 1128条记录
+2025-04-12 22:25:25,148 - INFO - ETF价格数据表: 1128条记录
+2025-04-12 22:25:25,149 - INFO - ETF持有人数据表: 1120条记录
+2025-04-12 22:25:25,149 - INFO - ETF自选数据表: 1096条记录
+2025-04-12 22:25:25,149 - INFO - ETF商务协议数据表: 339条记录
+2025-04-12 22:27:31,833 - INFO - === 开始导入所有ETF数据 ===
+2025-04-12 22:27:31,837 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-12 22:27:31,838 - INFO - 开始导入ETF基本信息...
+2025-04-12 22:27:31,841 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:27:32,640 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-12 22:27:32,641 - INFO - 开始导入ETF价格数据...
+2025-04-12 22:27:32,641 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:27:33,141 - INFO - 成功导入ETF价格数据，共1128条记录
+2025-04-12 22:27:33,141 - INFO - 开始导入ETF持有人数据...
+2025-04-12 22:27:33,142 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-12 22:27:33,152 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 22:27:33,153 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 22:27:33,153 - INFO - 标准化后列名: ['数据截止日期']
+2025-04-12 22:27:33,153 - INFO - 找到的代码列: []
+2025-04-12 22:27:33,153 - INFO - 找到的持有人列: []
+2025-04-12 22:27:33,153 - INFO - 找到的持仓价值列: []
+2025-04-12 22:27:33,153 - ERROR - 未找到代码列
+2025-04-12 22:27:33,153 - ERROR - 文件中的所有列: ['数据截止日期']
+2025-04-12 22:27:33,153 - INFO - 开始导入ETF自选数据...
+2025-04-12 22:27:33,154 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-12 22:27:33,165 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 22:27:33,165 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 22:27:33,165 - INFO - 标准化后列名: ['数据截止日期']
+2025-04-12 22:27:33,165 - INFO - 找到的代码列: []
+2025-04-12 22:27:33,165 - INFO - 找到的自选列: []
+2025-04-12 22:27:33,165 - ERROR - 未找到代码列
+2025-04-12 22:27:33,166 - ERROR - 文件中的所有列: ['数据截止日期']
+2025-04-12 22:27:33,166 - INFO - 开始导入ETF指数分类数据...
+2025-04-12 22:27:33,167 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-12 22:27:33,218 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-12 22:27:33,218 - INFO - 开始导入ETF商务协议数据...
+2025-04-12 22:27:33,219 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-12 22:27:33,320 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-12 22:27:33,321 - INFO - === ETF数据导入完成 ===
+2025-04-12 22:27:33,321 - INFO - ETF基本信息: 成功
+2025-04-12 22:27:33,321 - INFO - ETF价格数据: 成功
+2025-04-12 22:27:33,321 - INFO - ETF持有人数据: 失败
+2025-04-12 22:27:33,321 - INFO - ETF自选数据: 失败
+2025-04-12 22:27:33,321 - INFO - ETF指数分类数据: 成功
+2025-04-12 22:27:33,321 - INFO - ETF商务协议数据: 成功
+2025-04-12 22:27:33,322 - INFO - === 数据库记录统计 ===
+2025-04-12 22:27:33,323 - INFO - ETF基本信息表: 1128条记录
+2025-04-12 22:27:33,323 - INFO - ETF价格数据表: 1128条记录
+2025-04-12 22:27:33,323 - INFO - ETF持有人数据表: 1120条记录
+2025-04-12 22:27:33,323 - INFO - ETF自选数据表: 1096条记录
+2025-04-12 22:27:33,323 - INFO - ETF商务协议数据表: 339条记录
+2025-04-12 22:32:50,101 - INFO - === 开始导入所有ETF数据 ===
+2025-04-12 22:32:50,102 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-12 22:32:50,102 - INFO - 开始导入ETF基本信息...
+2025-04-12 22:32:50,105 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:32:50,858 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-12 22:32:50,858 - INFO - 开始导入ETF价格数据...
+2025-04-12 22:32:50,859 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:32:51,367 - INFO - 成功导入ETF价格数据，共1128条记录
+2025-04-12 22:32:51,368 - INFO - 开始导入ETF持有人数据...
+2025-04-12 22:32:51,368 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-12 22:32:51,378 - INFO - 读取工作表：默认
+2025-04-12 22:32:51,378 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 22:32:51,379 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 22:32:51,379 - ERROR - Excel文件缺少以下列: ['标的代码', '持仓客户数', '持仓市值', '持仓份额']
+2025-04-12 22:32:51,379 - ERROR - 实际列名: ['数据截止日期']
+2025-04-12 22:32:51,379 - ERROR - 列数不足，无法识别数据结构
+2025-04-12 22:32:51,379 - INFO - 开始导入ETF自选数据...
+2025-04-12 22:32:51,380 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-12 22:32:51,390 - INFO - 读取工作表：默认
+2025-04-12 22:32:51,390 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 22:32:51,391 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 22:32:51,391 - ERROR - Excel文件格式不匹配。期望列名: ['标的代码', '加自选人数']
+2025-04-12 22:32:51,391 - ERROR - 实际列名: ['数据截止日期']
+2025-04-12 22:32:51,391 - ERROR - 列数不足，无法识别数据结构
+2025-04-12 22:32:51,391 - INFO - 开始导入ETF指数分类数据...
+2025-04-12 22:32:51,392 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-12 22:32:51,443 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-12 22:32:51,443 - INFO - 开始导入ETF商务协议数据...
+2025-04-12 22:32:51,445 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-12 22:32:51,545 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-12 22:32:51,545 - INFO - === ETF数据导入完成 ===
+2025-04-12 22:32:51,546 - INFO - ETF基本信息: 成功
+2025-04-12 22:32:51,546 - INFO - ETF价格数据: 成功
+2025-04-12 22:32:51,546 - INFO - ETF持有人数据: 失败
+2025-04-12 22:32:51,546 - INFO - ETF自选数据: 失败
+2025-04-12 22:32:51,546 - INFO - ETF指数分类数据: 成功
+2025-04-12 22:32:51,546 - INFO - ETF商务协议数据: 成功
+2025-04-12 22:32:51,547 - INFO - === 数据库记录统计 ===
+2025-04-12 22:32:51,547 - INFO - ETF基本信息表: 1128条记录
+2025-04-12 22:32:51,547 - INFO - ETF价格数据表: 1128条记录
+2025-04-12 22:32:51,547 - INFO - ETF持有人数据表: 1120条记录
+2025-04-12 22:32:51,547 - INFO - ETF自选数据表: 1096条记录
+2025-04-12 22:32:51,547 - INFO - ETF商务协议数据表: 339条记录
+2025-04-12 22:52:24,247 - INFO - === 开始导入所有ETF数据 ===
+2025-04-12 22:52:24,249 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-12 22:52:24,249 - INFO - 开始导入ETF基本信息...
+2025-04-12 22:52:24,255 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:52:26,939 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-12 22:52:26,939 - INFO - 开始导入ETF价格数据...
+2025-04-12 22:52:26,939 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 22:52:27,437 - INFO - 成功导入ETF价格数据，共1128条记录
+2025-04-12 22:52:27,437 - INFO - 开始导入ETF持有人数据...
+2025-04-12 22:52:27,438 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-12 22:52:27,499 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-12 22:52:27,508 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 22:52:27,508 - INFO - 数据形状: (0, 1)
+2025-04-12 22:52:27,508 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 22:52:27,509 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-12 22:52:27,612 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-12 22:52:27,618 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-12 22:52:27,620 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-12 22:52:27,622 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value']
+2025-04-12 22:52:27,626 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value
+0  20250410  159001       货币ETF         54105.0            11     5410554.10
+1      None  159003     招商快线ETF           853.0             4       85300.00
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53
+2025-04-12 22:52:27,662 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-12 22:52:27,662 - INFO - 开始导入ETF自选数据...
+2025-04-12 22:52:27,663 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-12 22:52:27,689 - INFO - 文件中的工作表: ['客户ETF自选人数', '仪表板']
+2025-04-12 22:52:27,697 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 22:52:27,698 - INFO - 数据形状: (0, 1)
+2025-04-12 22:52:27,698 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 22:52:27,698 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-12 22:52:27,772 - INFO - 尝试读取工作表: 客户ETF自选人数
+2025-04-12 22:52:27,775 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '加自选人数')
+2025-04-12 22:52:27,776 - INFO - 成功读取数据，形状: (1114, 3)
+2025-04-12 22:52:27,777 - INFO - 处理后列名: ['数据截止日期', 'code', 'attention_count']
+2025-04-12 22:52:27,780 - INFO - 处理后数据前5行:
+     数据截止日期    code  attention_count
+0  20250410  159001              100
+1      None  159003               97
+2      None  159005               43
+3      None  159150              248
+4      None  159201              867
+2025-04-12 22:52:27,811 - INFO - 成功导入ETF自选数据，共1114条记录
+2025-04-12 22:52:27,811 - INFO - 开始导入ETF指数分类数据...
+2025-04-12 22:52:27,812 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-12 22:52:27,861 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-12 22:52:27,861 - INFO - 开始导入ETF商务协议数据...
+2025-04-12 22:52:27,863 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-12 22:52:27,958 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-12 22:52:27,959 - INFO - === ETF数据导入完成 ===
+2025-04-12 22:52:27,959 - INFO - ETF基本信息: 成功
+2025-04-12 22:52:27,959 - INFO - ETF价格数据: 成功
+2025-04-12 22:52:27,959 - INFO - ETF持有人数据: 成功
+2025-04-12 22:52:27,959 - INFO - ETF自选数据: 成功
+2025-04-12 22:52:27,959 - INFO - ETF指数分类数据: 成功
+2025-04-12 22:52:27,959 - INFO - ETF商务协议数据: 成功
+2025-04-12 22:52:27,960 - INFO - === 数据库记录统计 ===
+2025-04-12 22:52:27,960 - INFO - ETF基本信息表: 1128条记录
+2025-04-12 22:52:27,960 - INFO - ETF价格数据表: 1128条记录
+2025-04-12 22:52:27,960 - INFO - ETF持有人数据表: 1104条记录
+2025-04-12 22:52:27,960 - INFO - ETF自选数据表: 1114条记录
+2025-04-12 22:52:27,960 - INFO - ETF商务协议数据表: 339条记录
+2025-04-12 23:02:28,390 - INFO - === 开始导入所有ETF数据 ===
+2025-04-12 23:02:28,392 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-12 23:02:28,392 - INFO - 开始导入ETF基本信息...
+2025-04-12 23:02:28,395 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 23:02:31,585 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-12 23:02:31,586 - INFO - 开始导入ETF价格数据...
+2025-04-12 23:02:31,586 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 23:02:32,470 - INFO - 成功导入ETF价格数据，共1128条记录
+2025-04-12 23:02:32,472 - INFO - 开始导入ETF持有人数据...
+2025-04-12 23:02:32,479 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-12 23:02:32,571 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-12 23:02:32,583 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 23:02:32,583 - INFO - 数据形状: (0, 1)
+2025-04-12 23:02:32,584 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 23:02:32,584 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-12 23:02:32,721 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-12 23:02:32,727 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-12 23:02:32,733 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-12 23:02:32,735 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value']
+2025-04-12 23:02:32,742 - INFO - 处理后数据前5行:
+     数据截止日期  ... holding_value
+0  20250410  ...    5410554.10
+1      None  ...      85300.00
+2      None  ...     129998.70
+3      None  ...    1977585.17
+4      None  ...   25270498.53
+
+[5 rows x 6 columns]
+2025-04-12 23:02:32,778 - ERROR - 导入ETF持有人数据失败
+2025-04-12 23:02:32,778 - INFO - 开始导入ETF自选数据...
+2025-04-12 23:02:32,779 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-12 23:02:32,779 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-12 23:02:32,814 - INFO - 文件中的工作表: ['客户ETF自选人数', '仪表板']
+2025-04-12 23:02:32,823 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 23:02:32,823 - INFO - 数据形状: (0, 1)
+2025-04-12 23:02:32,824 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 23:02:32,824 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-12 23:02:32,921 - INFO - 尝试读取工作表: 客户ETF自选人数
+2025-04-12 23:02:32,925 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '加自选人数')
+2025-04-12 23:02:32,926 - INFO - 成功读取数据，形状: (1114, 3)
+2025-04-12 23:02:32,928 - INFO - 处理后列名: ['数据截止日期', 'code', 'attention_count', 'date']
+2025-04-12 23:02:32,932 - INFO - 处理后数据前5行:
+     数据截止日期  ...        date
+0  20250410  ...  2025-04-10
+1      None  ...  2025-04-10
+2      None  ...  2025-04-10
+3      None  ...  2025-04-10
+4      None  ...  2025-04-10
+
+[5 rows x 4 columns]
+2025-04-12 23:02:32,956 - ERROR - 导入ETF自选数据失败
+2025-04-12 23:02:32,956 - INFO - 开始导入ETF指数分类数据...
+2025-04-12 23:02:32,959 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-12 23:02:33,014 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-12 23:02:33,014 - INFO - 开始导入ETF商务协议数据...
+2025-04-12 23:02:33,018 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-12 23:02:33,124 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-12 23:02:33,124 - INFO - === ETF数据导入完成 ===
+2025-04-12 23:02:33,124 - INFO - ETF基本信息: 成功
+2025-04-12 23:02:33,124 - INFO - ETF价格数据: 成功
+2025-04-12 23:02:33,124 - INFO - ETF持有人数据: 失败
+2025-04-12 23:02:33,124 - INFO - ETF自选数据: 失败
+2025-04-12 23:02:33,124 - INFO - ETF指数分类数据: 成功
+2025-04-12 23:02:33,125 - INFO - ETF商务协议数据: 成功
+2025-04-12 23:02:33,125 - INFO - === 数据库记录统计 ===
+2025-04-12 23:02:33,125 - INFO - ETF基本信息表: 1128条记录
+2025-04-12 23:02:33,125 - INFO - ETF价格数据表: 1128条记录
+2025-04-12 23:02:33,125 - INFO - ETF持有人数据表: 1104条记录
+2025-04-12 23:02:33,125 - INFO - ETF自选数据表: 1114条记录
+2025-04-12 23:02:33,125 - INFO - ETF商务协议数据表: 339条记录
+2025-04-12 23:04:57,088 - INFO - === 开始导入所有ETF数据 ===
+2025-04-12 23:04:57,093 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-12 23:04:57,094 - INFO - 开始导入ETF基本信息...
+2025-04-12 23:04:57,099 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 23:04:57,885 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-12 23:04:57,885 - INFO - 开始导入ETF价格数据...
+2025-04-12 23:04:57,885 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-12 23:04:58,376 - INFO - 成功导入ETF价格数据，共1128条记录
+2025-04-12 23:04:58,376 - INFO - 开始导入ETF持有人数据...
+2025-04-12 23:04:58,377 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-12 23:04:58,377 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-12 23:04:58,439 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-12 23:04:58,449 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 23:04:58,449 - INFO - 数据形状: (0, 1)
+2025-04-12 23:04:58,449 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 23:04:58,449 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-12 23:04:58,557 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-12 23:04:58,562 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-12 23:04:58,565 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-12 23:04:58,567 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value', 'date']
+2025-04-12 23:04:58,572 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value        date
+0  20250410  159001       货币ETF         54105.0            11     5410554.10  2025-04-10
+1      None  159003     招商快线ETF           853.0             4       85300.00  2025-04-10
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70  2025-04-10
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17  2025-04-10
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53  2025-04-10
+2025-04-12 23:04:58,624 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-12 23:04:58,624 - INFO - 开始导入ETF自选数据...
+2025-04-12 23:04:58,625 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-12 23:04:58,625 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-12 23:04:58,652 - INFO - 文件中的工作表: ['客户ETF自选人数', '仪表板']
+2025-04-12 23:04:58,660 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 23:04:58,660 - INFO - 数据形状: (0, 1)
+2025-04-12 23:04:58,660 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 23:04:58,660 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-12 23:04:58,734 - INFO - 尝试读取工作表: 客户ETF自选人数
+2025-04-12 23:04:58,737 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '加自选人数')
+2025-04-12 23:04:58,738 - INFO - 成功读取数据，形状: (1114, 3)
+2025-04-12 23:04:58,740 - INFO - 处理后列名: ['数据截止日期', 'code', 'attention_count', 'date']
+2025-04-12 23:04:58,743 - INFO - 处理后数据前5行:
+     数据截止日期    code  attention_count        date
+0  20250410  159001              100  2025-04-10
+1      None  159003               97  2025-04-10
+2      None  159005               43  2025-04-10
+3      None  159150              248  2025-04-10
+4      None  159201              867  2025-04-10
+2025-04-12 23:04:58,781 - INFO - 成功导入ETF自选数据，共1114条记录
+2025-04-12 23:04:58,781 - INFO - 开始导入ETF指数分类数据...
+2025-04-12 23:04:58,783 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-12 23:04:58,831 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-12 23:04:58,831 - INFO - 开始导入ETF商务协议数据...
+2025-04-12 23:04:58,833 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-12 23:04:58,927 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-12 23:04:58,927 - INFO - === ETF数据导入完成 ===
+2025-04-12 23:04:58,927 - INFO - ETF基本信息: 成功
+2025-04-12 23:04:58,927 - INFO - ETF价格数据: 成功
+2025-04-12 23:04:58,928 - INFO - ETF持有人数据: 成功
+2025-04-12 23:04:58,928 - INFO - ETF自选数据: 成功
+2025-04-12 23:04:58,928 - INFO - ETF指数分类数据: 成功
+2025-04-12 23:04:58,928 - INFO - ETF商务协议数据: 成功
+2025-04-12 23:04:58,928 - INFO - === 数据库记录统计 ===
+2025-04-12 23:04:58,928 - INFO - ETF基本信息表: 1128条记录
+2025-04-12 23:04:58,928 - INFO - ETF价格数据表: 1128条记录
+2025-04-12 23:04:58,929 - INFO - ETF持有人数据表: 1104条记录
+2025-04-12 23:04:58,929 - INFO - ETF自选数据表: 1114条记录
+2025-04-12 23:04:58,929 - INFO - ETF商务协议数据表: 339条记录
+2025-04-12 23:18:45,398 - INFO - 开始导入ETF持有人数据...
+2025-04-12 23:18:45,399 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-12 23:18:45,399 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-12 23:18:45,475 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-12 23:18:45,637 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 23:18:45,638 - INFO - 数据形状: (0, 1)
+2025-04-12 23:18:45,638 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 23:18:45,638 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-12 23:18:45,748 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-12 23:18:45,754 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-12 23:18:45,757 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-12 23:18:45,761 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value', 'date']
+2025-04-12 23:18:45,768 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value        date
+0  20250410  159001       货币ETF         54105.0            11     5410554.10  2025-04-10
+1      None  159003     招商快线ETF           853.0             4       85300.00  2025-04-10
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70  2025-04-10
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17  2025-04-10
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53  2025-04-10
+2025-04-12 23:18:45,827 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-12 23:18:55,146 - INFO - 开始导入ETF自选数据...
+2025-04-12 23:18:55,147 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-12 23:18:55,147 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-12 23:18:55,191 - INFO - 文件中的工作表: ['客户ETF自选人数', '仪表板']
+2025-04-12 23:18:55,350 - INFO - 原始列名: ['数据截止日期']
+2025-04-12 23:18:55,350 - INFO - 数据形状: (0, 1)
+2025-04-12 23:18:55,351 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-12 23:18:55,351 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-12 23:18:55,425 - INFO - 尝试读取工作表: 客户ETF自选人数
+2025-04-12 23:18:55,428 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '加自选人数')
+2025-04-12 23:18:55,431 - INFO - 成功读取数据，形状: (1114, 3)
+2025-04-12 23:18:55,436 - INFO - 处理后列名: ['数据截止日期', 'code', 'attention_count', 'date']
+2025-04-12 23:18:55,441 - INFO - 处理后数据前5行:
+     数据截止日期    code  attention_count        date
+0  20250410  159001              100  2025-04-10
+1      None  159003               97  2025-04-10
+2      None  159005               43  2025-04-10
+3      None  159150              248  2025-04-10
+4      None  159201              867  2025-04-10
+2025-04-12 23:18:55,492 - INFO - 成功导入ETF自选数据，共1114条记录
+2025-04-13 00:30:14,712 - INFO - === 开始导入所有ETF数据 ===
+2025-04-13 00:30:14,727 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-13 00:30:14,727 - INFO - 开始导入ETF基本信息...
+2025-04-13 00:30:14,741 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-13 00:30:14,741 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:30:17,713 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-13 00:30:17,713 - INFO - 开始导入ETF价格数据...
+2025-04-13 00:30:17,714 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-13 00:30:17,714 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:30:18,204 - ERROR - ETF价格数据文件缺少以下列: ['最新价', '涨跌幅', '成交量', '成交额']
+2025-04-13 00:30:18,204 - INFO - 开始导入ETF持有人数据...
+2025-04-13 00:30:18,205 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-13 00:30:18,205 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:30:18,266 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-13 00:30:18,275 - INFO - 原始列名: ['数据截止日期']
+2025-04-13 00:30:18,275 - INFO - 数据形状: (0, 1)
+2025-04-13 00:30:18,275 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-13 00:30:18,275 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-13 00:30:18,380 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-13 00:30:18,386 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-13 00:30:18,388 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-13 00:30:18,390 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value', 'date']
+2025-04-13 00:30:18,396 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value        date
+0  20250410  159001       货币ETF         54105.0            11     5410554.10  2025-04-10
+1      None  159003     招商快线ETF           853.0             4       85300.00  2025-04-10
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70  2025-04-10
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17  2025-04-10
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53  2025-04-10
+2025-04-13 00:30:18,449 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-13 00:30:18,450 - INFO - 开始导入ETF自选数据...
+2025-04-13 00:30:18,450 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-13 00:30:18,450 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:30:18,459 - INFO - 原始列名: ['数据截止日期']
+2025-04-13 00:30:18,460 - INFO - 数据形状: (0, 1)
+2025-04-13 00:30:18,460 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-13 00:30:18,460 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-13 00:30:18,460 - INFO - 开始导入ETF指数分类数据...
+2025-04-13 00:30:18,461 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-13 00:30:18,511 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-13 00:30:18,512 - INFO - 开始导入ETF商务协议数据...
+2025-04-13 00:30:18,513 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-13 00:30:18,626 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-13 00:30:18,627 - INFO - 开始导入ETF规模数据到历史表...
+2025-04-13 00:30:18,627 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-13 00:30:18,627 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:30:19,103 - INFO - 使用列: 代码=证券代码, 规模=基金规模(合计)
+[交易日期] S_cal_date(now(),0,D,0)
+[单位] 亿元
+2025-04-13 00:30:19,165 - INFO - 成功导入 1126 条 2025-04-10 的ETF规模历史数据
+2025-04-13 00:30:19,165 - INFO - === ETF数据导入完成 ===
+2025-04-13 00:30:19,165 - INFO - ETF基本信息: 成功
+2025-04-13 00:30:19,165 - INFO - ETF价格数据: 失败
+2025-04-13 00:30:19,165 - INFO - ETF持有人数据: 成功
+2025-04-13 00:30:19,165 - INFO - ETF自选数据: 失败
+2025-04-13 00:30:19,165 - INFO - ETF指数分类数据: 成功
+2025-04-13 00:30:19,165 - INFO - ETF商务协议数据: 成功
+2025-04-13 00:30:19,165 - INFO - ETF规模数据: 成功
+2025-04-13 00:30:19,166 - INFO - === 数据库记录统计 ===
+2025-04-13 00:30:19,166 - INFO - ETF基本信息表: 1128条记录
+2025-04-13 00:30:19,166 - INFO - ETF价格数据表: 1128条记录
+2025-04-13 00:30:19,166 - INFO - ETF持有人数据表: 1104条记录
+2025-04-13 00:30:19,166 - INFO - ETF自选数据表: 1114条记录
+2025-04-13 00:30:19,166 - INFO - ETF商务协议数据表: 339条记录
+2025-04-13 00:32:13,810 - INFO - === 开始导入所有ETF数据 ===
+2025-04-13 00:32:13,813 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-13 00:32:13,813 - INFO - 开始导入ETF基本信息...
+2025-04-13 00:32:13,817 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-13 00:32:13,818 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:32:14,568 - INFO - 成功导入ETF基本信息，共1128条记录
+2025-04-13 00:32:14,568 - INFO - 开始导入ETF价格数据...
+2025-04-13 00:32:14,568 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-13 00:32:14,568 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:32:15,359 - ERROR - ETF价格数据文件缺少以下列: ['最新价', '涨跌幅', '成交量', '成交额']
+2025-04-13 00:32:15,359 - INFO - 开始导入ETF持有人数据...
+2025-04-13 00:32:15,360 - INFO - 使用文件: data/客户ETF保有量20250410.xlsx
+2025-04-13 00:32:15,360 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:32:15,428 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-13 00:32:15,443 - INFO - 原始列名: ['数据截止日期']
+2025-04-13 00:32:15,443 - INFO - 数据形状: (0, 1)
+2025-04-13 00:32:15,446 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-13 00:32:15,446 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-13 00:32:15,566 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-13 00:32:15,572 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-13 00:32:15,575 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-13 00:32:15,577 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value', 'date']
+2025-04-13 00:32:15,582 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value        date
+0  20250410  159001       货币ETF         54105.0            11     5410554.10  2025-04-10
+1      None  159003     招商快线ETF           853.0             4       85300.00  2025-04-10
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70  2025-04-10
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17  2025-04-10
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53  2025-04-10
+2025-04-13 00:32:15,635 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-13 00:32:15,635 - INFO - 开始导入ETF自选数据...
+2025-04-13 00:32:15,636 - INFO - 使用文件: data/客户ETF自选人数20250410.xlsx
+2025-04-13 00:32:15,636 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:32:15,646 - INFO - 原始列名: ['数据截止日期']
+2025-04-13 00:32:15,646 - INFO - 数据形状: (0, 1)
+2025-04-13 00:32:15,647 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-13 00:32:15,647 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-13 00:32:15,647 - INFO - 开始导入ETF指数分类数据...
+2025-04-13 00:32:15,653 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-13 00:32:15,908 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-13 00:32:15,910 - INFO - 开始导入ETF商务协议数据...
+2025-04-13 00:32:15,944 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-13 00:32:16,134 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-13 00:32:16,135 - INFO - 开始导入ETF规模数据到历史表...
+2025-04-13 00:32:16,136 - INFO - 使用文件: data/ETF_DATA_20250410.xlsx
+2025-04-13 00:32:16,136 - INFO - 从文件名中提取的日期: 2025-04-10
+2025-04-13 00:32:16,142 - INFO - 日期 2025-04-10 的ETF规模历史数据已存在，跳过导入
+2025-04-13 00:32:16,143 - INFO - === ETF数据导入完成 ===
+2025-04-13 00:32:16,143 - INFO - ETF基本信息: 成功
+2025-04-13 00:32:16,143 - INFO - ETF价格数据: 失败
+2025-04-13 00:32:16,143 - INFO - ETF持有人数据: 成功
+2025-04-13 00:32:16,143 - INFO - ETF自选数据: 失败
+2025-04-13 00:32:16,143 - INFO - ETF指数分类数据: 成功
+2025-04-13 00:32:16,143 - INFO - ETF商务协议数据: 成功
+2025-04-13 00:32:16,143 - INFO - ETF规模数据: 成功
+2025-04-13 00:32:16,144 - INFO - === 数据库记录统计 ===
+2025-04-13 00:32:16,144 - INFO - ETF基本信息表: 1128条记录
+2025-04-13 00:32:16,144 - INFO - ETF价格数据表: 1128条记录
+2025-04-13 00:32:16,144 - INFO - ETF持有人数据表: 1104条记录
+2025-04-13 00:32:16,144 - INFO - ETF自选数据表: 1114条记录
+2025-04-13 00:32:16,144 - INFO - ETF商务协议数据表: 339条记录
+2025-04-14 10:09:31,455 - INFO - === 开始导入所有ETF数据 ===
+2025-04-14 10:09:31,493 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-14 10:09:31,493 - INFO - 开始导入ETF基本信息...
+2025-04-14 10:09:31,499 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:09:31,499 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:09:32,297 - INFO - 成功导入ETF基本信息，共1132条记录
+2025-04-14 10:09:32,297 - INFO - 开始导入ETF价格数据...
+2025-04-14 10:09:32,297 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:09:32,297 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:09:32,872 - ERROR - ETF价格数据文件缺少以下列: ['最新价', '涨跌幅', '成交量', '成交额']
+2025-04-14 10:09:32,872 - INFO - 开始导入ETF持有人数据...
+2025-04-14 10:09:32,873 - INFO - 使用文件: data/客户ETF保有量20250411.xlsx
+2025-04-14 10:09:32,873 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:09:32,930 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-14 10:09:32,941 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:09:32,941 - INFO - 数据形状: (0, 1)
+2025-04-14 10:09:32,941 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:09:32,941 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-14 10:09:33,042 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-14 10:09:33,049 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-14 10:09:33,050 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-14 10:09:33,052 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value', 'date']
+2025-04-14 10:09:33,059 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value        date
+0  20250410  159001       货币ETF         54105.0            11     5410554.10  2025-04-11
+1      None  159003     招商快线ETF           853.0             4       85300.00  2025-04-11
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70  2025-04-11
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17  2025-04-11
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53  2025-04-11
+2025-04-14 10:09:33,116 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-14 10:09:33,116 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:09:33,116 - INFO - 使用文件: data/客户ETF自选人数20250411.xlsx
+2025-04-14 10:09:33,116 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:09:33,126 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:09:33,127 - INFO - 数据形状: (0, 1)
+2025-04-14 10:09:33,127 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:09:33,127 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-14 10:09:33,127 - INFO - 开始导入ETF指数分类数据...
+2025-04-14 10:09:33,128 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-14 10:09:33,192 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-14 10:09:33,192 - INFO - 开始导入ETF商务协议数据...
+2025-04-14 10:09:33,193 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-14 10:09:33,290 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-14 10:09:33,291 - INFO - 开始导入ETF规模数据到历史表...
+2025-04-14 10:09:33,291 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:09:33,291 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:09:33,774 - INFO - 使用列: 代码=证券代码, 规模=基金规模(合计)
+[交易日期] S_cal_date(now(),0,D,0)
+[单位] 亿元
+2025-04-14 10:09:33,836 - INFO - 成功导入 1130 条 2025-04-11 的ETF规模历史数据
+2025-04-14 10:09:33,837 - INFO - === ETF数据导入完成 ===
+2025-04-14 10:09:33,837 - INFO - ETF基本信息: 成功
+2025-04-14 10:09:33,837 - INFO - ETF价格数据: 失败
+2025-04-14 10:09:33,837 - INFO - ETF持有人数据: 成功
+2025-04-14 10:09:33,837 - INFO - ETF自选数据: 失败
+2025-04-14 10:09:33,837 - INFO - ETF指数分类数据: 成功
+2025-04-14 10:09:33,837 - INFO - ETF商务协议数据: 成功
+2025-04-14 10:09:33,837 - INFO - ETF规模数据: 成功
+2025-04-14 10:09:33,837 - INFO - === 数据库记录统计 ===
+2025-04-14 10:09:33,837 - INFO - ETF基本信息表: 1132条记录
+2025-04-14 10:09:33,837 - INFO - ETF价格数据表: 1128条记录
+2025-04-14 10:09:33,837 - INFO - ETF持有人数据表: 1104条记录
+2025-04-14 10:09:33,837 - INFO - ETF自选数据表: 1114条记录
+2025-04-14 10:09:33,838 - INFO - ETF商务协议数据表: 339条记录
+2025-04-14 10:12:31,190 - INFO - === 开始导入所有ETF数据 ===
+2025-04-14 10:12:31,193 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-14 10:12:31,193 - INFO - 开始导入ETF基本信息...
+2025-04-14 10:12:31,197 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:12:31,197 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:12:32,007 - INFO - 成功导入ETF基本信息，共1132条记录
+2025-04-14 10:12:32,007 - INFO - 开始导入ETF价格数据...
+2025-04-14 10:12:32,007 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:12:32,007 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:12:32,522 - ERROR - ETF价格数据文件缺少以下列: ['最新价', '涨跌幅', '成交量', '成交额']
+2025-04-14 10:12:32,522 - INFO - 开始导入ETF持有人数据...
+2025-04-14 10:12:32,523 - INFO - 使用文件: data/客户ETF保有量20250411.xlsx
+2025-04-14 10:12:32,523 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:12:32,585 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-14 10:12:32,595 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:12:32,595 - INFO - 数据形状: (0, 1)
+2025-04-14 10:12:32,596 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:12:32,596 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-14 10:12:32,709 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-14 10:12:32,715 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-14 10:12:32,716 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-14 10:12:32,719 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value', 'date']
+2025-04-14 10:12:32,728 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value        date
+0  20250410  159001       货币ETF         54105.0            11     5410554.10  2025-04-11
+1      None  159003     招商快线ETF           853.0             4       85300.00  2025-04-11
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70  2025-04-11
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17  2025-04-11
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53  2025-04-11
+2025-04-14 10:12:32,783 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-14 10:12:32,784 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:12:32,784 - INFO - 使用文件: data/客户ETF自选人数20250411.xlsx
+2025-04-14 10:12:32,784 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:12:32,795 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:12:32,795 - INFO - 数据形状: (0, 1)
+2025-04-14 10:12:32,796 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:12:32,796 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-14 10:12:32,796 - INFO - 开始导入ETF指数分类数据...
+2025-04-14 10:12:32,796 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-14 10:12:32,855 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-14 10:12:32,855 - INFO - 开始导入ETF商务协议数据...
+2025-04-14 10:12:32,856 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-14 10:12:32,975 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-14 10:12:32,975 - INFO - 开始导入ETF规模数据到历史表...
+2025-04-14 10:12:32,976 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:12:32,977 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:12:32,980 - INFO - 日期 2025-04-11 的ETF规模历史数据已存在，跳过导入
+2025-04-14 10:12:32,980 - INFO - === ETF数据导入完成 ===
+2025-04-14 10:12:32,980 - INFO - ETF基本信息: 成功
+2025-04-14 10:12:32,981 - INFO - ETF价格数据: 失败
+2025-04-14 10:12:32,981 - INFO - ETF持有人数据: 成功
+2025-04-14 10:12:32,981 - INFO - ETF自选数据: 失败
+2025-04-14 10:12:32,981 - INFO - ETF指数分类数据: 成功
+2025-04-14 10:12:32,981 - INFO - ETF商务协议数据: 成功
+2025-04-14 10:12:32,981 - INFO - ETF规模数据: 成功
+2025-04-14 10:12:32,981 - INFO - === 数据库记录统计 ===
+2025-04-14 10:12:32,981 - INFO - ETF基本信息表: 1132条记录
+2025-04-14 10:12:32,981 - INFO - ETF价格数据表: 1128条记录
+2025-04-14 10:12:32,981 - INFO - ETF持有人数据表: 1104条记录
+2025-04-14 10:12:32,982 - INFO - ETF自选数据表: 1114条记录
+2025-04-14 10:12:32,982 - INFO - ETF商务协议数据表: 339条记录
+2025-04-14 10:15:14,803 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:15:14,804 - INFO - 使用文件: data/客户ETF自选人数20250411.xlsx
+2025-04-14 10:15:14,804 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:15:14,962 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:15:14,962 - INFO - 数据形状: (0, 1)
+2025-04-14 10:15:14,962 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:15:14,963 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-14 10:16:30,180 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:16:30,181 - INFO - 使用文件: data/客户ETF自选人数20250411.xlsx
+2025-04-14 10:16:30,181 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:16:30,372 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:16:30,372 - INFO - 数据形状: (0, 1)
+2025-04-14 10:16:30,373 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:16:30,374 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-14 10:17:34,118 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:17:34,119 - INFO - 使用文件: data/客户ETF自选人数20250411.xlsx
+2025-04-14 10:17:34,120 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:17:34,120 - INFO - 读取Excel文件
+2025-04-14 10:17:34,281 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:17:34,281 - INFO - 数据形状: (0, 1)
+2025-04-14 10:17:34,282 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:17:34,283 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-14 10:18:46,010 - INFO - 使用测试数据模式
+2025-04-14 10:18:46,011 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:18:46,011 - INFO - 使用测试文件: test/test_attention.csv
+2025-04-14 10:18:46,011 - INFO - 使用文件: test/test_attention.csv
+2025-04-14 10:18:46,011 - WARNING - 无法从文件名中提取日期，使用当前日期: 2025-04-14
+2025-04-14 10:18:46,011 - INFO - 读取CSV文件
+2025-04-14 10:18:46,019 - INFO - 原始列名: ['标的代码', '加自选人数']
+2025-04-14 10:18:46,019 - INFO - 数据形状: (2, 2)
+2025-04-14 10:18:46,026 - INFO - 数据前5行:
+     标的代码  加自选人数
+0  510050   1234
+1  159915   5678
+2025-04-14 10:18:46,028 - INFO - 处理后列名: ['code', 'attention_count', 'date']
+2025-04-14 10:18:46,031 - INFO - 处理后数据前5行:
+     code  attention_count        date
+0  510050             1234  2025-04-14
+1  159915             5678  2025-04-14
+2025-04-14 10:18:46,087 - INFO - 成功导入ETF自选数据，共2条记录
+2025-04-14 10:18:46,088 - INFO - 导入完成，成功 1/1 个任务
+2025-04-14 10:19:31,452 - INFO - === 开始导入所有ETF数据 ===
+2025-04-14 10:19:31,488 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-14 10:19:31,488 - INFO - 开始导入ETF基本信息...
+2025-04-14 10:19:31,493 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:19:31,493 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:19:32,223 - INFO - 成功导入ETF基本信息，共1132条记录
+2025-04-14 10:19:32,223 - INFO - 开始导入ETF价格数据...
+2025-04-14 10:19:32,224 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:19:32,224 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:19:32,776 - ERROR - ETF价格数据文件缺少以下列: ['最新价', '涨跌幅', '成交量', '成交额']
+2025-04-14 10:19:32,776 - INFO - 开始导入ETF持有人数据...
+2025-04-14 10:19:32,776 - INFO - 使用文件: data/客户ETF保有量20250411.xlsx
+2025-04-14 10:19:32,776 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:19:32,830 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-14 10:19:32,838 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:19:32,838 - INFO - 数据形状: (0, 1)
+2025-04-14 10:19:32,839 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:19:32,839 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-14 10:19:32,940 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-14 10:19:32,945 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-14 10:19:32,947 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-14 10:19:32,949 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value', 'date']
+2025-04-14 10:19:32,954 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value        date
+0  20250410  159001       货币ETF         54105.0            11     5410554.10  2025-04-11
+1      None  159003     招商快线ETF           853.0             4       85300.00  2025-04-11
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70  2025-04-11
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17  2025-04-11
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53  2025-04-11
+2025-04-14 10:19:33,012 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-14 10:19:33,012 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:19:33,017 - INFO - 使用文件: data/客户ETF自选人数20250411.xlsx
+2025-04-14 10:19:33,017 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:19:33,027 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:19:33,027 - INFO - 数据形状: (0, 1)
+2025-04-14 10:19:33,027 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:19:33,027 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-14 10:19:33,027 - INFO - 开始导入ETF指数分类数据...
+2025-04-14 10:19:33,028 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-14 10:19:33,094 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-14 10:19:33,094 - INFO - 开始导入ETF商务协议数据...
+2025-04-14 10:19:33,095 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-14 10:19:33,193 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-14 10:19:33,193 - INFO - 开始导入ETF规模数据到历史表...
+2025-04-14 10:19:33,193 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:19:33,193 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:19:33,198 - INFO - 日期 2025-04-11 的ETF规模历史数据已存在，跳过导入
+2025-04-14 10:19:33,198 - INFO - === ETF数据导入完成 ===
+2025-04-14 10:19:33,198 - INFO - ETF基本信息: 成功
+2025-04-14 10:19:33,198 - INFO - ETF价格数据: 失败
+2025-04-14 10:19:33,198 - INFO - ETF持有人数据: 成功
+2025-04-14 10:19:33,198 - INFO - ETF自选数据: 失败
+2025-04-14 10:19:33,198 - INFO - ETF指数分类数据: 成功
+2025-04-14 10:19:33,199 - INFO - ETF商务协议数据: 成功
+2025-04-14 10:19:33,199 - INFO - ETF规模数据: 成功
+2025-04-14 10:19:33,199 - INFO - === 数据库记录统计 ===
+2025-04-14 10:19:33,199 - INFO - ETF基本信息表: 1132条记录
+2025-04-14 10:19:33,200 - INFO - ETF价格数据表: 1128条记录
+2025-04-14 10:19:33,200 - INFO - ETF持有人数据表: 1104条记录
+2025-04-14 10:19:33,200 - INFO - ETF自选数据表: 2条记录
+2025-04-14 10:19:33,200 - INFO - ETF商务协议数据表: 339条记录
+2025-04-14 10:40:24,227 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:40:24,228 - INFO - 使用文件: data/客户ETF自选人数20250411.xlsx
+2025-04-14 10:40:24,228 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:40:24,394 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:40:24,394 - INFO - 数据形状: (0, 1)
+2025-04-14 10:40:24,395 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:40:24,396 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-14 10:42:05,249 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:42:05,250 - INFO - 使用文件: data/客户ETF自选人数20250411.xlsx
+2025-04-14 10:42:05,250 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:42:05,411 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:42:05,411 - INFO - 数据形状: (0, 1)
+2025-04-14 10:42:05,412 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:42:05,413 - ERROR - ETF自选数据文件缺少以下列: ['标的代码', '加自选人数']
+2025-04-14 10:49:35,074 - INFO - 开始导入ETF规模数据到历史表...
+2025-04-14 10:49:35,078 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:49:35,078 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:49:35,103 - INFO - 日期 2025-04-11 的ETF规模历史数据已存在，跳过导入
+2025-04-14 10:51:00,435 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:51:00,436 - INFO - 使用文件: data/客户ETF自选人数20250411_restore.xlsx
+2025-04-14 10:51:00,437 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:51:00,483 - INFO - 文件中的工作表: ['客户ETF自选人数', '仪表板']
+2025-04-14 10:51:00,653 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:51:00,653 - INFO - 数据形状: (0, 1)
+2025-04-14 10:51:00,654 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:51:00,654 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-14 10:51:00,726 - INFO - 尝试读取工作表: 客户ETF自选人数
+2025-04-14 10:51:00,730 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '加自选人数')
+2025-04-14 10:51:00,733 - INFO - 成功读取数据，形状: (1113, 3)
+2025-04-14 10:51:00,733 - INFO - 标准化后列名: ['数据截止日期', '标的代码', '加自选人数']
+2025-04-14 10:51:00,733 - INFO - 找到的代码列: ['标的代码']
+2025-04-14 10:51:00,733 - INFO - 找到的自选列: ['加自选人数']
+2025-04-14 10:51:00,737 - INFO - 处理后列名: ['数据截止日期', 'code', 'attention_count', 'date']
+2025-04-14 10:51:00,742 - INFO - 处理后数据前5行:
+     数据截止日期    code  attention_count        date
+0  20250409  159001              100  2025-04-11
+1      None  159003               97  2025-04-11
+2      None  159005               42  2025-04-11
+3      None  159150              250  2025-04-11
+4      None  159201              853  2025-04-11
+2025-04-14 10:51:00,807 - INFO - 成功导入ETF自选数据，共1113条记录
+2025-04-14 10:52:47,115 - INFO - === 开始导入所有ETF数据 ===
+2025-04-14 10:52:47,116 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-14 10:52:47,116 - INFO - 开始导入ETF基本信息...
+2025-04-14 10:52:47,118 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:52:47,118 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:52:47,934 - INFO - 成功导入ETF基本信息，共1132条记录
+2025-04-14 10:52:47,934 - INFO - 开始导入ETF价格数据...
+2025-04-14 10:52:47,935 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:52:47,935 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:52:48,463 - ERROR - ETF价格数据文件缺少以下列: ['最新价', '涨跌幅', '成交量', '成交额']
+2025-04-14 10:52:48,463 - INFO - 开始导入ETF持有人数据...
+2025-04-14 10:52:48,464 - INFO - 使用文件: data/客户ETF保有量20250411.xlsx
+2025-04-14 10:52:48,464 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:52:48,527 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-14 10:52:48,536 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:52:48,536 - INFO - 数据形状: (0, 1)
+2025-04-14 10:52:48,536 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:52:48,537 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-14 10:52:48,649 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-14 10:52:48,655 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-14 10:52:48,657 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-14 10:52:48,659 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value', 'date']
+2025-04-14 10:52:48,666 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value        date
+0  20250410  159001       货币ETF         54105.0            11     5410554.10  2025-04-11
+1      None  159003     招商快线ETF           853.0             4       85300.00  2025-04-11
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70  2025-04-11
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17  2025-04-11
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53  2025-04-11
+2025-04-14 10:52:48,725 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-14 10:52:48,726 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:52:48,726 - INFO - 使用文件: data/客户ETF自选人数20250411_restore.xlsx
+2025-04-14 10:52:48,726 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:52:48,757 - INFO - 文件中的工作表: ['客户ETF自选人数', '仪表板']
+2025-04-14 10:52:48,769 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:52:48,769 - INFO - 数据形状: (0, 1)
+2025-04-14 10:52:48,769 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:52:48,769 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-14 10:52:48,849 - INFO - 尝试读取工作表: 客户ETF自选人数
+2025-04-14 10:52:48,853 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '加自选人数')
+2025-04-14 10:52:48,853 - INFO - 成功读取数据，形状: (1113, 3)
+2025-04-14 10:52:48,853 - INFO - 标准化后列名: ['数据截止日期', '标的代码', '加自选人数']
+2025-04-14 10:52:48,853 - INFO - 找到的代码列: ['标的代码']
+2025-04-14 10:52:48,854 - INFO - 找到的自选列: ['加自选人数']
+2025-04-14 10:52:48,855 - INFO - 处理后列名: ['数据截止日期', 'code', 'attention_count', 'date']
+2025-04-14 10:52:48,859 - INFO - 处理后数据前5行:
+     数据截止日期    code  attention_count        date
+0  20250409  159001              100  2025-04-11
+1      None  159003               97  2025-04-11
+2      None  159005               42  2025-04-11
+3      None  159150              250  2025-04-11
+4      None  159201              853  2025-04-11
+2025-04-14 10:52:48,900 - INFO - 成功导入ETF自选数据，共1113条记录
+2025-04-14 10:52:48,900 - INFO - 开始导入ETF指数分类数据...
+2025-04-14 10:52:48,900 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-14 10:52:48,953 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-14 10:52:48,953 - INFO - 开始导入ETF商务协议数据...
+2025-04-14 10:52:48,953 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-14 10:52:49,061 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-14 10:52:49,061 - INFO - 开始导入ETF规模数据到历史表...
+2025-04-14 10:52:49,061 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:52:49,061 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:52:49,067 - INFO - 日期 2025-04-11 的ETF规模历史数据已存在，跳过导入
+2025-04-14 10:52:49,067 - INFO - === ETF数据导入完成 ===
+2025-04-14 10:52:49,067 - INFO - ETF基本信息: 成功
+2025-04-14 10:52:49,067 - INFO - ETF价格数据: 失败
+2025-04-14 10:52:49,067 - INFO - ETF持有人数据: 成功
+2025-04-14 10:52:49,067 - INFO - ETF自选数据: 成功
+2025-04-14 10:52:49,067 - INFO - ETF指数分类数据: 成功
+2025-04-14 10:52:49,067 - INFO - ETF商务协议数据: 成功
+2025-04-14 10:52:49,068 - INFO - ETF规模数据: 成功
+2025-04-14 10:52:49,068 - INFO - === 数据库记录统计 ===
+2025-04-14 10:52:49,068 - INFO - ETF基本信息表: 1132条记录
+2025-04-14 10:52:49,068 - INFO - ETF价格数据表: 1128条记录
+2025-04-14 10:52:49,068 - INFO - ETF持有人数据表: 1104条记录
+2025-04-14 10:52:49,068 - INFO - ETF自选数据表: 1113条记录
+2025-04-14 10:52:49,068 - INFO - ETF商务协议数据表: 339条记录
+2025-04-14 10:55:02,137 - INFO - === 开始导入所有ETF数据 ===
+2025-04-14 10:55:02,140 - INFO - 列名映射已保存到: data/etf_column_names.json
+2025-04-14 10:55:02,140 - INFO - 开始导入ETF基本信息...
+2025-04-14 10:55:02,142 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:55:02,143 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:55:02,927 - INFO - 成功导入ETF基本信息，共1132条记录
+2025-04-14 10:55:02,928 - INFO - 开始导入ETF价格数据...
+2025-04-14 10:55:02,928 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:55:02,928 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:55:03,429 - ERROR - ETF价格数据文件缺少以下列: ['最新价', '涨跌幅', '成交量', '成交额']
+2025-04-14 10:55:03,430 - INFO - 开始导入ETF持有人数据...
+2025-04-14 10:55:03,430 - INFO - 使用文件: data/客户ETF保有量20250411.xlsx
+2025-04-14 10:55:03,430 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:55:03,491 - INFO - 文件中的工作表: ['客户ETF保有量', '仪表板']
+2025-04-14 10:55:03,500 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:55:03,500 - INFO - 数据形状: (0, 1)
+2025-04-14 10:55:03,501 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:55:03,501 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-14 10:55:03,608 - INFO - 尝试读取工作表: 客户ETF保有量
+2025-04-14 10:55:03,613 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '标的名称', '持仓份额', '持仓客户数', '持仓市值')
+2025-04-14 10:55:03,616 - INFO - 成功读取数据，形状: (1104, 6)
+2025-04-14 10:55:03,618 - INFO - 处理后列名: ['数据截止日期', 'code', '标的名称', 'holding_amount', 'holder_count', 'holding_value', 'date']
+2025-04-14 10:55:03,624 - INFO - 处理后数据前5行:
+     数据截止日期    code        标的名称  holding_amount  holder_count  holding_value        date
+0  20250410  159001       货币ETF         54105.0            11     5410554.10  2025-04-11
+1      None  159003     招商快线ETF           853.0             4       85300.00  2025-04-11
+2      None  159005    汇添富快钱ETF          1300.0            12      129998.70  2025-04-11
+3      None  159150  深证50ETF易方达       1804366.0            37     1977585.17  2025-04-11
+4      None  159201    自由现金流ETF      26854940.0           560    25270498.53  2025-04-11
+2025-04-14 10:55:03,679 - INFO - 成功导入ETF持有人数据，共1104条记录
+2025-04-14 10:55:03,679 - INFO - 开始导入ETF自选数据...
+2025-04-14 10:55:03,680 - INFO - 使用文件: data/客户ETF自选人数20250411.xlsx
+2025-04-14 10:55:03,680 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:55:03,708 - INFO - 文件中的工作表: ['客户ETF自选人数', '仪表板']
+2025-04-14 10:55:03,716 - INFO - 原始列名: ['数据截止日期']
+2025-04-14 10:55:03,716 - INFO - 数据形状: (0, 1)
+2025-04-14 10:55:03,717 - INFO - 数据前5行:
+Empty DataFrame
+Columns: [数据截止日期]
+Index: []
+2025-04-14 10:55:03,717 - WARNING - 标准读取方式返回空数据或只有单列，尝试读取所有单元格...
+2025-04-14 10:55:03,808 - INFO - 尝试读取工作表: 客户ETF自选人数
+2025-04-14 10:55:03,811 - INFO - 找到的标题行: ('数据截止日期', '标的代码', '加自选人数')
+2025-04-14 10:55:03,812 - INFO - 成功读取数据，形状: (1113, 3)
+2025-04-14 10:55:03,812 - INFO - 标准化后列名: ['数据截止日期', '标的代码', '加自选人数']
+2025-04-14 10:55:03,812 - INFO - 找到的代码列: ['标的代码']
+2025-04-14 10:55:03,812 - INFO - 找到的自选列: ['加自选人数']
+2025-04-14 10:55:03,814 - INFO - 处理后列名: ['数据截止日期', 'code', 'attention_count', 'date']
+2025-04-14 10:55:03,818 - INFO - 处理后数据前5行:
+     数据截止日期    code  attention_count        date
+0  20250409  159001              100  2025-04-11
+1      None  159003               97  2025-04-11
+2      None  159005               42  2025-04-11
+3      None  159150              250  2025-04-11
+4      None  159201              853  2025-04-11
+2025-04-14 10:55:03,860 - INFO - 成功导入ETF自选数据，共1113条记录
+2025-04-14 10:55:03,860 - INFO - 开始导入ETF指数分类数据...
+2025-04-14 10:55:03,861 - INFO - 使用文件: data/ETF-Index-Classification_20250325.xlsx
+2025-04-14 10:55:03,912 - INFO - 成功导入ETF指数分类数据，共429条记录
+2025-04-14 10:55:03,913 - INFO - 开始导入ETF商务协议数据...
+2025-04-14 10:55:03,913 - INFO - 使用文件: data/ETF单产品商务协议20250328.xlsx
+2025-04-14 10:55:04,012 - INFO - 成功导入ETF商务协议数据，共339条记录
+2025-04-14 10:55:04,012 - INFO - 开始导入ETF规模数据到历史表...
+2025-04-14 10:55:04,013 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 10:55:04,013 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 10:55:04,018 - INFO - 日期 2025-04-11 的ETF规模历史数据已存在，跳过导入
+2025-04-14 10:55:04,019 - INFO - === ETF数据导入完成 ===
+2025-04-14 10:55:04,019 - INFO - ETF基本信息: 成功
+2025-04-14 10:55:04,019 - INFO - ETF价格数据: 失败
+2025-04-14 10:55:04,019 - INFO - ETF持有人数据: 成功
+2025-04-14 10:55:04,019 - INFO - ETF自选数据: 成功
+2025-04-14 10:55:04,019 - INFO - ETF指数分类数据: 成功
+2025-04-14 10:55:04,019 - INFO - ETF商务协议数据: 成功
+2025-04-14 10:55:04,019 - INFO - ETF规模数据: 成功
+2025-04-14 10:55:04,019 - INFO - === 数据库记录统计 ===
+2025-04-14 10:55:04,019 - INFO - ETF基本信息表: 1132条记录
+2025-04-14 10:55:04,019 - INFO - ETF价格数据表: 1128条记录
+2025-04-14 10:55:04,020 - INFO - ETF持有人数据表: 1104条记录
+2025-04-14 10:55:04,020 - INFO - ETF自选数据表: 1113条记录
+2025-04-14 10:55:04,020 - INFO - ETF商务协议数据表: 339条记录
+2025-04-14 14:16:05,328 - INFO - 开始导入ETF基本信息...
+2025-04-14 14:16:05,333 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 14:16:05,333 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 14:16:11,294 - ERROR - 导入ETF基本信息失败
+2025-04-14 14:16:26,488 - INFO - 开始导入ETF基本信息...
+2025-04-14 14:16:26,489 - INFO - 使用文件: data/ETF_DATA_20250411.xlsx
+2025-04-14 14:16:26,489 - INFO - 从文件名中提取的日期: 2025-04-11
+2025-04-14 14:16:27,279 - INFO - 成功导入ETF基本信息，共1132条记录

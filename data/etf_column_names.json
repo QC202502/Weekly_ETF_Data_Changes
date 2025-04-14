@@ -14,12 +14,12 @@
         "日均跟踪偏离度阈值(业绩基准)\n[单位] %": "tracking_deviation_threshold",
         "年化跟踪误差阈值(业绩基准)\n[单位] %": "tracking_error_threshold",
         "跟踪误差\n[起始交易日期] S_cal_date(enddate,-52,W,0)\n[ 截止交易日期] 最新收盘日\n[计算周期] 日\n[收益率计算方法] 普通收益率\n[标的指数] 上证综合指数\n[单位] %": "tracking_error",
-        " 跟踪误差(跟踪指数)\n[起始交易日期] S_cal_date(enddate,-52,W,0)\n[截止交易日期] 最新收盘日\n[计算周期] 日\n[ 收益率计算方法] 普通收益率\n[单位] %": "tracking_error_index",
-        "信息比率(年化)\n[起始交易日期] S_cal_date(enddate,-52,W,0)\n[截止交 易日期] 最新收盘日\n[计算周期] 日\n[收益率计算方法] 普通收益率\n[无风险收益率] 一年定存利率（税前）\n[标的指数] 上证综合指数": "information_ratio",
+        "跟踪误差(跟踪指数)\n[起始交易日期] S_cal_date(enddate,-52,W,0)\n[截止交易日期] 最新收盘日\n[计算周期] 日\n[ 收益率计算方法] 普通收益率\n[单位] %": "tracking_error_index",
+        "信息比率(年化)\n[起始交易日期] S_cal_date(enddate,-52,W,0)\n[截止交易日期] 最新收盘日\n[计算周期] 日\n[收益率计算方法] 普通收益率\n[无风险收益率] 一年定存利率（税前）\n[标的指数] 上证综合指数": "information_ratio",
         "跟踪误差(年化)\n[起始交易日期] S_cal_date(enddate,-52,W,0)\n[截止交易日期] 最新收盘日\n[计算周期] 日\n[收益率计算方法] 普通收益率\n[标的指数] 上证综合指数\n[单位] %": "tracking_error_annualized",
         "基金规模(合计)\n[交易日期] S_cal_date(now(),0,D,0)\n[单位] 亿元": "fund_size",
         "基金份额持有人户数\n[报告期] 20240630\n[单位] 户": "holder_count",
-        "基金份额持有人户 数(合计)\n[报告期] 20240630\n[单位] 户": "total_holder_count",
+        "基金份额持有人户数(合计)\n[报告期] 20240630\n[单位] 户": "total_holder_count",
         "区间日均成交额\n[起始交易日期] S_cal_date(enddate,-1,M,0)\n[截止交易日期] 最新收盘日\n[单位] 亿元": "avg_daily_volume",
         "基金管理人简称": "fund_manager_abbr",
         "基金场内简称": "fund_exchange_abbr",
@@ -40,13 +40,14 @@
         "总市值\n[交易日期] 最新收盘日\n[单位] 亿元": "market_value"
     },
     "etf_attention": {
-        "证券代码": "code",
-        "自选人数": "attention_count"
+        "标的代码": "code",
+        "加自选人数": "attention_count"
     },
     "etf_holders": {
         "证券代码": "code",
         "持有人数": "holder_count",
-        "持有份额": "holding_amount",
-        "持有市值": "holding_value"
+        "持有市值": "holding_value",
+        "持仓价值": "holding_value",
+        "客户保有量（元）": "holding_value"
     }
 }

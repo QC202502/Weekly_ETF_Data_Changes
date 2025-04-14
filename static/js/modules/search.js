@@ -296,8 +296,8 @@ function generateETFTable(etfs, title = '搜索结果') {
         console.log("第一条ETF数据:", firstETF);
         console.log("持仓人数:", firstETF.holder_count);
         console.log("持仓价值:", firstETF.holding_value);
-        console.log("持仓价值日变化:", firstETF.holding_value_daily_change || firstETF.holding_amount_daily_change);
-        console.log("持仓价值5日变化:", firstETF.holding_value_five_day_change || firstETF.holding_amount_five_day_change);
+        console.log("持仓价值日变化:", firstETF.holding_value_daily_change);
+        console.log("持仓价值5日变化:", firstETF.holding_value_five_day_change);
         console.log("holding_day_change:", firstETF.holding_day_change);
         console.log("holding_5day_change:", firstETF.holding_5day_change);
         // 检查旧的字段名是否存在
@@ -415,10 +415,10 @@ function generateETFTable(etfs, title = '搜索结果') {
                 attention_five_day_change: Number(etf.attention_five_day_change || etf.attention_5day_change || 0),
                 amount_daily_change: Number(etf.amount_daily_change || 0),
                 amount_five_day_change: Number(etf.amount_five_day_change || 0),
-                holding_value_daily_change: Number(etf.holding_value_daily_change || etf.amount_daily_change || 0),
-                holding_value_five_day_change: Number(etf.holding_value_five_day_change || etf.amount_five_day_change || 0),
-                holding_day_change: Number(etf.holding_day_change || etf.holding_value_daily_change || etf.amount_daily_change || 0),
-                holding_5day_change: Number(etf.holding_5day_change || etf.holding_value_five_day_change || etf.amount_five_day_change || 0),
+                holding_value_daily_change: Number(etf.holding_value_daily_change || 0),
+                holding_value_five_day_change: Number(etf.holding_value_five_day_change || 0),
+                holding_day_change: Number(etf.holding_day_change || etf.holding_value_daily_change || 0),
+                holding_5day_change: Number(etf.holding_5day_change || etf.holding_value_five_day_change || 0),
                 is_business: Boolean(etf.is_business),
                 business_text: etf.business_text || (etf.is_business ? '商务品' : '非商务品'),
                 daily_avg_volume: Number(etf.daily_avg_volume || 0),

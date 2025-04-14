@@ -257,9 +257,14 @@ class Database:
                     monthly_volume REAL,
                     daily_avg_volume REAL,
                     turnover_rate REAL,
-                    total_market_value REAL,
-                    holding_amount REAL,
+                    daily_volume REAL,
                     transaction_count INTEGER,
+                    total_market_value REAL,
+                    benchmark TEXT,
+                    years_since_establishment REAL,
+                    establishment_date TEXT,
+                    fund_exchange_abbr TEXT,
+                    date TEXT,
                     update_time TIMESTAMP
                 )
             """)
@@ -290,6 +295,7 @@ class Database:
                     holding_amount REAL,
                     holding_value REAL,
                     update_time TIMESTAMP,
+                    date TEXT,
                     FOREIGN KEY (code) REFERENCES etf_info(code)
                 )
             """)
@@ -375,7 +381,12 @@ class Database:
                 '换手率[交易日期]最新收盘日[单位]%': 'turnover_rate',
                 '成交额[交易日期]最新收盘日[单位]亿元': 'daily_volume',
                 '成交笔数[交易日期]最新收盘日[单位]笔': 'transaction_count',
-                '总市值[交易日期]最新收盘日[单位]亿元': 'total_market_value'
+                '总市值[交易日期]最新收盘日[单位]亿元': 'total_market_value',
+                # 添加新增字段的映射
+                '业绩比较基准': 'benchmark',
+                '成立年限[单位] 年': 'years_since_establishment',
+                '基金成立日': 'establishment_date',
+                '基金场内简称': 'fund_exchange_abbr'
             }
             
             # 查找最匹配的列名
@@ -421,7 +432,9 @@ class Database:
                                'tracking_error', 'information_ratio', 'total_holder_count', 
                                'management_fee_rate', 'custody_fee_rate', 'index_usage_fee',
                                'monthly_volume', 'daily_avg_volume', 'turnover_rate', 'daily_volume',
-                               'transaction_count', 'total_market_value']
+                               'transaction_count', 'total_market_value', 'benchmark',
+                               'years_since_establishment', 'establishment_date', 'fund_exchange_abbr',
+                               'date']
             
             final_columns = required_columns + [col for col in optional_columns if col in df.columns]
             
@@ -541,9 +554,15 @@ class Database:
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             df['update_time'] = current_time
             
-            # 添加日期列（仅取日期部分）
-            current_date = datetime.now().strftime('%Y-%m-%d')
-            df['date'] = current_date
+            # 添加或使用文件提供的日期列
+            # 如果df中已经有date列（从文件名提取的日期），则使用该列
+            # 否则使用当前日期
+            if 'date' not in df.columns:
+                current_date = datetime.now().strftime('%Y-%m-%d')
+                df['date'] = current_date
+                print(f"未发现日期字段，使用当前日期：{current_date}")
+            else:
+                print(f"使用文件中提供的日期：{df['date'].iloc[0]}")
             
             # 显示数据示例
             print("\n最终数据示例：")
@@ -576,6 +595,11 @@ class Database:
                     daily_volume REAL,
                     transaction_count INTEGER,
                     total_market_value REAL,
+                    benchmark TEXT,
+                    years_since_establishment REAL,
+                    establishment_date TEXT,
+                    fund_exchange_abbr TEXT,
+                    date TEXT,
                     update_time TIMESTAMP
                 )
             """)
@@ -591,9 +615,8 @@ class Database:
                 )
             """)
             
-            # 保存到主表（不包含日期列）
-            main_columns = [col for col in df.columns if col != 'date']
-            df[main_columns].to_sql('etf_info', conn, if_exists='append', index=False)
+            # 保存到主表
+            df.to_sql('etf_info', conn, if_exists='append', index=False)
             
             # 保存规模历史数据
             if 'fund_size' in df.columns:
@@ -654,8 +677,20 @@ class Database:
                 print(f"ETF价格数据缺少必需字段: {missing_columns}")
                 return False
             
-            # 选择需要的列
-            df = df[required_columns]
+            # 确保date字段存在
+            if 'date' not in df.columns:
+                # 添加日期列（仅取日期部分）
+                current_date = datetime.now().strftime('%Y-%m-%d')
+                print(f"未发现日期字段，使用当前日期：{current_date}")
+                df['date'] = current_date
+            
+            # 添加更新时间
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            df['update_time'] = current_time
+            
+            # 选择需要的列（现在包括date字段）
+            columns_to_select = required_columns + ['date', 'update_time']
+            df = df[columns_to_select]
             
             # 转换数据类型
             numeric_columns = ['change_rate', 'turnover_rate', 'amount', 'transaction_count']
@@ -665,7 +700,24 @@ class Database:
             # 保存到数据库
             conn = self.connect()
             try:
-                df.to_sql('etf_price', conn, if_exists='replace', index=False)
+                # 修改表结构以包含日期字段
+                cursor = conn.cursor()
+                cursor.execute("DROP TABLE IF EXISTS etf_price")
+                cursor.execute("""
+                    CREATE TABLE etf_price (
+                        code TEXT,
+                        change_rate REAL,
+                        turnover_rate REAL,
+                        amount REAL,
+                        transaction_count INTEGER,
+                        date TEXT,
+                        update_time TIMESTAMP,
+                        PRIMARY KEY (code, date)
+                    )
+                """)
+                
+                # 保存数据
+                df.to_sql('etf_price', conn, if_exists='append', index=False)
                 print(f"成功保存ETF价格数据，共{len(df)}条记录")
                 return True
             except Exception as e:
@@ -702,22 +754,27 @@ class Database:
                 print(f"ETF自选数据缺少必需字段: {missing_columns}")
                 return False
             
-            # 选择需要的列
-            df = df[required_columns]
+            # 确保date字段存在，如果不存在使用当前日期
+            if 'date' not in df.columns:
+                # 添加日期列（仅取日期部分）
+                current_date = datetime.now().strftime('%Y-%m-%d')
+                df['date'] = current_date
+                print(f"未发现日期字段，使用当前日期：{current_date}")
+            else:
+                print(f"使用文件中提供的日期：{df['date'].iloc[0]}")
             
             # 添加更新时间
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             df['update_time'] = current_time
-            
-            # 添加日期列（仅取日期部分）
-            current_date = datetime.now().strftime('%Y-%m-%d')
-            df['date'] = current_date
             
             # 确保数字类型正确
             try:
                 df['attention_count'] = pd.to_numeric(df['attention_count'], errors='coerce').fillna(0).astype(int)
             except Exception as e:
                 print(f"转换自选人数时出错: {str(e)}")
+            
+            # 选择需要的列
+            df = df[['code', 'attention_count', 'date', 'update_time']]
             
             # 保存到数据库
             conn = self.connect()
@@ -729,6 +786,7 @@ class Database:
                 CREATE TABLE etf_attention (
                     code TEXT PRIMARY KEY,
                     attention_count INTEGER,
+                    date TEXT,
                     update_time TIMESTAMP
                 )
             """)
@@ -740,12 +798,20 @@ class Database:
                     code TEXT,
                     attention_count INTEGER,
                     date TEXT,
-                    update_time TIMESTAMP
+                    update_time TIMESTAMP,
+                    UNIQUE(code, date)
                 )
             """)
             
             # 保存到主表
-            df[['code', 'attention_count', 'update_time']].to_sql('etf_attention', conn, if_exists='append', index=False)
+            df[['code', 'attention_count', 'date', 'update_time']].to_sql('etf_attention', conn, if_exists='append', index=False)
+            
+            # 获取当前数据的日期
+            current_date = df['date'].iloc[0] if not df.empty else datetime.now().strftime('%Y-%m-%d')
+            
+            # 先删除历史表中同一天的记录
+            cursor.execute("DELETE FROM etf_attention_history WHERE date = ?", (current_date,))
+            print(f"已删除历史表中日期为 {current_date} 的记录")
             
             # 保存到历史表
             df[['code', 'attention_count', 'date', 'update_time']].to_sql('etf_attention_history', conn, if_exists='append', index=False)
@@ -814,12 +880,17 @@ class Database:
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             df['update_time'] = current_time
             
-            # 添加日期列（仅取日期部分）
-            current_date = datetime.now().strftime('%Y-%m-%d')
-            df['date'] = current_date
+            # 确保date字段存在，如果不存在使用当前日期
+            if 'date' not in df.columns:
+                # 添加日期列（仅取日期部分）
+                current_date = datetime.now().strftime('%Y-%m-%d')
+                df['date'] = current_date
+                print(f"未发现日期字段，使用当前日期：{current_date}")
+            else:
+                print(f"使用文件中提供的日期：{df['date'].iloc[0]}")
             
             # 选择最终列
-            final_columns = ['code', 'holder_count', 'holding_amount', 'holding_value', 'update_time', 'date']
+            final_columns = ['code', 'holder_count', 'holding_amount', 'holding_value', 'date', 'update_time']
             df = df[final_columns]
             
             # 保存到数据库
@@ -834,6 +905,7 @@ class Database:
                     holder_count INTEGER,
                     holding_amount REAL,
                     holding_value REAL,
+                    date TEXT,
                     update_time TIMESTAMP,
                     FOREIGN KEY (code) REFERENCES etf_info(code)
                 )
@@ -848,12 +920,20 @@ class Database:
                     holding_amount REAL,
                     holding_value REAL,
                     date TEXT,
-                    update_time TIMESTAMP
+                    update_time TIMESTAMP,
+                    UNIQUE(code, date)
                 )
             """)
             
             # 保存到主表
-            df[['code', 'holder_count', 'holding_amount', 'holding_value', 'update_time']].to_sql('etf_holders', conn, if_exists='append', index=False)
+            df[['code', 'holder_count', 'holding_amount', 'holding_value', 'date', 'update_time']].to_sql('etf_holders', conn, if_exists='append', index=False)
+            
+            # 获取当前数据的日期
+            current_date = df['date'].iloc[0] if not df.empty else datetime.now().strftime('%Y-%m-%d')
+            
+            # 先删除历史表中同一天的记录
+            cursor.execute("DELETE FROM etf_holders_history WHERE date = ?", (current_date,))
+            print(f"已删除历史表中日期为 {current_date} 的记录")
             
             # 保存到历史表
             df[['code', 'holder_count', 'holding_amount', 'holding_value', 'date', 'update_time']].to_sql('etf_holders_history', conn, if_exists='append', index=False)

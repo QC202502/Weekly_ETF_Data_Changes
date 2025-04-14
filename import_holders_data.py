@@ -83,7 +83,7 @@ def import_etf_holders_data():
             column_mapping = {
                 '标的代码': 'code',
                 '持仓客户数': 'holder_count',
-                '客户保有量（元）': 'holding_amount'
+                '客户保有量（元）': 'holding_value'
             }
             
             df = df.rename(columns=column_mapping)
@@ -92,11 +92,11 @@ def import_etf_holders_data():
             df['code'] = df['code'].apply(normalize_etf_code)
             
             # 只保留必要的列
-            df = df[['code', 'holder_count', 'holding_amount']]
+            df = df[['code', 'holder_count', 'holding_value']]
             
             # 转换数据类型
             df['holder_count'] = pd.to_numeric(df['holder_count'], errors='coerce').fillna(0).astype(int)
-            df['holding_amount'] = pd.to_numeric(df['holding_amount'], errors='coerce').fillna(0)
+            df['holding_value'] = pd.to_numeric(df['holding_value'], errors='coerce').fillna(0)
             
             # 打印处理后的数据
             print("处理后的数据:")

@@ -367,8 +367,6 @@ def normalize_etf_results(results):
             'holders_day_change': result.get('holder_daily_change', 0),  # 前端期望的字段名
             'holders_5day_change': result.get('holder_five_day_change', 0),  # 前端期望的字段名
             
-            'holding_amount_daily_change': result.get('holding_amount_daily_change', 0),  # 持仓份额日变化
-            'holding_amount_five_day_change': result.get('holding_amount_five_day_change', 0),  # 持仓份额五日变化
             'holding_value_daily_change': round(holding_value_daily_change, 2),  # 持仓价值日变化（万元）
             'holding_value_five_day_change': round(holding_value_five_day_change, 2),  # 持仓价值五日变化（万元）
             
@@ -394,8 +392,6 @@ def normalize_etf_results(results):
             print(f"关注度五日变化: {first_result['attention_five_day_change']}")
             print(f"持仓客户数日变化: {first_result['holder_daily_change']}")
             print(f"持仓客户数五日变化: {first_result['holder_five_day_change']}")
-            print(f"持仓份额日变化: {first_result['holding_amount_daily_change']}")
-            print(f"持仓份额五日变化: {first_result['holding_amount_five_day_change']}")
             print(f"持仓价值日变化(万元): {first_result['holding_value_daily_change']}")
             print(f"持仓价值五日变化(万元): {first_result['holding_value_five_day_change']}")
         except Exception as e:
@@ -448,153 +444,15 @@ def search_by_etf_code(code, etf_data, business_etfs, current_date_str):
             code = code[2:]
         elif code.startswith(('SZ', 'sz')):
             code = code[2:]
-        
-        from services.data_service import get_previous_date_str
-        five_days_ago_str = get_previous_date_str(current_date_str, 5)
-        previous_date_str = get_previous_date_str(current_date_str, 1)
-        
-        with get_db_connection() as conn:
-            # 构建SQL查询并获取可能匹配的ETF
-            results = []
-            cursor = conn.cursor()
             
-            # 尝试不同的匹配方式
-            sql_query = """
-            SELECT e.code, e.name, e.manager as fund_manager, e.scale, e.fee_rate, 
-                  e.tracking_error, e.index_code, e.index_name, 
-                  h.count as holder_count, a.count as attention_count,
-                  (SELECT AVG(p.volume) FROM etf_price p 
-                   WHERE p.code = e.code AND p.date >= ? AND p.date <= ?) as daily_avg_volume,
-                  (SELECT volume FROM etf_price p2 
-                   WHERE p2.code = e.code AND p2.date = ?) as daily_volume
-            FROM etf_info e
-            LEFT JOIN etf_holders h ON e.code = h.code AND h.date = ?
-            LEFT JOIN etf_attention a ON e.code = a.code AND a.date = ?
-            WHERE e.code LIKE ? OR e.code LIKE ?
-            ORDER BY daily_volume DESC
-            """
-            cursor.execute(sql_query, (five_days_ago_str, current_date_str, current_date_str, 
-                                      current_date_str, current_date_str, 
-                                      f"{code}%", f"%{code}%"))
-            
-            for row in cursor.fetchall():
-                etf_code = row['code']
-                
-                # 获取关注度变化数据
-                attention_current = 0
-                cursor.execute("SELECT attention_count FROM etf_attention_history WHERE code = ? AND date = ?", 
-                              (etf_code, current_date_str))
-                current_attention = cursor.fetchone()
-                if current_attention:
-                    attention_current = current_attention['attention_count'] or 0
-                
-                attention_previous = 0
-                cursor.execute("SELECT attention_count FROM etf_attention_history WHERE code = ? AND date = ?", 
-                              (etf_code, previous_date_str))
-                prev_attention = cursor.fetchone()
-                if prev_attention:
-                    attention_previous = prev_attention['attention_count'] or 0
-                
-                attention_five_days_ago = 0
-                cursor.execute("SELECT attention_count FROM etf_attention_history WHERE code = ? AND date = ?", 
-                              (etf_code, five_days_ago_str))
-                five_days_ago_attention = cursor.fetchone()
-                if five_days_ago_attention:
-                    attention_five_days_ago = five_days_ago_attention['attention_count'] or 0
-                
-                # 计算日变化和五日变化
-                attention_daily_change = attention_current - attention_previous
-                attention_five_day_change = attention_current - attention_five_days_ago
-                
-                # 获取持仓人数变化数据
-                holder_current = row['holder_count'] or 0
-                holder_previous = 0
-                cursor.execute("SELECT holder_count FROM etf_holders_history WHERE code = ? AND date = ?", 
-                              (etf_code, previous_date_str))
-                prev_holder = cursor.fetchone()
-                if prev_holder:
-                    holder_previous = prev_holder['holder_count'] or 0
-                
-                holder_five_days_ago = 0
-                cursor.execute("SELECT holder_count FROM etf_holders_history WHERE code = ? AND date = ?", 
-                              (etf_code, five_days_ago_str))
-                five_days_ago_holder = cursor.fetchone()
-                if five_days_ago_holder:
-                    holder_five_days_ago = five_days_ago_holder['holder_count'] or 0
-                
-                # 计算日变化和五日变化
-                holder_daily_change = holder_current - holder_previous
-                holder_five_day_change = holder_current - holder_five_days_ago
-                
-                # 获取持仓份额变化数据
-                holding_amount_current = etf_data.get(etf_code, {}).get('holding_amount', 0)
-                holding_amount_previous = 0
-                cursor.execute("SELECT holding_amount FROM etf_holders_history WHERE code = ? AND date = ?", 
-                              (etf_code, previous_date_str))
-                prev_holding = cursor.fetchone()
-                if prev_holding:
-                    holding_amount_previous = prev_holding['holding_amount'] or 0
-                
-                holding_amount_five_days_ago = 0
-                cursor.execute("SELECT holding_amount FROM etf_holders_history WHERE code = ? AND date = ?", 
-                              (etf_code, five_days_ago_str))
-                five_days_ago_holding = cursor.fetchone()
-                if five_days_ago_holding:
-                    holding_amount_five_days_ago = five_days_ago_holding['holding_amount'] or 0
-                
-                # 计算持仓份额的日变化和五日变化
-                holding_amount_daily_change = holding_amount_current - holding_amount_previous
-                holding_amount_five_day_change = holding_amount_current - holding_amount_five_days_ago
-                
-                # 获取持仓市值计算数据
-                holding_value_current = etf_data.get(etf_code, {}).get('holding_value', 0)
-                holding_value_previous = 0
-                cursor.execute("SELECT holding_value FROM etf_holders_history WHERE code = ? AND date = ?", 
-                              (etf_code, previous_date_str))
-                prev_value = cursor.fetchone()
-                if prev_value:
-                    holding_value_previous = prev_value['holding_value'] or 0
-                
-                holding_value_five_days_ago = 0
-                cursor.execute("SELECT holding_value FROM etf_holders_history WHERE code = ? AND date = ?", 
-                              (etf_code, five_days_ago_str))
-                five_days_ago_value = cursor.fetchone()
-                if five_days_ago_value:
-                    holding_value_five_days_ago = five_days_ago_value['holding_value'] or 0
-                
-                # 计算持仓市值的日变化和五日变化
-                holding_value_daily_change = holding_value_current - holding_value_previous
-                holding_value_five_day_change = holding_value_current - holding_value_five_days_ago
-                
-                # 添加一个ETF记录
-                etf_record = {
-                    'code': etf_code,
-                    'name': row['name'],
-                    'manager': row['fund_manager'],
-                    'fund_size': row['scale'],
-                    'management_fee_rate': row['fee_rate'],
-                    'tracking_error': row['tracking_error'],
-                    'total_holder_count': row['holder_count'],
-                    'tracking_index_code': row['index_code'],
-                    'tracking_index_name': row['index_name'],
-                    'daily_avg_volume': row['daily_avg_volume'],
-                    'daily_volume': row['daily_volume'],
-                    'holder_count': row['holder_count'],
-                    'holding_amount': holding_amount_current,  # 持仓份额
-                    'holding_value': holding_value_current,  # 持仓市值
-                    'attention_count': attention_current,  # 使用从history表获取的最新自选数据
-                    'attention_daily_change': attention_daily_change,
-                    'attention_five_day_change': attention_five_day_change,
-                    'holder_daily_change': holder_daily_change,
-                    'holder_five_day_change': holder_five_day_change,
-                    'holding_amount_daily_change': holding_amount_daily_change,  # 持仓份额日变化
-                    'holding_amount_five_day_change': holding_amount_five_day_change,  # 持仓份额五日变化
-                    'holding_value_daily_change': holding_value_daily_change,  # 持仓市值日变化
-                    'holding_value_five_day_change': holding_value_five_day_change,  # 持仓市值五日变化
-                    'is_business': etf_code in business_etfs
-                }
-                
-                results.append(etf_record)
+        # 创建数据库连接
+        db = Database()
+        # 直接调用数据库模型中的search_by_etf_code方法
+        results = db.search_by_etf_code(code)
+        
+        # 处理业务ETF标记
+        for result in results:
+            result['is_business'] = result['code'] in business_etfs
         
         return results
     except Exception as e:
@@ -604,306 +462,48 @@ def search_by_etf_code(code, etf_data, business_etfs, current_date_str):
 
 def search_by_index_name(keyword, etf_data, business_etfs, current_date_str):
     """按跟踪指数名称搜索"""
-    # 查找包含关键词的指数
-    matching_indices = etf_data[etf_data['跟踪指数名称'].str.contains(keyword, na=False)]
+    # 创建数据库连接
+    db = Database()
+    # 直接调用数据库模型中的search_by_index_name方法
+    results = db.search_by_index_name(keyword)
     
-    if matching_indices.empty:
-        return []
+    # 处理业务ETF标记
+    if isinstance(results, dict) and 'results' in results:
+        for etf in results['results']:
+            etf['is_business'] = etf['code'] in business_etfs
     
-    # 按指数分组
-    index_groups = {}
-    
-    # 获取唯一的指数代码和名称
-    unique_indices = matching_indices[['跟踪指数代码', '跟踪指数名称']].drop_duplicates()
-    
-    # 计算每个指数的总规模
-    index_scales = {}
-    for index_code in unique_indices['跟踪指数代码']:
-        index_etfs = etf_data[etf_data['跟踪指数代码'] == index_code]
-        # 使用正确的规模列名
-        total_scale = index_etfs['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'].sum()
-        index_scales[index_code] = total_scale
-    
-    # 按指数总规模从大到小排序
-    sorted_indices = sorted(unique_indices.to_dict('records'), 
-                           key=lambda x: index_scales.get(x['跟踪指数代码'], 0), 
-                           reverse=True)
-    
-    # 从data_service导入当前和上周日期
-    from services.data_service import current_date_str, previous_date_str
-    
-    # 创建结果列表
-    etf_results = []
-    
-    # 为每个指数创建一个组
-    for index_info in sorted_indices:
-        index_code = index_info['跟踪指数代码']
-        index_name = index_info['跟踪指数名称']
-        
-        # 获取该指数下的所有ETF
-        index_etfs = etf_data[etf_data['跟踪指数代码'] == index_code]
-        
-        # 按区间日均交易量字段从大到小排序
-        volume_col = '区间日均成交额[起始交易日期]S_cal_date(enddate,-1,M,0)[截止交易日期]最新收盘日[单位]亿元'
-        index_etfs = index_etfs.sort_values(by=volume_col, ascending=False)
-        
-        # 初始化当前指数组
-        if index_code not in index_groups:
-            index_groups[index_code] = {
-                'index_code': index_code,
-                'index_name': index_name,
-                'etfs': [],
-                'total_scale': 0
-            }
-            
-            # 添加指数简介
-            index_intro = get_index_intro(index_code)
-            if index_intro:
-                index_groups[index_code]['index_intro'] = index_intro
-        
-        # 格式化ETF结果
-        for _, row in index_etfs.iterrows():
-            etf_code = row['证券代码']
-            is_business = etf_code in business_etfs
-            
-            # 使用带日期的列名
-            name_col = f'证券名称（{current_date_str}）'
-            
-            # 添加新增字段
-            attention_current = f'关注人数（{current_date_str}）'
-            attention_previous = f'关注人数（{previous_date_str}）'
-            holders_current = f'持仓客户数（{current_date_str}）'
-            holders_previous = f'持仓客户数（{previous_date_str}）'
-            amount_current = f'持仓份额（{current_date_str}）'  # 新增持仓份额字段
-            amount_previous = f'持仓份额（{previous_date_str}）'  # 新增持仓份额字段
-            value_current = f'持仓市值（{current_date_str}）'  # 修改为持仓市值
-            value_previous = f'持仓市值（{previous_date_str}）'  # 修改为持仓市值
-            
-            # 创建ETF记录
-            etf_record = {
-                'code': etf_code,
-                'name': row[name_col] if name_col in row else row['证券简称'],  # 如果列名不存在，使用证券简称作为备用
-                'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
-                'fund_size': row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'],
-                'management_fee_rate': row['管理费率[单位]%'],
-                'tracking_error': row['跟踪误差[单位]%'],
-                'tracking_index_code': index_code,
-                'tracking_index_name': index_name,
-                'total_holder_count': row[holders_current] if holders_current in row else 0,
-                'daily_avg_volume': row[volume_col] if volume_col in row else 0,
-                'daily_volume': row[f'成交额（{current_date_str}）'] if f'成交额（{current_date_str}）' in row else 0,
-                'holder_count': row[holders_current] if holders_current in row else 0,
-                'holding_amount': row[amount_current] if amount_current in row else 0,  # 新增持仓份额
-                'holding_value': row[value_current] if value_current in row else 0,  # 修改为持仓市值
-                'attention_count': row[attention_current] if attention_current in row else 0,
-                'attention_daily_change': (row[attention_current] if attention_current in row else 0) - 
-                                        (row[attention_previous] if attention_previous in row else 0),
-                'attention_five_day_change': 0,  # 需要从历史数据计算
-                'holder_daily_change': (row[holders_current] if holders_current in row else 0) - 
-                                     (row[holders_previous] if holders_previous in row else 0),
-                'holder_five_day_change': 0,  # 需要从历史数据计算
-                'holding_amount_daily_change': (row[amount_current] if amount_current in row else 0) - 
-                                             (row[amount_previous] if amount_previous in row else 0),  # 新增持仓份额日变化
-                'holding_amount_five_day_change': 0,  # 需要从历史数据计算
-                'holding_value_daily_change': (row[value_current] if value_current in row else 0) - 
-                                            (row[value_previous] if value_previous in row else 0),  # 修改为持仓市值日变化
-                'holding_value_five_day_change': 0,  # 需要从历史数据计算
-                'is_business': is_business
-            }
-            
-            # 添加ETF到对应指数组
-            index_groups[index_code]['etfs'].append(etf_record)
-            # 累加该指数的总规模
-            index_groups[index_code]['total_scale'] += etf_record['fund_size']
-            
-            # 添加到扁平结果列表
-            etf_results.append(etf_record)
-    
-    # 更新各组的ETF数量
-    for group in index_groups.values():
-        group['etf_count'] = len(group['etfs'])
-    
-    # 将索引组转为列表并按总规模排序
-    index_groups_list = list(index_groups.values())
-    index_groups_list.sort(key=lambda x: x['total_scale'], reverse=True)
-    
-    # 返回分组结果
-    return {
-        'is_grouped': True,
-        'index_groups': index_groups_list,
-        'index_count': len(index_groups_list),
-        'count': len(etf_results),  # 保留原始的扁平结果，以防需要
-        'results': etf_results  # 保留原始的扁平结果，以防需要
-    }
+    return results
 
 def search_by_index_code(keyword, etf_data, business_etfs, current_date_str):
-    """按跟踪指数代码搜索"""
-    # 查找匹配指数代码的ETF
-    matching_etfs = etf_data[etf_data['跟踪指数代码'] == keyword]
+    """按指数代码搜索"""
+    # 创建数据库连接
+    db = Database()
+    # 直接调用数据库模型中的search_by_index_code方法
+    results = db.search_by_index_code(keyword)
     
-    if matching_etfs.empty:
-        # 尝试部分匹配
-        matching_etfs = etf_data[etf_data['跟踪指数代码'].str.contains(keyword, na=False)]
-    
-    if matching_etfs.empty:
-        return []
-    
-    # 使用新的交易量字段排序
-    volume_col = '区间日均成交额[起始交易日期]S_cal_date(enddate,-1,M,0)[截止交易日期]最新收盘日[单位]亿元'
-    matching_etfs = matching_etfs.sort_values(by=volume_col, ascending=False)
-    
-    # 从data_service导入当前和上周日期
-    from services.data_service import current_date_str, previous_date_str
-    
-    # 格式化结果
-    results = []
-    for _, row in matching_etfs.iterrows():
-        etf_code = row['证券代码']
-        is_business = etf_code in business_etfs
-        
-        # 使用带日期的列名
-        name_col = f'证券名称（{current_date_str}）'
-        
-        # 添加新增字段
-        attention_current = f'关注人数（{current_date_str}）'
-        attention_previous = f'关注人数（{previous_date_str}）'
-        holders_current = f'持仓客户数（{current_date_str}）'
-        holders_previous = f'持仓客户数（{previous_date_str}）'
-        amount_current = f'持仓份额（{current_date_str}）'  # 新增持仓份额字段
-        amount_previous = f'持仓份额（{previous_date_str}）'  # 新增持仓份额字段
-        value_current = f'持仓市值（{current_date_str}）'  # 修改为持仓市值
-        value_previous = f'持仓市值（{previous_date_str}）'  # 修改为持仓市值
-        
-        results.append({
-            'code': etf_code,
-            'name': row[name_col] if name_col in row else row['证券代码'],  # 如果列名不存在，使用证券代码作为备用
-            'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
-            'fund_size': row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'],
-            'management_fee_rate': row['管理费率[单位]%'],
-            'tracking_error': row['跟踪误差[单位]%'],
-            'tracking_index_code': keyword,
-            'tracking_index_name': row['跟踪指数名称'],
-            'total_holder_count': row[holders_current] if holders_current in row else 0,
-            'daily_avg_volume': row[volume_col] if volume_col in row else 0,
-            'daily_volume': row[f'成交额（{current_date_str}）'] if f'成交额（{current_date_str}）' in row else 0,
-            'holder_count': row[holders_current] if holders_current in row else 0,
-            'holding_amount': row[amount_current] if amount_current in row else 0,  # 新增持仓份额
-            'holding_value': row[value_current] if value_current in row else 0,  # 修改为持仓市值
-            'attention_count': row[attention_current] if attention_current in row else 0,
-            'attention_daily_change': (row[attention_current] if attention_current in row else 0) - 
-                                    (row[attention_previous] if attention_previous in row else 0),
-            'attention_five_day_change': 0,  # 需要从历史数据计算
-            'holder_daily_change': (row[holders_current] if holders_current in row else 0) - 
-                                 (row[holders_previous] if holders_previous in row else 0),
-            'holder_five_day_change': 0,  # 需要从历史数据计算
-            'holding_amount_daily_change': (row[amount_current] if amount_current in row else 0) - 
-                                         (row[amount_previous] if amount_previous in row else 0),  # 新增持仓份额日变化
-            'holding_amount_five_day_change': 0,  # 需要从历史数据计算
-            'holding_value_daily_change': (row[value_current] if value_current in row else 0) - 
-                                        (row[value_previous] if value_previous in row else 0),  # 修改为持仓市值日变化
-            'holding_value_five_day_change': 0,  # 需要从历史数据计算
-            'is_business': is_business
-        })
+    # 处理业务ETF标记
+    if isinstance(results, dict) and 'results' in results:
+        for etf in results['results']:
+            etf['is_business'] = etf['code'] in business_etfs
     
     return results
 
 def search_by_company(keyword, etf_data, business_etfs, current_date_str):
     """按基金公司名称搜索"""
-    # 查找匹配基金公司的ETF
-    matching_etfs = etf_data[etf_data['基金管理人'].str.contains(keyword, na=False)]
+    # 创建数据库连接
+    db = Database()
+    # 直接调用数据库模型中的search_by_company方法
+    results = db.search_by_company(keyword)
     
-    if matching_etfs.empty:
-        return []
+    # 处理业务ETF标记
+    if isinstance(results, dict) and 'results' in results:
+        for etf in results['results']:
+            etf['is_business'] = etf['code'] in business_etfs
+    elif isinstance(results, list):
+        for result in results:
+            result['is_business'] = result['code'] in business_etfs
     
-    # 使用新的交易量字段排序
-    volume_col = '区间日均成交额[起始交易日期]S_cal_date(enddate,-1,M,0)[截止交易日期]最新收盘日[单位]亿元'
-    matching_etfs = matching_etfs.sort_values(by=volume_col, ascending=False)
-    
-    # 从data_service导入当前和上周日期
-    from services.data_service import current_date_str, previous_date_str
-    
-    # 格式化结果
-    results = []
-    for _, row in matching_etfs.iterrows():
-        etf_code = row['证券代码']
-        is_business = etf_code in business_etfs
-        
-        # 使用带日期的列名
-        name_col = f'证券名称（{current_date_str}）'
-        
-        # 添加新增字段
-        attention_current = f'关注人数（{current_date_str}）'
-        attention_previous = f'关注人数（{previous_date_str}）'
-        holders_current = f'持仓客户数（{current_date_str}）'
-        holders_previous = f'持仓客户数（{previous_date_str}）'
-        amount_current = f'持仓份额（{current_date_str}）'  # 新增持仓份额字段
-        amount_previous = f'持仓份额（{previous_date_str}）'  # 新增持仓份额字段
-        value_current = f'持仓市值（{current_date_str}）'  # 修改为持仓市值
-        value_previous = f'持仓市值（{previous_date_str}）'  # 修改为持仓市值
-        
-        results.append({
-            'code': etf_code,
-            'name': row[name_col] if name_col in row else row['证券代码'],  # 如果列名不存在，使用证券代码作为备用
-            'manager': row['基金管理人简称'] if '基金管理人简称' in row else row['基金管理人'],
-            'fund_size': row['基金规模(合计)[交易日期]S_cal_date(now(),0,D,0)[单位]亿元'],
-            'management_fee_rate': row['管理费率[单位]%'],
-            'tracking_error': row['跟踪误差[单位]%'],
-            'tracking_index_code': row['跟踪指数代码'],
-            'tracking_index_name': row['跟踪指数名称'],
-            'total_holder_count': row[holders_current] if holders_current in row else 0,
-            'daily_avg_volume': row[volume_col] if volume_col in row else 0,
-            'daily_volume': row[f'成交额（{current_date_str}）'] if f'成交额（{current_date_str}）' in row else 0,
-            'holder_count': row[holders_current] if holders_current in row else 0,
-            'holding_amount': row[amount_current] if amount_current in row else 0,  # 新增持仓份额
-            'holding_value': row[value_current] if value_current in row else 0,  # 修改为持仓市值
-            'attention_count': row[attention_current] if attention_current in row else 0,
-            'attention_daily_change': (row[attention_current] if attention_current in row else 0) - 
-                                    (row[attention_previous] if attention_previous in row else 0),
-            'attention_five_day_change': 0,  # 需要从历史数据计算
-            'holder_daily_change': (row[holders_current] if holders_current in row else 0) - 
-                                 (row[holders_previous] if holders_previous in row else 0),
-            'holder_five_day_change': 0,  # 需要从历史数据计算
-            'holding_amount_daily_change': (row[amount_current] if amount_current in row else 0) - 
-                                         (row[amount_previous] if amount_previous in row else 0),  # 新增持仓份额日变化
-            'holding_amount_five_day_change': 0,  # 需要从历史数据计算
-            'holding_value_daily_change': (row[value_current] if value_current in row else 0) - 
-                                        (row[value_previous] if value_previous in row else 0),  # 修改为持仓市值日变化
-            'holding_value_five_day_change': 0,  # 需要从历史数据计算
-            'is_business': is_business
-        })
-        
-        # 按跟踪指数分组
-        index_code = row['跟踪指数代码']
-        index_name = row['跟踪指数名称']
-        
-        if index_code not in index_groups:
-            index_groups[index_code] = {
-                'index_code': index_code,
-                'index_name': index_name,
-                'etfs': [],
-                'total_scale': 0
-            }
-        
-        # 添加ETF到对应指数组
-        index_groups[index_code]['etfs'].append(etf_record)
-        # 累加该指数的总规模
-        index_groups[index_code]['total_scale'] += etf_record['fund_size']
-    
-    # 将索引组转为列表并按总规模排序
-    index_groups_list = list(index_groups.values())
-    index_groups_list.sort(key=lambda x: x['total_scale'], reverse=True)
-    
-    # 对每个指数组内的ETF按交易量排序
-    for group in index_groups_list:
-        group['etfs'].sort(key=lambda x: x['daily_avg_volume'], reverse=True)
-        group['etf_count'] = len(group['etfs'])
-    
-    return {
-        'is_grouped': True,
-        'index_groups': index_groups_list,
-        'index_count': len(index_groups_list),
-        'count': sum(len(group['etfs']) for group in index_groups_list)
-    }
+    return results
 
 # 安全转换数值的辅助函数
 def safe_float(value, default=0.0):
@@ -1434,12 +1034,12 @@ def etf_holders_history():
             # 记录详细日志以便调试
             current_app.logger.debug(f"处理ETF持有人历史记录: {row}")
             
-            # 确保记录有效，含有必要字段
+            # 确保记录有效，含有必要字段，直接返回原始数据
             if row and 'date' in row and 'holder_count' in row and 'holding_value' in row:
                 records.append({
                     'date': row['date'],
                     'holder_count': row['holder_count'],
-                    'holding_value': row['holding_value']
+                    'holding_value': row['holding_value']  # 直接返回原始值，不做转换
                 })
             else:
                 current_app.logger.warning(f"ETF持有人历史: 跳过无效记录 {row}")
@@ -1570,3 +1170,62 @@ def general_search(keyword, etf_data, business_etfs, current_date_str):
         print(f"general_search错误: {e}")
         traceback.print_exc()
         return []
+
+def search_etf(keyword, business_etfs, etf_data):
+    """ETF搜索的主函数，根据关键词类型调用不同的搜索函数"""
+    # 从data_service导入当前日期
+    from services.data_service import current_date_str
+    
+    # 创建数据库连接
+    db = Database()
+    
+    # 检查关键词类型并调用相应的搜索函数
+    if len(keyword) == 6 and keyword.isdigit():
+        # 按ETF代码搜索
+        results = db.search_by_etf_code(keyword)
+        
+        # 处理业务ETF标记
+        if isinstance(results, dict) and 'results' in results:
+            for etf in results['results']:
+                etf['is_business'] = etf['code'] in business_etfs
+        
+        return results
+    
+    elif len(keyword) == 6 and keyword.isdigit() and keyword.startswith('0'):
+        # 可能是深交所的ETF代码
+        return search_by_etf_code(keyword, etf_data, business_etfs, current_date_str)
+        
+    elif len(keyword) == 6 and keyword.isdigit() and keyword.startswith('5'):
+        # 可能是上交所的ETF代码
+        return search_by_etf_code(keyword, etf_data, business_etfs, current_date_str)
+        
+    elif len(keyword) == 6 and keyword.isdigit() and keyword.startswith('1'):
+        # 可能是指数代码
+        return search_by_index_code(keyword, etf_data, business_etfs, current_date_str)
+    
+    elif keyword.startswith('399') or keyword.startswith('000') or keyword.startswith('H') or keyword.startswith('9'):
+        # 可能是指数代码
+        return search_by_index_code(keyword, etf_data, business_etfs, current_date_str)
+    
+    elif len(keyword) >= 2 and '公司' in keyword:
+        # 按基金公司搜索
+        return search_by_company(keyword, etf_data, business_etfs, current_date_str)
+    
+    elif len(keyword) >= 2 and ('指数' in keyword or '50' in keyword or '500' in keyword or '300' in keyword):
+        # 按指数名称搜索
+        return search_by_index_name(keyword, etf_data, business_etfs, current_date_str)
+    
+    else:
+        # 尝试按ETF名称搜索
+        results = db.search_by_etf_name(keyword)
+        
+        # 处理业务ETF标记
+        if isinstance(results, dict) and 'results' in results:
+            for etf in results['results']:
+                etf['is_business'] = etf['code'] in business_etfs
+        
+        # 如果没有结果，尝试按指数名称搜索
+        if not results or (isinstance(results, dict) and results.get('count', 0) == 0):
+            return search_by_index_name(keyword, etf_data, business_etfs, current_date_str)
+        
+        return results

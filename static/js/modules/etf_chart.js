@@ -211,7 +211,7 @@ export async function fetchETFHistoryData(etfCode) {
         const attentionResponse = await fetch(`/etf_attention_history?code=${encodeURIComponent(etfCode)}`);
         const attentionData = await attentionResponse.json();
         
-        // 获取持有人数和持有金额历史数据
+        // 获取持有人数和持仓价值历史数据
         const holdersResponse = await fetch(`/etf_holders_history?code=${encodeURIComponent(etfCode)}`);
         const holdersData = await holdersResponse.json();
         
@@ -309,7 +309,7 @@ function prepareChartData(historyData, options = {}) {
         const attentionItem = attention.find(item => item && item.date === date);
         attentionData.push(attentionItem ? attentionItem.attention_count : null);
         
-        // 查找该日期的持有人数和持有金额
+        // 查找该日期的持有人数和持仓价值
         const holdersItem = holders.find(item => item && item.date === date);
         holderData.push(holdersItem ? holdersItem.holder_count : null);
         amountData.push(holdersItem ? holdersItem.holding_value : null);
@@ -419,7 +419,7 @@ function calculateHistoricalChanges(historyData) {
         }
     }
     
-    // 计算持有人数和持有金额变化
+    // 计算持有人数和持仓价值变化
     if (sortHolders.length > 0) {
         const latestHolders = sortHolders[0].holder_count;
         const latestAmount = sortHolders[0].holding_value;
@@ -535,7 +535,7 @@ function displayHistoricalChanges(containerId, changes) {
                 <th scope="col" class="text-center" style="width: 22%;">统计项</th>
                 <th scope="col" class="text-center" style="width: 26%;">自选人数</th>
                 <th scope="col" class="text-center" style="width: 26%;">持有人数</th>
-                <th scope="col" class="text-center" style="width: 26%;">持有金额</th>
+                <th scope="col" class="text-center" style="width: 26%;">持仓价值</th>
             </tr>
         </thead>
         <tbody>
@@ -761,7 +761,7 @@ export async function initETFChart(containerId, historyData, options = {}) {
         
         if (hasAmountData) {
             datasets.push({
-                label: '持有金额(元)',
+                label: '持仓价值(元)',
                 data: chartData.amounts,
                 backgroundColor: CHART_COLORS.amount.fill,
                 borderColor: CHART_COLORS.amount.stroke,
@@ -804,7 +804,7 @@ export async function initETFChart(containerId, historyData, options = {}) {
                                     label += ': ';
                                 }
                                 if (context.parsed.y !== null) {
-                                    if (context.dataset.label === '持有金额(元)') {
+                                    if (context.dataset.label === '持仓价值(元)') {
                                         label += formatNumber(context.parsed.y, 2);
                                     } else {
                                         label += formatNumber(context.parsed.y, 0);
@@ -881,7 +881,7 @@ export async function initETFChart(containerId, historyData, options = {}) {
                         },
                         title: {
                             display: true,
-                            text: '持有金额(元)',
+                            text: '持仓价值(元)',
                             font: {
                                 family: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
                                 size: 12

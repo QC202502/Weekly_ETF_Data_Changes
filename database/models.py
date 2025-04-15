@@ -347,6 +347,9 @@ class Database:
             print("原始数据前5行：")
             print(df.head())
             
+            # 标准化列名（去除多余的空格和换行符）
+            df.columns = [col.strip().replace('\n', ' ').replace('[', '(').replace(']', ')') for col in df.columns]
+            
             # 标准化ETF代码
             from utils.etf_code import normalize_etf_code
             
@@ -423,19 +426,48 @@ class Database:
                 print("标准化后示例：", df['code'].head(5).tolist())
                 # 显示ETF代码的唯一数量
                 print(f"标准化后唯一代码数量: {df['code'].nunique()}")
-                
+            
+            # 定义所有我们需要的列
+            required_columns = ['code', 'name', 'fund_manager']
+            optional_columns = [
+                'fund_size', 'exchange', 'tracking_index_code', 'tracking_index_name',
+                'tracking_error', 'information_ratio', 'total_holder_count',
+                'management_fee_rate', 'custody_fee_rate', 'index_usage_fee',
+                'monthly_volume', 'daily_avg_volume', 'turnover_rate', 'daily_volume',
+                'transaction_count', 'total_market_value', 'benchmark',
+                'years_since_establishment', 'establishment_date', 'fund_exchange_abbr',
+                'date'
+            ]
+            
+            # 检查必需列是否存在
+            missing_required = [col for col in required_columns if col not in df.columns]
+            if missing_required:
+                print(f"错误：缺少必需列 {missing_required}")
+                return False
+            
+            # 创建最终的数据框，只包含我们定义的列
+            final_columns = required_columns + [col for col in optional_columns if col in df.columns]
+            
+            # 选择存在的列，丢弃其他未映射列
+            final_df = df[final_columns].copy()
+            
+            # 为所有可选列设置默认值（如果不存在）
+            for col in optional_columns:
+                if col not in final_df.columns:
+                    final_df[col] = None
+            
             # 处理基金规模数据
-            if 'fund_size' in df.columns:
+            if 'fund_size' in final_df.columns:
                 print("\n处理基金规模数据...")
-                print(f"基金规模列的数据类型： {df['fund_size'].dtype}")
-                print(f"基金规模的唯一值： {df['fund_size'].unique()}")
+                print(f"基金规模列的数据类型： {final_df['fund_size'].dtype}")
+                print(f"基金规模的唯一值： {final_df['fund_size'].unique()[:5]}")  # 只显示前5个唯一值
                 
                 # 将基金规模转换为浮点数
-                df['fund_size'] = pd.to_numeric(df['fund_size'], errors='coerce')
+                final_df['fund_size'] = pd.to_numeric(final_df['fund_size'], errors='coerce')
                 
                 # 显示基金规模的统计信息
                 print("\n处理后的基金规模统计：")
-                print(df['fund_size'].describe())
+                print(final_df['fund_size'].describe())
             
             # 处理费率数据
             fee_columns = ['management_fee_rate', 'custody_fee_rate', 'index_usage_fee']
@@ -461,15 +493,15 @@ class Database:
             
             # 处理费率列
             for col in fee_columns:
-                if col in df.columns:
-                    df[col] = df[col].apply(process_fee_rate)
+                if col in final_df.columns:
+                    final_df[col] = final_df[col].apply(process_fee_rate)
             
             # 添加total_annual_fee_rate列
-            fee_cols_exist = [col for col in fee_columns if col in df.columns]
+            fee_cols_exist = [col for col in fee_columns if col in final_df.columns]
             if fee_cols_exist:
-                df['total_annual_fee_rate'] = df[fee_cols_exist].sum(axis=1)
+                final_df['total_annual_fee_rate'] = final_df[fee_cols_exist].sum(axis=1)
             else:
-                df['total_annual_fee_rate'] = 0.0
+                final_df['total_annual_fee_rate'] = 0.0
             
             # 处理数量和金额字段
             def process_numeric_value(value, unit_mult=1.0):
@@ -490,47 +522,47 @@ class Database:
                     return 0.0
             
             # 处理月交易量数据（从百万元转为亿元）
-            if 'monthly_volume' in df.columns:
-                df['monthly_volume'] = df['monthly_volume'].apply(lambda x: process_numeric_value(x, 0.01))  # 百万到亿的转换
+            if 'monthly_volume' in final_df.columns:
+                final_df['monthly_volume'] = final_df['monthly_volume'].apply(lambda x: process_numeric_value(x, 0.01))  # 百万到亿的转换
             
             # 处理交易量数据
-            if 'daily_avg_volume' in df.columns:
-                df['daily_avg_volume'] = df['daily_avg_volume'].apply(process_numeric_value)
+            if 'daily_avg_volume' in final_df.columns:
+                final_df['daily_avg_volume'] = final_df['daily_avg_volume'].apply(process_numeric_value)
             
             # 处理换手率
-            if 'turnover_rate' in df.columns:
-                df['turnover_rate'] = df['turnover_rate'].apply(process_numeric_value)
+            if 'turnover_rate' in final_df.columns:
+                final_df['turnover_rate'] = final_df['turnover_rate'].apply(process_numeric_value)
             
             # 处理日交易量
-            if 'daily_volume' in df.columns:
-                df['daily_volume'] = df['daily_volume'].apply(process_numeric_value)
+            if 'daily_volume' in final_df.columns:
+                final_df['daily_volume'] = final_df['daily_volume'].apply(process_numeric_value)
             
             # 处理成交笔数
-            if 'transaction_count' in df.columns:
-                df['transaction_count'] = df['transaction_count'].apply(lambda x: int(process_numeric_value(x)) if pd.notna(x) else 0)
+            if 'transaction_count' in final_df.columns:
+                final_df['transaction_count'] = final_df['transaction_count'].apply(lambda x: int(process_numeric_value(x)) if pd.notna(x) else 0)
             
             # 处理总市值
-            if 'total_market_value' in df.columns:
-                df['total_market_value'] = df['total_market_value'].apply(process_numeric_value)
+            if 'total_market_value' in final_df.columns:
+                final_df['total_market_value'] = final_df['total_market_value'].apply(process_numeric_value)
             
             # 添加更新时间
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            df['update_time'] = current_time
+            final_df['update_time'] = current_time
             
             # 添加或使用文件提供的日期列
             # 如果df中已经有date列（从文件名提取的日期），则使用该列
             # 否则使用当前日期
-            if 'date' not in df.columns:
+            if 'date' not in final_df.columns:
                 current_date = datetime.now().strftime('%Y-%m-%d')
-                df['date'] = current_date
+                final_df['date'] = current_date
                 print(f"未发现日期字段，使用当前日期：{current_date}")
             else:
-                print(f"使用文件中提供的日期：{df['date'].iloc[0]}")
+                print(f"使用文件中提供的日期：{final_df['date'].iloc[0]}")
             
             # 显示数据示例
             print("\n最终数据示例：")
-            print(df[['code', 'name', 'fund_size']].head())
-            print("\n数据形状：", df.shape)
+            print(final_df[['code', 'name', 'fund_size']].head())
+            print("\n数据形状：", final_df.shape)
             
             # 删除现有表并重新创建
             conn = self.connect()
@@ -568,11 +600,11 @@ class Database:
             """)
             
             # 保存到主表
-            df.to_sql('etf_info', conn, if_exists='append', index=False)
+            final_df.to_sql('etf_info', conn, if_exists='append', index=False)
             
             conn.commit()
             
-            print(f"\n成功保存ETF基本信息，共{len(df)}条记录")
+            print(f"\n成功保存ETF基本信息，共{len(final_df)}条记录")
             return True
         
         except Exception as e:

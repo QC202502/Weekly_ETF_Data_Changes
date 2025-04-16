@@ -47,6 +47,22 @@ def create_tables():
             )
         """)
         
+        # 创建市场可交易指数表
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS market_index (
+                index_code TEXT PRIMARY KEY,
+                index_name TEXT,
+                index_intro TEXT,
+                publisher TEXT,
+                components_count INTEGER,
+                weight_method TEXT,
+                base_date TEXT,
+                base_point REAL,
+                currency TEXT,
+                update_time TIMESTAMP
+            )
+        """)
+        
         # 提交事务
         db.conn.commit()
         

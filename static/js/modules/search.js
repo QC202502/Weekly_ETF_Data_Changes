@@ -548,229 +548,155 @@ function generateETFTable(etfs, title = '搜索结果') {
 
 // 渲染指数分组结果
 function renderIndexGroupResults(data) {
-    let html = `<div class="alert alert-success">找到${data.index_count}个匹配的指数，共有${data.count}个ETF，按跟踪指数规模排序</div>`;
+    console.log('渲染指数分组结果', data);
     
-    // 简化公司名称的函数
+    // 辅助函数
     const simplifyCompany = (company) => {
         if (!company) return '';
-        // 删除"基金"及其后面的字符
-        return company.replace(/基金.*$/, '');
+        return company.replace(/(证券|基金|资产管理|投资管理)(?:股份)?(?:有限)?(?:责任)?公司/, '');
     };
     
-    // 移除代码后缀的函数
     const removeCodeSuffix = (code) => {
         if (!code) return '';
-        return code.replace(/\.(SZ|SH|BJ)$/i, '');
+        return code.replace(/\.(SH|SZ|CSI|OF|SI)$/, '');
     };
     
-    // 为每个指数创建一个表格
-    data.index_groups.forEach(group => {
-        // 按区间日均成交额从高到低排序
-        group.etfs.sort((a, b) => {
-            const volumeA = Number(a.daily_avg_volume || 0);
-            const volumeB = Number(b.daily_avg_volume || 0);
-            return volumeB - volumeA;
-        });
+    // 添加指数简介信息
+    let introHtml = '';
+    
+    // 检查index_info对象中是否有index_intro
+    if (data.index_info && data.index_info.index_intro) {
+        introHtml = `<div class="alert alert-info mb-2">指数简介：${data.index_info.index_intro}</div>`;
+    }
+    
+    // 构建HTML
+    let html = introHtml + `<div class="alert alert-success">找到 ${data.count} 个追踪「${data.index_name || data.keyword}」指数的ETF产品</div>`;
+    
+    // 分组显示ETF
+    if (data.index_groups && data.index_groups.length > 0) {
+        console.log('使用指数分组展示', data.index_groups.length);
         
-        // 找出总规模最大和交易量最大的ETF
-        let maxFundSizeETF = [...group.etfs].sort((a, b) => 
-            (Number(b.fund_size || 0) - Number(a.fund_size || 0)))[0] || null;
-        
-        let maxVolumeETF = [...group.etfs].sort((a, b) => 
-            (Number(b.daily_avg_volume || 0) - Number(a.daily_avg_volume || 0)))[0] || null;
-        
-        // 标记高亮的项目：找出管理费率最低中交易量最大的ETF
-        let minFeeETFs = [...group.etfs].sort((a, b) => 
-            (Number(a.management_fee_rate || 0) - Number(b.management_fee_rate || 0)));
-        
-        // 获取最低费率
-        const lowestFee = minFeeETFs.length > 0 ? Number(minFeeETFs[0].management_fee_rate || 0) : 0;
-        
-        // 筛选所有具有最低费率的ETF
-        const lowestFeeETFs = minFeeETFs.filter(etf => 
-            Number(etf.management_fee_rate || 0) === lowestFee);
-        
-        // 在最低费率组中，找出交易量最大的
-        let highlightETF = lowestFeeETFs.length > 0 ? 
-            lowestFeeETFs.sort((a, b) => 
-                Number(b.daily_avg_volume || 0) - Number(a.daily_avg_volume || 0))[0] : 
-            null;
-        
-        html += `
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>${group.index_name || '未知指数'} (${group.index_code || '无代码'})</h5>
-                    <div class="small text-muted">总规模: ${formatNumber(group.total_scale)}亿元 | ETF数量: ${group.etf_count}</div>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>代码</th>
-                                    <th>名称</th>
-                                    <th>管理人</th>
-                                    <th>区间日均成交额(亿)</th>
-                                    <th>规模(亿)</th>
-                                    <th>管理费率</th>
-                                    <th>类型</th>
-                                    <th>自选人数</th>
-                                    <th>自选日变化</th>
-                                    <th>自选5日变化</th>
-                                    <th>持仓人数</th>
-                                    <th>持仓日变化</th>
-                                    <th>持仓5日变化</th>
-                                    <th>持仓价值(万元)</th>
-                                    <th>持仓价值日变化</th>
-                                    <th>持仓价值5日变化</th>
-                                    <th>最近交易日成交额(亿)</th>
-                                    <th>总持有人数</th>
-                                    <th>跟踪误差(%)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-        `;
-        
-        // 计算汇总数据
-        let totalScale = 0;
-        let totalFeeRate = 0;
-        let totalHolders = 0;
-        let businessCount = 0;
-        let totalHolderCount = 0;
-        let totalHoldingAmount = 0;
-        let totalAttention = 0;
-        let totalDailyAvgVolume = 0;
-        let totalDailyVolume = 0;
-        
-        // 添加每个ETF的行
-        group.etfs.forEach(etf => {
-            // 确保所有字段都有默认值
-            const etfSafe = {
-                code: etf.code || '',
-                name: etf.name || '',
-                manager: etf.manager || etf.fund_manager || '',
-                fund_size: Number(etf.scale || etf.fund_size || 0),
-                management_fee_rate: Number(etf.fee_rate || etf.management_fee_rate || 0),
-                tracking_error: Number(etf.tracking_error || 0),
-                total_holder_count: Number(etf.holders_count || etf.total_holder_count || 0),
-                holder_count: Number(etf.holder_count || 0),
-                holder_daily_change: Number(etf.holder_daily_change || 0),
-                holder_five_day_change: Number(etf.holder_five_day_change || 0),
-                holding_amount: Number(etf.holding_amount || 0),
-                holding_value: Number(etf.holding_value || 0),
-                amount_daily_change: Number(etf.amount_daily_change || 0),
-                amount_five_day_change: Number(etf.amount_five_day_change || 0),
-                attention_count: Number(etf.attention_count || 0),
-                attention_daily_change: Number(etf.attention_daily_change || 0),
-                attention_five_day_change: Number(etf.attention_five_day_change || 0),
-                is_business: Boolean(etf.is_business),
-                business_text: etf.business_text || (etf.is_business ? '商务品' : '非商务品'),
-                daily_avg_volume: Number(etf.daily_avg_volume || etf.volume || 0),
-                daily_volume: Number(etf.daily_volume || 0)
-            };
-            
-            // 累加统计数据
-            totalScale += etfSafe.fund_size;
-            totalFeeRate += etfSafe.management_fee_rate;
-            totalHolders += etfSafe.total_holder_count;
-            totalHolderCount += etfSafe.holder_count;
-            totalHoldingAmount += etfSafe.holding_value;
-            totalAttention += etfSafe.attention_count;
-            totalDailyAvgVolume += etfSafe.daily_avg_volume;
-            totalDailyVolume += etfSafe.daily_volume;
-            if (etfSafe.is_business) businessCount++;
-            
-            // 检查是否需要高亮
-            const isMinFeeHighlight = highlightETF && etf.code === highlightETF.code;
-            const isMaxSizeHighlight = maxFundSizeETF && etf.code === maxFundSizeETF.code;
-            const isMaxVolumeHighlight = maxVolumeETF && etf.code === maxVolumeETF.code;
-            
-            // 商务品整行高亮
-            let rowClass = '';
-            if (etfSafe.is_business) {
-                rowClass = ' class="table-warning"';
-            }
-            
-            // 处理代码和管理费率的显示
-            const displayCode = removeCodeSuffix(etfSafe.code);
-            
-            // 高亮规则：
-            // 1. 费率最低且交易量最高的ETF：高亮费率和代码
-            // 2. 规模最大的ETF：高亮规模和代码
-            // 3. 交易量最大的ETF：高亮交易量和代码
-            
-            // 规模最大ETF的规模字段
-            const fundSizeDisplay = isMaxSizeHighlight ? 
-                `<strong style="color: #007bff;">${formatNumber(etfSafe.fund_size)}</strong>` : 
-                formatNumber(etfSafe.fund_size);
-            
-            // 交易量最大ETF的交易量字段
-            const volumeDisplay = isMaxVolumeHighlight ? 
-                `<strong style="color: #007bff;">${formatNumber(etfSafe.daily_avg_volume, 2)}</strong>` : 
-                formatNumber(etfSafe.daily_avg_volume, 2);
-                
-            // 费率最低里交易量最高的ETF的费率
-            const feeDisplay = isMinFeeHighlight ? 
-                `<strong style="color: #007bff;">${formatNumber(etfSafe.management_fee_rate, 4)}</strong>` : 
-                formatNumber(etfSafe.management_fee_rate, 4);
-            
-            // 代码高亮逻辑 - 所有特殊ETF的代码都高亮
-            let codeDisplay = displayCode;
-            if (isMinFeeHighlight || isMaxSizeHighlight || isMaxVolumeHighlight) {
-                codeDisplay = `<strong style="color: #007bff;">${displayCode}</strong>`;
-            }
+        // 处理每个指数分组
+        data.index_groups.forEach(group => {
+            const indexName = group.index_name || '未知指数';
+            const indexCode = group.index_code || '';
+            const etfs = group.etfs || [];
             
             html += `
-                <tr${rowClass}>
-                    <td>${codeDisplay}</td>
-                    <td>${etfSafe.name}</td>
-                    <td>${etfSafe.manager_short || simplifyCompany(etfSafe.manager)}</td>
-                    <td>${volumeDisplay}</td>
-                    <td>${fundSizeDisplay}</td>
-                    <td>${feeDisplay}</td>
-                    <td>${etfSafe.business_text}</td>
-                    <td>${formatNumber(etfSafe.attention_count, 0)}</td>
-                    <td>${formatNumber(etfSafe.attention_daily_change, 0)}</td>
-                    <td>${formatNumber(etfSafe.attention_five_day_change, 0)}</td>
-                    <td>${formatNumber(etfSafe.holder_count, 0)}</td>
-                    <td>${formatNumber(etfSafe.holder_daily_change, 0)}</td>
-                    <td>${formatNumber(etfSafe.holder_five_day_change, 0)}</td>
-                    <td>${formatNumber(etfSafe.holding_value, 2)}</td>
-                    <td>${formatNumber(etfSafe.holding_day_change, 2)}</td>
-                    <td>${formatNumber(etfSafe.holding_5day_change, 2)}</td>
-                    <td>${formatNumber(etfSafe.daily_volume, 2)}</td>
-                    <td>${formatNumber(etfSafe.total_holder_count, 0)}</td>
-                    <td>${formatNumber(etfSafe.tracking_error)}</td>
-                </tr>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>${indexName} (${indexCode}) - ${etfs.length}个ETF产品</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>基金代码</th>
+                                        <th>基金简称</th>
+                                        <th>管理人</th>
+                                        <th>规模(亿元)</th>
+                                        <th>管理费率(%)</th>
+                                        <th>跟踪误差(%)</th>
+                                        <th>持仓人数</th>
+                                        <th>自选关注</th>
+                                        <th>类型</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            // 计算汇总数据
+            let totalScale = 0;
+            let avgFeeRate = 0;
+            let totalFeeRate = 0;
+            let totalClients = 0;
+            let totalAttention = 0;
+            let businessCount = 0;
+            
+            // 添加每个ETF行
+            etfs.forEach(etf => {
+                const fundSize = parseFloat(etf.fund_size || 0);
+                const feeRate = parseFloat(etf.management_fee_rate || 0);
+                const trackingError = parseFloat(etf.tracking_error || 0);
+                const holders = parseInt(etf.total_holder_count || 0);
+                const attention = parseInt(etf.attention_count || 0);
+                const isBusiness = etf.is_business || false;
+                
+                totalScale += fundSize;
+                totalFeeRate += feeRate;
+                totalClients += holders;
+                totalAttention += attention;
+                if (isBusiness) businessCount++;
+                
+                html += `
+                    <tr>
+                        <td>${removeCodeSuffix(etf.code) || ''}</td>
+                        <td>${etf.name || ''}</td>
+                        <td>${simplifyCompany(etf.manager) || ''}</td>
+                        <td>${(fundSize).toFixed(2)}</td>
+                        <td>${(feeRate).toFixed(4)}</td>
+                        <td>${(trackingError).toFixed(2)}</td>
+                        <td>${holders.toLocaleString()}</td>
+                        <td>${attention.toLocaleString()}</td>
+                        <td>${isBusiness ? '商务品' : '非商务品'}</td>
+                    </tr>
+                `;
+            });
+            
+            // 计算平均管理费率
+            avgFeeRate = etfs.length > 0 ? totalFeeRate / etfs.length : 0;
+            
+            // 添加汇总行
+            html += `
+                    <tr class="table-info">
+                        <td colspan="3">汇总 (${etfs.length}个ETF，其中${businessCount}个商务品)</td>
+                        <td>${totalScale.toFixed(2)}</td>
+                        <td>${avgFeeRate.toFixed(4)}</td>
+                        <td>-</td>
+                        <td>${totalClients.toLocaleString()}</td>
+                        <td>${totalAttention.toLocaleString()}</td>
+                        <td>${etfs.length > 0 ? (businessCount / etfs.length * 100).toFixed(1) + '%' : '0%'}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+                    </div>
+                </div>
             `;
         });
+    } else {
+        // 如果没有分组，则直接显示ETF列表
+        html += `
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>基金代码</th>
+                            <th>基金简称</th>
+                            <th>管理人</th>
+                            <th>规模(亿元)</th>
+                            <th>管理费率(%)</th>
+                            <th>跟踪误差(%)</th>
+                            <th>持仓人数</th>
+                            <th>自选关注</th>
+                            <th>类型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
         
-        // 添加汇总行
-        const avgFeeRate = group.etfs.length > 0 ? totalFeeRate / group.etfs.length : 0;
+        // 添加ETF行和汇总数据
+        const { etfRows, summaryRow } = renderETFTableRows(data.results);
+        html += etfRows;
+        html += summaryRow;
         
         html += `
                     </tbody>
-                <tfoot>
-                    <tr class="table-info">
-                        <td colspan="3">汇总 (${group.etfs.length}个ETF${businessCount > 0 ? '，其中'+businessCount+'个商务品' : ''})</td>
-                        <td>${formatNumber(totalDailyAvgVolume, 2)}</td>
-                        <td>${formatNumber(totalScale)}</td>
-                        <td>${formatNumber(avgFeeRate, 4)}</td>
-                        <td>${group.etfs.length > 0 ? formatNumber((businessCount / group.etfs.length) * 100, 1)+'%' : '-'}</td>
-                        <td>${formatNumber(totalAttention, 0)}</td>
-                        <td>${formatNumber(totalHolderCount, 0)}</td>
-                        <td>${formatNumber(totalHoldingAmount, 2)}</td>
-                        <td>${formatNumber(totalDailyVolume, 2)}</td>
-                        <td>${formatNumber(totalHolders, 0)}</td>
-                        <td>-</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-</div>
-`
-    });
+                </table>
+            </div>
+        `;
+    }
     
     return html;
 }
@@ -821,7 +747,17 @@ function renderCompanyResults(data) {
 function renderETFCodeResults(data) {
     // 添加指数简介信息
     let introHtml = '';
-    if (data.index_intro) {
+    
+    // 检查results数组中的第一个ETF是否有index_intro
+    if (data.results && data.results.length > 0 && data.results[0].index_intro) {
+        introHtml = `<div class="alert alert-info mb-2">指数简介：${data.results[0].index_intro}</div>`;
+    }
+    // 或者检查index_info对象中是否有index_intro
+    else if (data.index_info && data.index_info.index_intro) {
+        introHtml = `<div class="alert alert-info mb-2">指数简介：${data.index_info.index_intro}</div>`;
+    }
+    // 最后检查data对象本身是否有index_intro（旧实现方式）
+    else if (data.index_intro) {
         introHtml = `<div class="alert alert-info mb-2">指数简介：${data.index_intro}</div>`;
     }
     

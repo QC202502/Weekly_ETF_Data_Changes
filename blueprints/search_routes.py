@@ -456,7 +456,14 @@ def search_by_etf_code(code, etf_data, business_etfs, current_date_str):
         # 处理业务ETF标记
         for result in results:
             result['is_business'] = result['code'] in business_etfs
-        
+            
+            # 获取跟踪指数代码
+            index_code = result.get('tracking_index_code', '')
+            if index_code:
+                # 获取指数简介
+                index_intro = get_index_intro(index_code)
+                result['index_intro'] = index_intro
+    
         return results
     except Exception as e:
         print(f"search_by_etf_code错误: {e}")
@@ -470,8 +477,14 @@ def search_by_index_name(keyword, etf_data, business_etfs, current_date_str):
     # 直接调用数据库模型中的search_by_index_name方法
     results = db.search_by_index_name(keyword)
     
-    # 处理业务ETF标记
+    # 处理业务ETF标记和指数简介
     if isinstance(results, dict) and 'results' in results:
+        # 如果有索引信息，添加索引简介
+        if 'index_info' in results and 'index_code' in results['index_info']:
+            index_code = results['index_info']['index_code']
+            results['index_info']['index_intro'] = get_index_intro(index_code)
+            
+        # 为每个ETF添加业务标记
         for etf in results['results']:
             etf['is_business'] = etf['code'] in business_etfs
     
@@ -484,8 +497,14 @@ def search_by_index_code(keyword, etf_data, business_etfs, current_date_str):
     # 直接调用数据库模型中的search_by_index_code方法
     results = db.search_by_index_code(keyword)
     
-    # 处理业务ETF标记
+    # 处理业务ETF标记和指数简介
     if isinstance(results, dict) and 'results' in results:
+        # 如果有索引信息，添加索引简介
+        if 'index_info' in results and 'index_code' in results['index_info']:
+            index_code = results['index_info']['index_code']
+            results['index_info']['index_intro'] = get_index_intro(index_code)
+            
+        # 为每个ETF添加业务标记
         for etf in results['results']:
             etf['is_business'] = etf['code'] in business_etfs
     

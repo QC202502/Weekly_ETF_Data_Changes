@@ -24,8 +24,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息
-__version__ = "3.4.5"   
-RELEASE_DATE = "2025-04-15"
+__version__ = "3.5.0"   
+RELEASE_DATE = "2025-04-16"
 
 # 创建Flask应用
 app = Flask(__name__)

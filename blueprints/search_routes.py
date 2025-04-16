@@ -546,54 +546,59 @@ def get_recommendations():
             
             # 1. 获取涨幅最大的ETF (Top 20 Gainers)
             # 为每个指数只选取涨幅最大的一个ETF
-            cursor.execute("""
-                SELECT p.code, i.name, p.change_rate, i.tracking_index_code, i.fund_manager, 
-                       CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
-                       i.fund_size
-                FROM etf_price p
-                JOIN etf_info i ON p.code = i.code
-                LEFT JOIN etf_business b ON p.code = b.code
-                WHERE p.change_rate IS NOT NULL
-                ORDER BY p.change_rate DESC
-            """)
-            
-            results = cursor.fetchall()
-            processed_indices = set()  # 记录已处理的指数代码
-            count = 0
-            
-            for row in results:
-                code, name, change_rate, tracking_index_code, manager, is_business, scale = row
+            try:
+                # 获取最新的交易日期
+                cursor.execute("SELECT MAX(date) FROM etf_price")
+                latest_date = cursor.fetchone()[0]
                 
-                # 如果已经处理过该指数，则跳过
-                if tracking_index_code in processed_indices:
-                    continue
+                if latest_date:
+                    recommendations["trade_date"] = f"{datetime.strptime(latest_date, '%Y-%m-%d').month}月{datetime.strptime(latest_date, '%Y-%m-%d').day}日"
                 
-                # 添加到结果集
-                recommendations["price_return"].append({
-                    'code': code,
-                    'name': name,
-                    'change_rate': round(float(change_rate) * 100, 2) if change_rate else 0,
-                    'manager': manager,
-                    'is_business': bool(is_business),
-                'business_text': "商务品" if is_business else "非商务品",
-                    'index_code': tracking_index_code,
-                    'scale': round(float(scale), 2) if scale else 0,
-                    'type': 'gainers'
-                })
+                # 使用子查询先按跟踪指数分组选出每组涨幅最高的ETF
+                query = """
+                SELECT i1.code, i1.name, p1.change_rate, i1.tracking_index_code, i1.tracking_index_name, 
+                       i1.fund_manager, i1.fund_size,
+                       CASE WHEN b1.code IS NOT NULL THEN 1 ELSE 0 END as is_business
+                FROM etf_price p1
+                JOIN etf_info i1 ON p1.code = i1.code
+                LEFT JOIN etf_business b1 ON p1.code = b1.code
+                JOIN (
+                    SELECT i.tracking_index_code, MAX(p.change_rate) as max_change_rate
+                    FROM etf_price p
+                    JOIN etf_info i ON p.code = i.code
+                    WHERE p.date = ? AND i.tracking_index_code IS NOT NULL AND i.tracking_index_code != ''
+                    GROUP BY i.tracking_index_code
+                ) sub ON i1.tracking_index_code = sub.tracking_index_code AND p1.change_rate = sub.max_change_rate
+                WHERE p1.date = ?
+                ORDER BY p1.change_rate DESC
+                LIMIT 20
+                """
                 
-                # 记录已处理的指数
-                if tracking_index_code:
-                    processed_indices.add(tracking_index_code)
-                count += 1
+                cursor.execute(query, (latest_date, latest_date))
+                results = cursor.fetchall()
                 
-                # 只取前20个
-                if count >= 20:
-                    break
-            
-            print(f"成功加载ETF价格推荐数据，共{len(recommendations['price_return'])}条记录，交易日期：{recommendations['trade_date']}")
-            
-            # 因为历史表中可能没有数据，以下部分暂时注释
-            # 后续可以从etf_attention、etf_holders表中直接获取数据
+                for row in results:
+                    code, name, change_rate, tracking_index_code, tracking_index_name, manager, scale, is_business = row
+                    
+                    # 添加到结果集
+                    recommendations["price_return"].append({
+                        'code': code,
+                        'name': name,
+                        'change_rate': round(float(change_rate) * 100, 2) if change_rate else 0,
+                        'manager': manager,
+                        'is_business': bool(is_business),
+                        'business_text': "商务品" if is_business else "非商务品",
+                        'index_code': tracking_index_code,
+                        'index_name': tracking_index_name or tracking_index_code,
+                        'scale': round(float(scale), 2) if scale else 0,
+                        'type': 'price_return'
+                    })
+                
+                print(f"成功加载ETF价格推荐数据，共{len(recommendations['price_return'])}条记录，交易日期：{recommendations['trade_date']}")
+                
+            except Exception as e:
+                print(f"获取涨幅数据出错: {str(e)}")
+                traceback.print_exc()
             
             # 2. 尝试获取关注数据
             try:

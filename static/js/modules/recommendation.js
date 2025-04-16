@@ -41,6 +41,38 @@ export function initRecommendations() {
     });
 }
 
+// 初始化新版推荐页面
+export function initNewRecommendationPage() {
+    console.log('初始化新版推荐页面');
+    
+    // 获取推荐数据
+    fetch('/recommendations')
+        .then(response => {
+            console.log('推荐数据响应状态:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('获取到推荐数据:', data);
+            
+            if (data.error) {
+                console.error('获取推荐数据出错:', data.error);
+                return;
+            }
+            
+            // 确保返回的数据格式正确
+            if (!data.recommendations) {
+                console.error('返回的数据格式不正确:', data);
+                return;
+            }
+            
+            // 渲染推荐数据
+            renderRecommendations(data.recommendations);
+        })
+        .catch(error => {
+            console.error('获取推荐数据出错:', error);
+        });
+}
+
 // 加载推荐数据
 export function loadRecommendations() {
     console.log('加载推荐数据');
@@ -71,69 +103,77 @@ function renderRecommendations(recommendations) {
     console.log('渲染推荐数据:', recommendations);
     
     // 更新价格涨幅标签的文本
-    const priceReturnTab = document.querySelector('#price-return-tab');
-    if (priceReturnTab && recommendations.trade_date) {
-        priceReturnTab.textContent = `${recommendations.trade_date}涨幅TOP20`;
+    const priceReturnTitle = document.getElementById('price-return-title');
+    if (priceReturnTitle && recommendations.trade_date) {
+        priceReturnTitle.textContent = `${recommendations.trade_date} 涨幅TOP20 ETF`;
     }
     
-    // 渲染价格涨幅推荐
-    renderRecommendationTable('price-return', recommendations.price_return);
+    console.log('价格数据:', recommendations.price_return);
+    console.log('关注数据:', recommendations.attention);
+    console.log('持仓数据:', recommendations.holders);
     
-    // 渲染自选人数推荐
-    renderRecommendationTable('attention', recommendations.attention);
+    // 渲染价格排名区域
+    renderRecommendationTable(recommendations.price_return || [], 'price-return');
     
-    // 渲染持仓客户推荐
-    renderRecommendationTable('holders', recommendations.holders);
+    // 渲染关注区域
+    renderRecommendationTable(recommendations.attention || [], 'attention');
     
-    // 渲染保有金额推荐
-    renderRecommendationTable('amount', recommendations.amount);
+    // 渲染持仓区域
+    renderRecommendationTable(recommendations.holders || [], 'holders');
 }
 
 // 渲染推荐表格
-function renderRecommendationTable(type, items) {
+function renderRecommendationTable(items, type) {
     const container = document.getElementById(`${type}-recommendations`);
-    if (!container) return;
-    
-    // 如果没有数据，显示提示信息
-    if (!items || items.length === 0) {
-        container.innerHTML = '<tr><td colspan="4" class="text-center">暂无数据</td></tr>';
+    if (!container) {
+        console.warn(`未找到容器: ${type}-recommendations`);
         return;
     }
     
+    // 如果没有数据，显示提示信息
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">暂无数据</div>';
+        return;
+    }
+    
+    console.log(`渲染 ${type} 表格，数据项:`, items.length);
+    
     // 清空容器
     container.innerHTML = '';
+    
+    // 创建表格
+    const table = document.createElement('table');
+    table.className = 'table table-hover table-striped';
+    
+    // 创建表头
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+        <tr>
+            <th>代码</th>
+            <th>名称</th>
+            <th>涨幅(%)</th>
+            <th>跟踪指数</th>
+            <th>基金公司</th>
+            <th>规模(亿元)</th>
+        </tr>
+    `;
+    table.appendChild(thead);
+    
+    // 创建表体
+    const tbody = document.createElement('tbody');
     
     // 添加推荐项
     items.forEach((item, index) => {
         const row = document.createElement('tr');
         
-        // 设置推荐项内容 - 确保ETF代码不包含sh/sz前缀
-        let displayCode = item.code;
-        if (displayCode.startsWith('sh') || displayCode.startsWith('sz')) {
-            displayCode = displayCode.substring(2);
-        }
-        
-        // 准备显示的变化值
-        let changeValue = '';
-        if (type === 'price-return') {
-            changeValue = `${item.change_rate}%`;
-        } else if (type === 'attention') {
-            changeValue = `+${item.attention_change.toLocaleString()}`;
-        } else if (type === 'holders') {
-            changeValue = `+${item.holders_change.toLocaleString()}`;
-        } else if (type === 'amount') {
-            changeValue = `+${item.amount_change.toFixed(2)}亿元`;
-        }
-        
-        // 准备指数信息
-        const indexInfo = item.index_code || '未知';
-        
-        // 设置行内容
+        // 设置推荐项内容
         row.innerHTML = `
-            <td>${displayCode}</td>
+            <td>${item.code}</td>
             <td>${item.name}</td>
-            <td>${changeValue}</td>
-            <td>${indexInfo}</td>
+            <td class="${parseFloat(item.change_rate) >= 0 ? 'text-danger' : 'text-success'}">${item.change_rate}</td>
+            <td>${item.index_name || item.tracking_index_name || item.index_code || item.tracking_index_code || '-'}</td>
+            <td>${item.manager || item.fund_manager || '-'}</td>
+            <td>${(item.scale || item.fund_size) ? parseFloat(item.scale || item.fund_size).toFixed(2) : '-'}</td>
         `;
         
         // 添加数据属性，用于点击搜索
@@ -141,16 +181,10 @@ function renderRecommendationTable(type, items) {
         
         // 绑定点击事件 - 点击行时搜索该ETF
         row.addEventListener('click', function() {
-            // 处理可能带有sh/sz前缀的ETF代码
-            let searchCode = this.dataset.code;
-            if (searchCode.startsWith('sh') || searchCode.startsWith('sz')) {
-                searchCode = searchCode.substring(2);
-            }
-            
             // 填充搜索框
             const searchInput = document.getElementById('search-input');
             if (searchInput) {
-                searchInput.value = searchCode;
+                searchInput.value = this.dataset.code;
             }
             
             // 触发搜索
@@ -161,8 +195,11 @@ function renderRecommendationTable(type, items) {
         row.style.cursor = 'pointer';
         
         // 将行添加到表格中
-        container.appendChild(row);
+        tbody.appendChild(row);
     });
+    
+    table.appendChild(tbody);
+    container.appendChild(table);
 }
 
 // 显示推荐项悬浮卡片

@@ -12,7 +12,6 @@
                     <i class="bi bi-markdown"></i> 导出Markdown
                 </button>
             </div>
-            <div class="form-text text-muted mb-3">可输入ETF代码(如560050或sh560050)、指数关键词(如红利、纳斯达克等)、指数代码(如000300.SH)或基金公司简称</div>
             
             <!-- 智能推荐栏 -->
             <div id="recommendation-container" class="mb-3" style="display: none;">
@@ -20,7 +19,7 @@
                     <div class="card-header p-2">
                         <ul class="nav nav-tabs card-header-tabs" id="recommendation-tabs">
                             <li class="nav-item">
-                                <a class="nav-link active" href="#price-return-tab" data-bs-toggle="tab">{{ recommendations.trade_date }}涨幅TOP20</a>
+                                <a class="nav-link active" href="#price-return-tab" data-bs-toggle="tab">{{ recommendations.date_for_title }}涨幅TOP20</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#attention-tab" data-bs-toggle="tab">上周新增关注TOP20</a>

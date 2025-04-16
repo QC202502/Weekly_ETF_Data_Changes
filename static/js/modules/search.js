@@ -487,7 +487,7 @@ function generateETFTable(etfs, title = '搜索结果') {
                 <tr${rowClass}>
                     <td>${codeDisplay}</td>
                     <td>${etfSafe.name}</td>
-                    <td>${simplifyCompany(etfSafe.manager)}</td>
+                    <td>${etfSafe.manager_short || simplifyCompany(etfSafe.manager)}</td>
                     <td>${volumeDisplay}</td>
                     <td>${fundSizeDisplay}</td>
                     <td>${feeDisplay}</td>
@@ -724,7 +724,7 @@ function renderIndexGroupResults(data) {
                 <tr${rowClass}>
                     <td>${codeDisplay}</td>
                     <td>${etfSafe.name}</td>
-                    <td>${simplifyCompany(etfSafe.manager)}</td>
+                    <td>${etfSafe.manager_short || simplifyCompany(etfSafe.manager)}</td>
                     <td>${volumeDisplay}</td>
                     <td>${fundSizeDisplay}</td>
                     <td>${feeDisplay}</td>

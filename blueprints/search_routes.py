@@ -339,7 +339,8 @@ def normalize_etf_results(results):
         etf_data = {
             'code': etf_code,
             'name': result.get('name', ''),
-            'manager': result.get('manager', ''),
+            'manager': result.get('manager', result.get('fund_manager', '')),
+            'manager_short': result.get('manager_short', ''),  # 优先使用数据库中的管理人简称字段
             'fund_size': result.get('fund_size', 0),
             'management_fee_rate': result.get('management_fee_rate', 0),
             'tracking_error': result.get('tracking_error', 0),
@@ -387,6 +388,8 @@ def normalize_etf_results(results):
             print(f"持仓价值(万元): {first_result['holding_value']}")
             print(f"关注度: {first_result['attention_count']}")
             print(f"日均成交量: {first_result['daily_avg_volume']}")
+            print(f"管理人: {first_result['manager']}")
+            print(f"管理人简称: {first_result['manager_short']}")
             
             print(f"关注度日变化: {first_result['attention_daily_change']}")
             print(f"关注度五日变化: {first_result['attention_five_day_change']}")
@@ -552,13 +555,32 @@ def get_recommendations():
                 latest_date = cursor.fetchone()[0]
                 
                 if latest_date:
-                    recommendations["trade_date"] = f"{datetime.strptime(latest_date, '%Y-%m-%d').month}月{datetime.strptime(latest_date, '%Y-%m-%d').day}日"
+                    # 直接使用最新数据的日期，而不是当前日期
+                    date_obj = datetime.strptime(latest_date, '%Y-%m-%d')
+                    # 格式化为"MM月DD日"
+                    recommendations["trade_date"] = f"{date_obj.month}月{date_obj.day}日"
+                    
+                    # 给页面标题使用的日期，格式为"04月16日"，补零
+                    recommendations["date_for_title"] = f"{date_obj.month:02d}月{date_obj.day:02d}日"
+                    print(f"最新数据日期: {latest_date}, 格式化为: {recommendations['date_for_title']}")
+                else:
+                    # 如果没有最新日期，使用默认值
+                    recommendations["trade_date"] = "最新"
+                    recommendations["date_for_title"] = "最新"
                 
-                # 使用子查询先按跟踪指数分组选出每组涨幅最高的ETF
+                # 使用SQL直接计算所需的数据，并完成跟踪指数分组排序
                 query = """
-                SELECT i1.code, i1.name, p1.change_rate, i1.tracking_index_code, i1.tracking_index_name, 
-                       i1.fund_manager, i1.fund_size,
-                       CASE WHEN b1.code IS NOT NULL THEN 1 ELSE 0 END as is_business
+                SELECT 
+                    i1.code, 
+                    i1.name, 
+                    ROUND(p1.change_rate, 2) as formatted_change_rate,
+                    i1.tracking_index_code, 
+                    i1.tracking_index_name,
+                    i1.fund_manager,
+                    i1.manager_short, 
+                    ROUND(i1.fund_size / 1, 2) as formatted_fund_size,
+                    CASE WHEN b1.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
+                    CASE WHEN b1.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_text
                 FROM etf_price p1
                 JOIN etf_info i1 ON p1.code = i1.code
                 LEFT JOIN etf_business b1 ON p1.code = b1.code
@@ -577,22 +599,18 @@ def get_recommendations():
                 cursor.execute(query, (latest_date, latest_date))
                 results = cursor.fetchall()
                 
+                # 使用字段名创建结果字典
+                field_names = [
+                    'code', 'name', 'change_rate', 'tracking_index_code', 
+                    'tracking_index_name', 'fund_manager', 'manager_short', 'fund_size', 
+                    'is_business', 'business_text'
+                ]
+                
                 for row in results:
-                    code, name, change_rate, tracking_index_code, tracking_index_name, manager, scale, is_business = row
-                    
-                    # 添加到结果集
-                    recommendations["price_return"].append({
-                        'code': code,
-                        'name': name,
-                        'change_rate': round(float(change_rate) * 100, 2) if change_rate else 0,
-                        'manager': manager,
-                        'is_business': bool(is_business),
-                        'business_text': "商务品" if is_business else "非商务品",
-                        'index_code': tracking_index_code,
-                        'index_name': tracking_index_name or tracking_index_code,
-                        'scale': round(float(scale), 2) if scale else 0,
-                        'type': 'price_return'
-                    })
+                    item = dict(zip(field_names, row))
+                    # 处理is_business字段，确保是布尔值
+                    item['is_business'] = bool(item['is_business'])
+                    recommendations["price_return"].append(item)
                 
                 print(f"成功加载ETF价格推荐数据，共{len(recommendations['price_return'])}条记录，交易日期：{recommendations['trade_date']}")
                 
@@ -602,65 +620,87 @@ def get_recommendations():
             
             # 2. 尝试获取关注数据
             try:
-                cursor.execute("""
-                    SELECT a.code, i.name, a.attention_count, i.fund_manager, i.fund_size, i.tracking_index_code,
-                           CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business
-                    FROM etf_attention a
-                    JOIN etf_info i ON a.code = i.code
-                    LEFT JOIN etf_business b ON a.code = b.code
-                    ORDER BY a.attention_count DESC
-                    LIMIT 20
-                """)
+                query = """
+                SELECT 
+                    a.code, 
+                    i.name, 
+                    a.attention_count as attention_change, 
+                    i.fund_manager, 
+                    ROUND(i.fund_size / 1, 2) as fund_size, 
+                    i.tracking_index_code,
+                    i.tracking_index_name,
+                    CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
+                    CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_text
+                FROM etf_attention a
+                JOIN etf_info i ON a.code = i.code
+                LEFT JOIN etf_business b ON a.code = b.code
+                ORDER BY a.attention_count DESC
+                LIMIT 20
+                """
                 
-                for row in cursor.fetchall():
-                    code, name, attention_count, manager, scale, tracking_index_code, is_business = row
-                    
-                    recommendations["attention"].append({
-                        'code': code,
-                        'name': name,
-                        'attention_change': int(attention_count) if attention_count else 0,  # 使用总数而非变化
-                        'manager': manager,
-                        'scale': round(float(scale), 2) if scale else 0,
-                        'is_business': bool(is_business),
-                'business_text': "商务品" if is_business else "非商务品",
-                        'index_code': tracking_index_code,
-                        'type': 'attention'
-                    })
+                cursor.execute(query)
+                results = cursor.fetchall()
+                
+                # 使用字段名创建结果字典
+                field_names = [
+                    'code', 'name', 'attention_change', 'fund_manager', 
+                    'fund_size', 'tracking_index_code', 'tracking_index_name',
+                    'is_business', 'business_text'
+                ]
+                
+                for row in results:
+                    item = dict(zip(field_names, row))
+                    # 确保数值类型正确
+                    item['attention_change'] = int(item['attention_change']) if item['attention_change'] else 0
+                    item['is_business'] = bool(item['is_business'])
+                    recommendations["attention"].append(item)
                 
                 print(f"成功加载ETF关注推荐数据，共{len(recommendations['attention'])}条记录")
             except Exception as e:
                 print(f"获取关注数据出错: {str(e)}")
+                traceback.print_exc()
             
             # 3. 尝试获取持有人数据
             try:
-                cursor.execute("""
-                    SELECT h.code, i.name, h.holder_count, i.fund_manager, i.fund_size, i.tracking_index_code,
-                           CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business
-                    FROM etf_holders h
-                    JOIN etf_info i ON h.code = i.code
-                    LEFT JOIN etf_business b ON h.code = b.code
-                    ORDER BY h.holder_count DESC
-                    LIMIT 20
-                """)
+                query = """
+                SELECT 
+                    h.code, 
+                    i.name, 
+                    h.holder_count as holders_change, 
+                    i.fund_manager, 
+                    ROUND(i.fund_size / 1, 2) as fund_size, 
+                    i.tracking_index_code,
+                    i.tracking_index_name,
+                    CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
+                    CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_text
+                FROM etf_holders h
+                JOIN etf_info i ON h.code = i.code
+                LEFT JOIN etf_business b ON h.code = b.code
+                ORDER BY h.holder_count DESC
+                LIMIT 20
+                """
                 
-                for row in cursor.fetchall():
-                    code, name, holder_count, manager, scale, tracking_index_code, is_business = row
-                    
-                    recommendations["holders"].append({
-                        'code': code,
-                        'name': name,
-                        'holders_change': int(holder_count) if holder_count else 0,  # 使用总数而非变化
-                        'manager': manager,
-                        'scale': round(float(scale), 2) if scale else 0,
-                        'is_business': bool(is_business),
-                        'business_text': "商务品" if is_business else "非商务品",
-                        'index_code': tracking_index_code,
-                        'type': 'holders'
-                    })
+                cursor.execute(query)
+                results = cursor.fetchall()
+                
+                # 使用字段名创建结果字典
+                field_names = [
+                    'code', 'name', 'holders_change', 'fund_manager', 
+                    'fund_size', 'tracking_index_code', 'tracking_index_name',
+                    'is_business', 'business_text'
+                ]
+                
+                for row in results:
+                    item = dict(zip(field_names, row))
+                    # 确保数值类型正确
+                    item['holders_change'] = int(item['holders_change']) if item['holders_change'] else 0
+                    item['is_business'] = bool(item['is_business'])
+                    recommendations["holders"].append(item)
                 
                 print(f"成功加载ETF持有人推荐数据，共{len(recommendations['holders'])}条记录")
             except Exception as e:
                 print(f"获取持有人数据出错: {str(e)}")
+                traceback.print_exc()
             
             # 4. 尝试获取保有价值数据
             try:

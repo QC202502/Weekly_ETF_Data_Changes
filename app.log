@@ -12839,3 +12839,1250 @@ IndentationError: expected an indented block
 2025-04-16 14:36:49,634 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
 2025-04-16 14:36:50,187 - werkzeug - WARNING -  * Debugger is active!
 2025-04-16 14:36:50,372 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 14:49:22,022 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 14:49:22] "POST /search HTTP/1.1" 200 -
+2025-04-16 14:49:27,315 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 14:49:27] "POST /search HTTP/1.1" 200 -
+2025-04-16 14:49:31,663 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 14:49:31] "POST /search HTTP/1.1" 200 -
+2025-04-16 14:49:34,884 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 14:49:34] "POST /search HTTP/1.1" 200 -
+2025-04-16 14:49:46,735 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 14:49:46] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:00:43,627 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET / HTTP/1.1" 200 -
+2025-04-16 15:00:43,718 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 15:00:43,719 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 15:00:43,726 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 15:00:43,789 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 15:00:43,790 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 15:00:43,792 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 15:00:43,793 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 15:00:43,794 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 15:00:43,797 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 15:00:43,911 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 15:00:43,917 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:00:43] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 15:02:50,940 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-16 15:02:51,357 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 15:02:53,982 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 15:02:53,985 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 15:02:54,436 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 15:02:54,610 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 15:03:31,622 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-16 15:03:31,798 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 15:03:33,261 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 15:03:33,265 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 15:03:33,724 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 15:03:33,759 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 15:05:38,373 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET / HTTP/1.1" 200 -
+2025-04-16 15:05:38,666 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 15:05:38,667 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 15:05:38,667 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 15:05:38,700 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 15:05:38,701 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 15:05:38,703 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 15:05:38,709 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 15:05:38,710 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 15:05:38,716 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 15:05:38,872 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 15:05:38,884 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:05:38] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 15:08:01,923 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:08:01] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:08:01,952 - app - INFO - ETF自选历史查询: 代码=513290
+2025-04-16 15:08:02,143 - app - INFO - ETF自选历史查询结果: 代码=513290, 记录数=19
+2025-04-16 15:08:02,144 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 534}
+2025-04-16 15:08:02,144 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 536}
+2025-04-16 15:08:02,144 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 540}
+2025-04-16 15:08:02,144 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 541}
+2025-04-16 15:08:02,144 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 539}
+2025-04-16 15:08:02,144 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 540}
+2025-04-16 15:08:02,144 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 539}
+2025-04-16 15:08:02,144 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 540}
+2025-04-16 15:08:02,144 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 542}
+2025-04-16 15:08:02,145 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 544}
+2025-04-16 15:08:02,145 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 544}
+2025-04-16 15:08:02,145 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 547}
+2025-04-16 15:08:02,145 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 550}
+2025-04-16 15:08:02,145 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 558}
+2025-04-16 15:08:02,145 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 561}
+2025-04-16 15:08:02,145 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 567}
+2025-04-16 15:08:02,145 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 570}
+2025-04-16 15:08:02,145 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 575}
+2025-04-16 15:08:02,146 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 596}
+2025-04-16 15:08:02,149 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:08:02] "GET /etf_attention_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 15:08:02,156 - app - INFO - ETF持有人历史查询: 代码=513290
+2025-04-16 15:08:02,164 - app - INFO - ETF持有人历史查询结果: 代码=513290, 记录数=19
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 125, 'holding_amount': 3186500.0, 'holding_value': 3731391.5}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 122, 'holding_amount': 2566200.0, 'holding_value': 3033248.4}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 122, 'holding_amount': 2558500.0, 'holding_value': 3006237.5}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 122, 'holding_amount': 2599000.0, 'holding_value': 3072018.0}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 124, 'holding_amount': 2591900.0, 'holding_value': 3048074.4}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 126, 'holding_amount': 2641500.0, 'holding_value': 3098479.5}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 129, 'holding_amount': 2653000.0, 'holding_value': 3069521.0}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 125, 'holding_amount': 2713400.0, 'holding_value': 3142117.2}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 126, 'holding_amount': 2727600.0, 'holding_value': 3095826.0}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 132, 'holding_amount': 2859100.0, 'holding_value': 3225064.8}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 140, 'holding_amount': 3600000.0, 'holding_value': 3956400.0}
+2025-04-16 15:08:02,164 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 139, 'holding_amount': 3377600.0, 'holding_value': 3695094.4}
+2025-04-16 15:08:02,165 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 129, 'holding_amount': 3487000.0, 'holding_value': 3473052.0}
+2025-04-16 15:08:02,165 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 128, 'holding_amount': 3489600.0, 'holding_value': 3629184.0}
+2025-04-16 15:08:02,165 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 140, 'holding_amount': 3786800.0, 'holding_value': 3764079.2}
+2025-04-16 15:08:02,165 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 137, 'holding_amount': 3421600.0, 'holding_value': 3592680.0}
+2025-04-16 15:08:02,165 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 143, 'holding_amount': 3495300.0, 'holding_value': 3565206.0}
+2025-04-16 15:08:02,165 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 142, 'holding_amount': 3549000.0, 'holding_value': 3722901.0}
+2025-04-16 15:08:02,165 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 136, 'holding_amount': 3562800.0, 'holding_value': 3830010.0}
+2025-04-16 15:08:02,165 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:08:02] "GET /etf_holders_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 15:08:09,329 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:08:09] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:08:41,525 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:08:41] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:08:43,594 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:08:43] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:08:45,077 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:08:45] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:10:07,371 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:07] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:10:09,951 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:09] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:10:45,396 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET / HTTP/1.1" 200 -
+2025-04-16 15:10:45,472 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 15:10:45,473 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 15:10:45,474 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 15:10:45,500 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 15:10:45,502 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 15:10:45,502 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 15:10:45,504 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 15:10:45,506 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 15:10:45,509 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 15:10:45,637 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 15:10:45,643 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:45] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 15:10:48,222 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:48] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:10:48,228 - app - INFO - ETF自选历史查询: 代码=517880
+2025-04-16 15:10:48,244 - app - INFO - ETF自选历史查询结果: 代码=517880, 记录数=19
+2025-04-16 15:10:48,244 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 45}
+2025-04-16 15:10:48,244 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 44}
+2025-04-16 15:10:48,244 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 45}
+2025-04-16 15:10:48,244 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 45}
+2025-04-16 15:10:48,244 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 45}
+2025-04-16 15:10:48,244 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 45}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 45}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 45}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 45}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 45}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 45}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 45}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 45}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 48}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 48}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 49}
+2025-04-16 15:10:48,245 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 49}
+2025-04-16 15:10:48,246 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 49}
+2025-04-16 15:10:48,246 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 55}
+2025-04-16 15:10:48,246 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:48] "GET /etf_attention_history?code=517880 HTTP/1.1" 200 -
+2025-04-16 15:10:48,250 - app - INFO - ETF持有人历史查询: 代码=517880
+2025-04-16 15:10:48,265 - app - INFO - ETF持有人历史查询结果: 代码=517880, 记录数=19
+2025-04-16 15:10:48,265 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 7, 'holding_amount': 34800.0, 'holding_value': 32607.6}
+2025-04-16 15:10:48,265 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 7, 'holding_amount': 35900.0, 'holding_value': 32920.3}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 7, 'holding_amount': 41900.0, 'holding_value': 37961.4}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 6, 'holding_amount': 41700.0, 'holding_value': 37905.3}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 4, 'holding_amount': 7700.0, 'holding_value': 7214.9}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 6, 'holding_amount': 41700.0, 'holding_value': 37655.1}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 6, 'holding_amount': 37000.0, 'holding_value': 33818.0}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 6, 'holding_amount': 38200.0, 'holding_value': 34685.6}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 6, 'holding_amount': 42600.0, 'holding_value': 38382.6}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 6, 'holding_amount': 46700.0, 'holding_value': 41936.6}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 5, 'holding_amount': 41300.0, 'holding_value': 37087.4}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 5, 'holding_amount': 43500.0, 'holding_value': 38802.0}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 5, 'holding_amount': 46500.0, 'holding_value': 38455.5}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 7, 'holding_amount': 49300.0, 'holding_value': 41905.0}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 7, 'holding_amount': 49300.0, 'holding_value': 42644.5}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 6, 'holding_amount': 46600.0, 'holding_value': 41054.6}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 6, 'holding_amount': 47800.0, 'holding_value': 41968.4}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 6, 'holding_amount': 48900.0, 'holding_value': 42885.3}
+2025-04-16 15:10:48,266 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 7, 'holding_amount': 98900.0, 'holding_value': 88416.6}
+2025-04-16 15:10:48,267 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:48] "GET /etf_holders_history?code=517880 HTTP/1.1" 200 -
+2025-04-16 15:10:51,881 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:51] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 15:10:51,881 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:51] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 15:10:51,882 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:51] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 15:10:51,888 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:51] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 15:10:51,890 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:51] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 15:10:51,892 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:51] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 15:10:51,892 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:51] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 15:10:51,894 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:51] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 15:10:51,896 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:10:51] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 15:12:32,197 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:32] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:12:32,206 - app - INFO - ETF自选历史查询: 代码=588000
+2025-04-16 15:12:32,218 - app - INFO - ETF自选历史查询结果: 代码=588000, 记录数=19
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 28385}
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 28375}
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 28389}
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 28397}
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 28406}
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 28399}
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 28393}
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 28395}
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 28402}
+2025-04-16 15:12:32,218 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 28421}
+2025-04-16 15:12:32,219 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 28428}
+2025-04-16 15:12:32,219 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 28435}
+2025-04-16 15:12:32,219 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 28501}
+2025-04-16 15:12:32,219 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 28549}
+2025-04-16 15:12:32,219 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 28600}
+2025-04-16 15:12:32,219 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 28624}
+2025-04-16 15:12:32,219 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 28651}
+2025-04-16 15:12:32,219 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 28670}
+2025-04-16 15:12:32,219 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 28678}
+2025-04-16 15:12:32,219 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:32] "GET /etf_attention_history?code=588000 HTTP/1.1" 200 -
+2025-04-16 15:12:32,367 - app - INFO - ETF持有人历史查询: 代码=588000
+2025-04-16 15:12:32,376 - app - INFO - ETF持有人历史查询结果: 代码=588000, 记录数=19
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 8644, 'holding_amount': 644321570.0, 'holding_value': 728727696.58}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 8684, 'holding_amount': 653194770.0, 'holding_value': 730924947.37}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 8746, 'holding_amount': 667916070.0, 'holding_value': 731368098.8}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 8740, 'holding_amount': 670815804.0, 'holding_value': 738568201.11}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 8606, 'holding_amount': 636067223.0, 'holding_value': 728933038.76}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 8802, 'holding_amount': 679855804.0, 'holding_value': 734924125.03}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 8778, 'holding_amount': 675763704.0, 'holding_value': 737933964.28}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 8786, 'holding_amount': 679684204.0, 'holding_value': 734738625.43}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 8825, 'holding_amount': 685504704.0, 'holding_value': 736232050.91}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 8840, 'holding_amount': 683133404.0, 'holding_value': 735051543.89}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 8859, 'holding_amount': 686326804.0, 'holding_value': 737114986.31}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 8875, 'holding_amount': 691025604.0, 'holding_value': 738015345.56}
+2025-04-16 15:12:32,376 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 8965, 'holding_amount': 718747928.0, 'holding_value': 697185490.16}
+2025-04-16 15:12:32,377 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 9035, 'holding_amount': 725170427.0, 'holding_value': 715018042.21}
+2025-04-16 15:12:32,377 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 9004, 'holding_amount': 691367027.0, 'holding_value': 710725304.24}
+2025-04-16 15:12:32,377 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 8977, 'holding_amount': 692990327.0, 'holding_value': 722095920.25}
+2025-04-16 15:12:32,377 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 8914, 'holding_amount': 675674927.0, 'holding_value': 716891098.45}
+2025-04-16 15:12:32,377 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 8872, 'holding_amount': 677284927.0, 'holding_value': 720631161.14}
+2025-04-16 15:12:32,377 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 8870, 'holding_amount': 679419127.0, 'holding_value': 716107758.67}
+2025-04-16 15:12:32,378 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:32] "GET /etf_holders_history?code=588000 HTTP/1.1" 200 -
+2025-04-16 15:12:49,690 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET / HTTP/1.1" 200 -
+2025-04-16 15:12:49,740 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 15:12:49,741 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 15:12:49,741 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 15:12:49,747 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 15:12:49,750 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 15:12:49,751 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 15:12:49,751 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 15:12:49,754 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 15:12:49,761 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 15:12:49,880 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 15:12:49,893 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:12:49] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 15:13:29,202 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:13:29] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:13:29,219 - app - INFO - ETF自选历史查询: 代码=512480
+2025-04-16 15:13:29,236 - app - INFO - ETF自选历史查询结果: 代码=512480, 记录数=19
+2025-04-16 15:13:29,236 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 19590}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 19580}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 19567}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 19559}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 19559}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 19553}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 19561}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 19567}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 19576}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 19608}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 19621}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 19618}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 19622}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 19622}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 19680}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 19687}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 19837}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 19865}
+2025-04-16 15:13:29,237 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 19853}
+2025-04-16 15:13:29,238 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:13:29] "GET /etf_attention_history?code=512480 HTTP/1.1" 200 -
+2025-04-16 15:13:29,244 - app - INFO - ETF持有人历史查询: 代码=512480
+2025-04-16 15:13:29,256 - app - INFO - ETF持有人历史查询结果: 代码=512480, 记录数=19
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 3073, 'holding_amount': 122402500.0, 'holding_value': 135254762.5}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 3090, 'holding_amount': 123593300.0, 'holding_value': 135211070.2}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 3131, 'holding_amount': 126553900.0, 'holding_value': 134653349.6}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 3142, 'holding_amount': 127780400.0, 'holding_value': 136980588.8}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 3055, 'holding_amount': 120026600.0, 'holding_value': 134069712.2}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 3153, 'holding_amount': 130463500.0, 'holding_value': 137247602.0}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 3146, 'holding_amount': 128913900.0, 'holding_value': 137164389.6}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 3164, 'holding_amount': 129888500.0, 'holding_value': 136123148.0}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 3190, 'holding_amount': 131065100.0, 'holding_value': 137487289.9}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 3187, 'holding_amount': 130394900.0, 'holding_value': 136914645.0}
+2025-04-16 15:13:29,256 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 3192, 'holding_amount': 129992900.0, 'holding_value': 136102566.3}
+2025-04-16 15:13:29,257 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 3195, 'holding_amount': 132503200.0, 'holding_value': 137935831.2}
+2025-04-16 15:13:29,257 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 3179, 'holding_amount': 130933700.0, 'holding_value': 123601412.8}
+2025-04-16 15:13:29,257 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 3217, 'holding_amount': 133428800.0, 'holding_value': 126223644.8}
+2025-04-16 15:13:29,257 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 3183, 'holding_amount': 127675900.0, 'holding_value': 126782168.7}
+2025-04-16 15:13:29,257 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 3195, 'holding_amount': 127447000.0, 'holding_value': 128084235.0}
+2025-04-16 15:13:29,257 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 3173, 'holding_amount': 128229000.0, 'holding_value': 135281595.0}
+2025-04-16 15:13:29,257 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 3207, 'holding_amount': 122426700.0, 'holding_value': 129160168.5}
+2025-04-16 15:13:29,257 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 3214, 'holding_amount': 123277300.0, 'holding_value': 128454946.6}
+2025-04-16 15:13:29,257 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:13:29] "GET /etf_holders_history?code=512480 HTTP/1.1" 200 -
+2025-04-16 15:14:06,240 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:14:06] "POST /search HTTP/1.1" 200 -
+2025-04-16 15:14:35,439 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 15:14:35] "POST /search HTTP/1.1" 200 -
+2025-04-16 16:45:01,085 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:45:01] "POST /search HTTP/1.1" 200 -
+2025-04-16 16:45:28,380 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:45:28] "POST /search HTTP/1.1" 200 -
+2025-04-16 16:45:28,396 - app - INFO - ETF自选历史查询: 代码=513780
+2025-04-16 16:45:28,414 - app - INFO - ETF自选历史查询结果: 代码=513780, 记录数=19
+2025-04-16 16:45:28,414 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 66}
+2025-04-16 16:45:28,414 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 68}
+2025-04-16 16:45:28,414 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 69}
+2025-04-16 16:45:28,414 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 69}
+2025-04-16 16:45:28,414 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 69}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 69}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 71}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 75}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 76}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 107}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 115}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 130}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 134}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 134}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 138}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 147}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 162}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 200}
+2025-04-16 16:45:28,415 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 210}
+2025-04-16 16:45:28,416 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:45:28] "GET /etf_attention_history?code=513780 HTTP/1.1" 200 -
+2025-04-16 16:45:28,464 - app - INFO - ETF持有人历史查询: 代码=513780
+2025-04-16 16:45:28,485 - app - INFO - ETF持有人历史查询结果: 代码=513780, 记录数=19
+2025-04-16 16:45:28,485 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 12, 'holding_amount': 276500.0, 'holding_value': 320740.0}
+2025-04-16 16:45:28,485 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 14, 'holding_amount': 335000.0, 'holding_value': 392955.0}
+2025-04-16 16:45:28,485 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 20, 'holding_amount': 692700.0, 'holding_value': 776516.7}
+2025-04-16 16:45:28,485 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 22, 'holding_amount': 833600.0, 'holding_value': 930297.6}
+2025-04-16 16:45:28,485 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 12, 'holding_amount': 467700.0, 'holding_value': 524291.7}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 21, 'holding_amount': 906900.0, 'holding_value': 999403.8}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 16, 'holding_amount': 375600.0, 'holding_value': 438700.8}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 15, 'holding_amount': 428700.0, 'holding_value': 504151.2}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 15, 'holding_amount': 485000.0, 'holding_value': 566965.0}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 24, 'holding_amount': 1078500.0, 'holding_value': 1352439.0}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 27, 'holding_amount': 1217300.0, 'holding_value': 1483888.7}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 40, 'holding_amount': 2046700.0, 'holding_value': 2474460.3}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 36, 'holding_amount': 2077400.0, 'holding_value': 2260211.2}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 35, 'holding_amount': 1545000.0, 'holding_value': 1551180.0}
+2025-04-16 16:45:28,486 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 34, 'holding_amount': 1303600.0, 'holding_value': 1306207.2}
+2025-04-16 16:45:28,490 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 37, 'holding_amount': 1557100.0, 'holding_value': 1627169.5}
+2025-04-16 16:45:28,491 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 35, 'holding_amount': 1602400.0, 'holding_value': 1737001.6}
+2025-04-16 16:45:28,491 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 43, 'holding_amount': 1631400.0, 'holding_value': 1882635.6}
+2025-04-16 16:45:28,492 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 46, 'holding_amount': 1742700.0, 'holding_value': 1967508.3}
+2025-04-16 16:45:28,493 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:45:28] "GET /etf_holders_history?code=513780 HTTP/1.1" 200 -
+2025-04-16 16:45:29,967 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:45:29] "POST /search HTTP/1.1" 200 -
+2025-04-16 16:45:29,978 - app - INFO - ETF自选历史查询: 代码=513780
+2025-04-16 16:45:30,003 - app - INFO - ETF自选历史查询结果: 代码=513780, 记录数=19
+2025-04-16 16:45:30,003 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 66}
+2025-04-16 16:45:30,004 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 68}
+2025-04-16 16:45:30,004 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 69}
+2025-04-16 16:45:30,005 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 69}
+2025-04-16 16:45:30,005 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 69}
+2025-04-16 16:45:30,005 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 69}
+2025-04-16 16:45:30,005 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 71}
+2025-04-16 16:45:30,005 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 75}
+2025-04-16 16:45:30,005 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 76}
+2025-04-16 16:45:30,007 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 107}
+2025-04-16 16:45:30,008 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 115}
+2025-04-16 16:45:30,011 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 130}
+2025-04-16 16:45:30,012 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 134}
+2025-04-16 16:45:30,012 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 134}
+2025-04-16 16:45:30,012 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 138}
+2025-04-16 16:45:30,013 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 147}
+2025-04-16 16:45:30,013 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 162}
+2025-04-16 16:45:30,013 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 200}
+2025-04-16 16:45:30,013 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 210}
+2025-04-16 16:45:30,015 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:45:30] "GET /etf_attention_history?code=513780 HTTP/1.1" 200 -
+2025-04-16 16:45:30,021 - app - INFO - ETF持有人历史查询: 代码=513780
+2025-04-16 16:45:30,030 - app - INFO - ETF持有人历史查询结果: 代码=513780, 记录数=19
+2025-04-16 16:45:30,030 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 12, 'holding_amount': 276500.0, 'holding_value': 320740.0}
+2025-04-16 16:45:30,030 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 14, 'holding_amount': 335000.0, 'holding_value': 392955.0}
+2025-04-16 16:45:30,031 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 20, 'holding_amount': 692700.0, 'holding_value': 776516.7}
+2025-04-16 16:45:30,031 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 22, 'holding_amount': 833600.0, 'holding_value': 930297.6}
+2025-04-16 16:45:30,031 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 12, 'holding_amount': 467700.0, 'holding_value': 524291.7}
+2025-04-16 16:45:30,031 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 21, 'holding_amount': 906900.0, 'holding_value': 999403.8}
+2025-04-16 16:45:30,032 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 16, 'holding_amount': 375600.0, 'holding_value': 438700.8}
+2025-04-16 16:45:30,032 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 15, 'holding_amount': 428700.0, 'holding_value': 504151.2}
+2025-04-16 16:45:30,032 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 15, 'holding_amount': 485000.0, 'holding_value': 566965.0}
+2025-04-16 16:45:30,032 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 24, 'holding_amount': 1078500.0, 'holding_value': 1352439.0}
+2025-04-16 16:45:30,032 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 27, 'holding_amount': 1217300.0, 'holding_value': 1483888.7}
+2025-04-16 16:45:30,032 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 40, 'holding_amount': 2046700.0, 'holding_value': 2474460.3}
+2025-04-16 16:45:30,032 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 36, 'holding_amount': 2077400.0, 'holding_value': 2260211.2}
+2025-04-16 16:45:30,033 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 35, 'holding_amount': 1545000.0, 'holding_value': 1551180.0}
+2025-04-16 16:45:30,033 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 34, 'holding_amount': 1303600.0, 'holding_value': 1306207.2}
+2025-04-16 16:45:30,033 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 37, 'holding_amount': 1557100.0, 'holding_value': 1627169.5}
+2025-04-16 16:45:30,033 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 35, 'holding_amount': 1602400.0, 'holding_value': 1737001.6}
+2025-04-16 16:45:30,033 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 43, 'holding_amount': 1631400.0, 'holding_value': 1882635.6}
+2025-04-16 16:45:30,033 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 46, 'holding_amount': 1742700.0, 'holding_value': 1967508.3}
+2025-04-16 16:45:30,034 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:45:30] "GET /etf_holders_history?code=513780 HTTP/1.1" 200 -
+2025-04-16 16:45:36,530 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:45:36] "POST /search HTTP/1.1" 200 -
+2025-04-16 16:46:00,484 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:46:00] "POST /search HTTP/1.1" 200 -
+2025-04-16 16:46:00,502 - app - INFO - ETF自选历史查询: 代码=159570
+2025-04-16 16:46:00,519 - app - INFO - ETF自选历史查询结果: 代码=159570, 记录数=19
+2025-04-16 16:46:00,519 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 295}
+2025-04-16 16:46:00,520 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 301}
+2025-04-16 16:46:00,520 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 307}
+2025-04-16 16:46:00,521 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 309}
+2025-04-16 16:46:00,522 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 311}
+2025-04-16 16:46:00,523 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 311}
+2025-04-16 16:46:00,524 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 323}
+2025-04-16 16:46:00,525 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 352}
+2025-04-16 16:46:00,525 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 358}
+2025-04-16 16:46:00,526 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 393}
+2025-04-16 16:46:00,526 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 399}
+2025-04-16 16:46:00,528 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 411}
+2025-04-16 16:46:00,529 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 417}
+2025-04-16 16:46:00,529 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 420}
+2025-04-16 16:46:00,529 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 422}
+2025-04-16 16:46:00,529 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 427}
+2025-04-16 16:46:00,529 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 457}
+2025-04-16 16:46:00,530 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 475}
+2025-04-16 16:46:00,530 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 489}
+2025-04-16 16:46:00,531 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:46:00] "GET /etf_attention_history?code=159570 HTTP/1.1" 200 -
+2025-04-16 16:46:00,546 - app - INFO - ETF持有人历史查询: 代码=159570
+2025-04-16 16:46:00,557 - app - INFO - ETF持有人历史查询结果: 代码=159570, 记录数=19
+2025-04-16 16:46:00,557 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 79, 'holding_amount': 2413312.0, 'holding_value': 2910454.27}
+2025-04-16 16:46:00,557 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 84, 'holding_amount': 2311112.0, 'holding_value': 2838045.54}
+2025-04-16 16:46:00,557 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 93, 'holding_amount': 2676212.0, 'holding_value': 3123139.4}
+2025-04-16 16:46:00,557 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 87, 'holding_amount': 2253912.0, 'holding_value': 2614537.92}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 77, 'holding_amount': 2425012.0, 'holding_value': 2837264.04}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 89, 'holding_amount': 2373112.0, 'holding_value': 2733825.02}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 83, 'holding_amount': 2128512.0, 'holding_value': 2590399.1}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 96, 'holding_amount': 2695812.0, 'holding_value': 3323936.2}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 97, 'holding_amount': 2793312.0, 'holding_value': 3427393.82}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 97, 'holding_amount': 2242912.0, 'holding_value': 2929243.07}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 100, 'holding_amount': 2587212.0, 'holding_value': 3332329.06}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 108, 'holding_amount': 3327512.0, 'holding_value': 4212630.19}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 109, 'holding_amount': 3340312.0, 'holding_value': 3804615.37}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 116, 'holding_amount': 4069512.0, 'holding_value': 4272987.6}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 119, 'holding_amount': 4160212.0, 'holding_value': 4368222.6}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 130, 'holding_amount': 6936412.0, 'holding_value': 7581498.32}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 124, 'holding_amount': 5910912.0, 'holding_value': 6773905.15}
+2025-04-16 16:46:00,558 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 129, 'holding_amount': 4026312.0, 'holding_value': 4855732.27}
+2025-04-16 16:46:00,559 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 137, 'holding_amount': 4803412.0, 'holding_value': 5711256.87}
+2025-04-16 16:46:00,559 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 16:46:00] "GET /etf_holders_history?code=159570 HTTP/1.1" 200 -
+2025-04-16 17:18:30,524 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 17:18:30] "POST /search HTTP/1.1" 200 -
+2025-04-16 17:18:30,549 - app - INFO - ETF自选历史查询: 代码=159567
+2025-04-16 17:18:30,570 - app - INFO - ETF自选历史查询结果: 代码=159567, 记录数=19
+2025-04-16 17:18:30,571 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 308}
+2025-04-16 17:18:30,571 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 323}
+2025-04-16 17:18:30,571 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 324}
+2025-04-16 17:18:30,572 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 324}
+2025-04-16 17:18:30,572 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 325}
+2025-04-16 17:18:30,572 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 328}
+2025-04-16 17:18:30,572 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 332}
+2025-04-16 17:18:30,572 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 339}
+2025-04-16 17:18:30,572 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 345}
+2025-04-16 17:18:30,572 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 384}
+2025-04-16 17:18:30,572 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 386}
+2025-04-16 17:18:30,572 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 406}
+2025-04-16 17:18:30,573 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 402}
+2025-04-16 17:18:30,573 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 405}
+2025-04-16 17:18:30,573 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 408}
+2025-04-16 17:18:30,573 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 427}
+2025-04-16 17:18:30,573 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 440}
+2025-04-16 17:18:30,573 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 444}
+2025-04-16 17:18:30,573 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 449}
+2025-04-16 17:18:30,573 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 17:18:30] "GET /etf_attention_history?code=159567 HTTP/1.1" 200 -
+2025-04-16 17:18:30,590 - app - INFO - ETF持有人历史查询: 代码=159567
+2025-04-16 17:18:30,607 - app - INFO - ETF持有人历史查询结果: 代码=159567, 记录数=19
+2025-04-16 17:18:30,607 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 69, 'holding_amount': 1592800.0, 'holding_value': 1904988.8}
+2025-04-16 17:18:30,608 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 77, 'holding_amount': 1716100.0, 'holding_value': 2090209.8}
+2025-04-16 17:18:30,608 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 82, 'holding_amount': 1795700.0, 'holding_value': 2079420.6}
+2025-04-16 17:18:30,608 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 83, 'holding_amount': 1824500.0, 'holding_value': 2107297.5}
+2025-04-16 17:18:30,609 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 68, 'holding_amount': 1705400.0, 'holding_value': 1978264.0}
+2025-04-16 17:18:30,609 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 88, 'holding_amount': 2033500.0, 'holding_value': 2326324.0}
+2025-04-16 17:18:30,609 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 81, 'holding_amount': 1655700.0, 'holding_value': 2003397.0}
+2025-04-16 17:18:30,609 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 87, 'holding_amount': 2006498.0, 'holding_value': 2459966.55}
+2025-04-16 17:18:30,609 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 92, 'holding_amount': 2844898.0, 'holding_value': 3465085.76}
+2025-04-16 17:18:30,610 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 97, 'holding_amount': 3126498.0, 'holding_value': 4058194.4}
+2025-04-16 17:18:30,610 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 110, 'holding_amount': 3099898.0, 'holding_value': 3943070.26}
+2025-04-16 17:18:30,610 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 122, 'holding_amount': 3383298.0, 'holding_value': 4246038.99}
+2025-04-16 17:18:30,610 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 134, 'holding_amount': 4862298.0, 'holding_value': 5494396.74}
+2025-04-16 17:18:30,610 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 137, 'holding_amount': 4245798.0, 'holding_value': 4453842.1}
+2025-04-16 17:18:30,611 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 129, 'holding_amount': 5520098.0, 'holding_value': 5796102.9}
+2025-04-16 17:18:30,611 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 131, 'holding_amount': 5760998.0, 'holding_value': 6371663.79}
+2025-04-16 17:18:30,611 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 133, 'holding_amount': 5160798.0, 'holding_value': 5909113.71}
+2025-04-16 17:18:30,611 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 124, 'holding_amount': 4894600.0, 'holding_value': 5897993.0}
+2025-04-16 17:18:30,611 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 134, 'holding_amount': 4944200.0, 'holding_value': 5868765.4}
+2025-04-16 17:18:30,612 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 17:18:30] "GET /etf_holders_history?code=159567 HTTP/1.1" 200 -
+2025-04-16 18:13:03,069 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:13:03] "POST /search HTTP/1.1" 200 -
+2025-04-16 18:13:18,667 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:13:18] "POST /search HTTP/1.1" 200 -
+2025-04-16 18:13:18,695 - app - INFO - ETF自选历史查询: 代码=159928
+2025-04-16 18:13:18,706 - app - INFO - ETF自选历史查询结果: 代码=159928, 记录数=19
+2025-04-16 18:13:18,707 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 5629}
+2025-04-16 18:13:18,707 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 5622}
+2025-04-16 18:13:18,707 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 5623}
+2025-04-16 18:13:18,707 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 5629}
+2025-04-16 18:13:18,707 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 5631}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 5647}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 5647}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 5645}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 5640}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 5641}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 5645}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 5665}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 5682}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 5749}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 5771}
+2025-04-16 18:13:18,708 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 5781}
+2025-04-16 18:13:18,709 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 5795}
+2025-04-16 18:13:18,709 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 5798}
+2025-04-16 18:13:18,709 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 5802}
+2025-04-16 18:13:18,709 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:13:18] "GET /etf_attention_history?code=159928 HTTP/1.1" 200 -
+2025-04-16 18:13:18,718 - app - INFO - ETF持有人历史查询: 代码=159928
+2025-04-16 18:13:18,729 - app - INFO - ETF持有人历史查询结果: 代码=159928, 记录数=19
+2025-04-16 18:13:18,729 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 1790, 'holding_amount': 85129420.0, 'holding_value': 70997936.29}
+2025-04-16 18:13:18,729 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 1806, 'holding_amount': 90597120.0, 'holding_value': 74652026.89}
+2025-04-16 18:13:18,729 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 1812, 'holding_amount': 93319920.0, 'holding_value': 76055734.8}
+2025-04-16 18:13:18,729 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 1815, 'holding_amount': 93984516.0, 'holding_value': 76879334.09}
+2025-04-16 18:13:18,729 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 1690, 'holding_amount': 76857520.0, 'holding_value': 64944604.4}
+2025-04-16 18:13:18,729 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 1821, 'holding_amount': 93761816.0, 'holding_value': 76978450.93}
+2025-04-16 18:13:18,729 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 1810, 'holding_amount': 87410616.0, 'holding_value': 72288579.43}
+2025-04-16 18:13:18,729 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 1808, 'holding_amount': 87111116.0, 'holding_value': 71518226.23}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 1806, 'holding_amount': 88495716.0, 'holding_value': 71858521.39}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 1800, 'holding_amount': 88216916.0, 'holding_value': 72161437.29}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 1796, 'holding_amount': 87363016.0, 'holding_value': 71200858.04}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 1789, 'holding_amount': 85946216.0, 'holding_value': 70991574.41}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 1807, 'holding_amount': 84154216.0, 'holding_value': 67323372.8}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 1821, 'holding_amount': 74469316.0, 'holding_value': 61809532.28}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 1825, 'holding_amount': 83007516.0, 'holding_value': 69892328.47}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 1810, 'holding_amount': 88276116.0, 'holding_value': 74416765.79}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 1829, 'holding_amount': 91401816.0, 'holding_value': 76229114.55}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 1843, 'holding_amount': 83585616.0, 'holding_value': 69376061.28}
+2025-04-16 18:13:18,730 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 1825, 'holding_amount': 83285316.0, 'holding_value': 69210097.59}
+2025-04-16 18:13:18,731 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:13:18] "GET /etf_holders_history?code=159928 HTTP/1.1" 200 -
+2025-04-16 18:20:33,905 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:33] "GET / HTTP/1.1" 200 -
+2025-04-16 18:20:34,023 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 18:20:34,024 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 18:20:34,026 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 18:20:34,069 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 18:20:34,070 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 18:20:34,071 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 18:20:34,074 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 18:20:34,074 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 18:20:34,083 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 18:20:34,733 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 18:20:34,736 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:34] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 18:20:35,574 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET / HTTP/1.1" 200 -
+2025-04-16 18:20:35,612 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 18:20:35,619 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 18:20:35,623 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 18:20:35,642 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 18:20:35,646 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 18:20:35,647 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 18:20:35,648 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 18:20:35,651 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 18:20:35,655 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 18:20:35,731 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 18:20:35,752 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 18:20:35] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 21:44:35,173 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 21:44:35,176 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 21:44:36,655 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5007
+ * Running on http://192.168.31.213:5007
+2025-04-16 21:44:36,655 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-16 21:44:36,656 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 21:44:37,649 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 21:44:37,651 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 21:44:38,016 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 21:44:38,185 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 21:44:41,789 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:41] "GET / HTTP/1.1" 200 -
+2025-04-16 21:44:41,924 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:41] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 21:44:41,924 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:41] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 21:44:41,924 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:41] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 21:44:42,196 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:42] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 21:44:42,196 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:42] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 21:44:42,199 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:42] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 21:44:42,200 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:42] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 21:44:42,201 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:42] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 21:44:42,211 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:42] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 21:44:42,384 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:42] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 21:44:42,394 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:44:42] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 21:45:03,405 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:03] "POST /search HTTP/1.1" 200 -
+2025-04-16 21:45:03,414 - app - INFO - ETF自选历史查询: 代码=513290
+2025-04-16 21:45:03,420 - app - INFO - ETF自选历史查询结果: 代码=513290, 记录数=19
+2025-04-16 21:45:03,420 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 534}
+2025-04-16 21:45:03,420 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 536}
+2025-04-16 21:45:03,420 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 540}
+2025-04-16 21:45:03,420 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 541}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 539}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 540}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 539}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 540}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 542}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 544}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 544}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 547}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 550}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 558}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 561}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 567}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 570}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 575}
+2025-04-16 21:45:03,421 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 596}
+2025-04-16 21:45:03,422 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:03] "GET /etf_attention_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 21:45:03,541 - app - INFO - ETF持有人历史查询: 代码=513290
+2025-04-16 21:45:03,546 - app - INFO - ETF持有人历史查询结果: 代码=513290, 记录数=19
+2025-04-16 21:45:03,546 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 125, 'holding_amount': 3186500.0, 'holding_value': 3731391.5}
+2025-04-16 21:45:03,546 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 122, 'holding_amount': 2566200.0, 'holding_value': 3033248.4}
+2025-04-16 21:45:03,546 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 122, 'holding_amount': 2558500.0, 'holding_value': 3006237.5}
+2025-04-16 21:45:03,546 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 122, 'holding_amount': 2599000.0, 'holding_value': 3072018.0}
+2025-04-16 21:45:03,546 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 124, 'holding_amount': 2591900.0, 'holding_value': 3048074.4}
+2025-04-16 21:45:03,546 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 126, 'holding_amount': 2641500.0, 'holding_value': 3098479.5}
+2025-04-16 21:45:03,546 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 129, 'holding_amount': 2653000.0, 'holding_value': 3069521.0}
+2025-04-16 21:45:03,546 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 125, 'holding_amount': 2713400.0, 'holding_value': 3142117.2}
+2025-04-16 21:45:03,546 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 126, 'holding_amount': 2727600.0, 'holding_value': 3095826.0}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 132, 'holding_amount': 2859100.0, 'holding_value': 3225064.8}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 140, 'holding_amount': 3600000.0, 'holding_value': 3956400.0}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 139, 'holding_amount': 3377600.0, 'holding_value': 3695094.4}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 129, 'holding_amount': 3487000.0, 'holding_value': 3473052.0}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 128, 'holding_amount': 3489600.0, 'holding_value': 3629184.0}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 140, 'holding_amount': 3786800.0, 'holding_value': 3764079.2}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 137, 'holding_amount': 3421600.0, 'holding_value': 3592680.0}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 143, 'holding_amount': 3495300.0, 'holding_value': 3565206.0}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 142, 'holding_amount': 3549000.0, 'holding_value': 3722901.0}
+2025-04-16 21:45:03,547 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 136, 'holding_amount': 3562800.0, 'holding_value': 3830010.0}
+2025-04-16 21:45:03,548 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:03] "GET /etf_holders_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 21:45:45,181 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:45] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 21:45:45,182 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:45] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 21:45:45,183 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:45] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 21:45:45,205 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:45] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 21:45:45,205 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:45] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 21:45:45,208 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:45] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 21:45:45,211 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:45] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 21:45:45,213 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:45] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 21:45:45,220 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 21:45:45] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 21:47:21,808 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-16 21:47:21,997 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 21:47:25,230 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 21:47:25,232 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 21:53:35,278 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 21:53:35,281 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:00:09,429 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:00:09,432 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:00:11,940 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5007
+ * Running on http://192.168.31.213:5007
+2025-04-16 22:00:11,941 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-16 22:00:11,945 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 22:00:13,896 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:00:13,898 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:00:14,300 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 22:00:14,519 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 22:00:19,842 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:19] "GET / HTTP/1.1" 200 -
+2025-04-16 22:00:20,032 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:00:20,035 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:00:20,035 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:00:20,409 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:00:20,409 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:00:20,412 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:00:20,413 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:00:20,416 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:00:20,421 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:00:20,581 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:00:20,595 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:20] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:00:32,835 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:32] "POST /search HTTP/1.1" 200 -
+2025-04-16 22:00:32,848 - app - INFO - ETF自选历史查询: 代码=513290
+2025-04-16 22:00:32,863 - app - INFO - ETF自选历史查询结果: 代码=513290, 记录数=19
+2025-04-16 22:00:32,864 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 534}
+2025-04-16 22:00:32,864 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 536}
+2025-04-16 22:00:32,864 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 540}
+2025-04-16 22:00:32,864 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 541}
+2025-04-16 22:00:32,864 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 539}
+2025-04-16 22:00:32,864 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 540}
+2025-04-16 22:00:32,864 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 539}
+2025-04-16 22:00:32,864 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 540}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 542}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 544}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 544}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 547}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 550}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 558}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 561}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 567}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 570}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 575}
+2025-04-16 22:00:32,865 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 596}
+2025-04-16 22:00:32,866 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:32] "GET /etf_attention_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 22:00:32,961 - app - INFO - ETF持有人历史查询: 代码=513290
+2025-04-16 22:00:32,969 - app - INFO - ETF持有人历史查询结果: 代码=513290, 记录数=19
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 125, 'holding_amount': 3186500.0, 'holding_value': 3731391.5}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 122, 'holding_amount': 2566200.0, 'holding_value': 3033248.4}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 122, 'holding_amount': 2558500.0, 'holding_value': 3006237.5}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 122, 'holding_amount': 2599000.0, 'holding_value': 3072018.0}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 124, 'holding_amount': 2591900.0, 'holding_value': 3048074.4}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 126, 'holding_amount': 2641500.0, 'holding_value': 3098479.5}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 129, 'holding_amount': 2653000.0, 'holding_value': 3069521.0}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 125, 'holding_amount': 2713400.0, 'holding_value': 3142117.2}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 126, 'holding_amount': 2727600.0, 'holding_value': 3095826.0}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 132, 'holding_amount': 2859100.0, 'holding_value': 3225064.8}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 140, 'holding_amount': 3600000.0, 'holding_value': 3956400.0}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 139, 'holding_amount': 3377600.0, 'holding_value': 3695094.4}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 129, 'holding_amount': 3487000.0, 'holding_value': 3473052.0}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 128, 'holding_amount': 3489600.0, 'holding_value': 3629184.0}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 140, 'holding_amount': 3786800.0, 'holding_value': 3764079.2}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 137, 'holding_amount': 3421600.0, 'holding_value': 3592680.0}
+2025-04-16 22:00:32,970 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 143, 'holding_amount': 3495300.0, 'holding_value': 3565206.0}
+2025-04-16 22:00:32,972 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 142, 'holding_amount': 3549000.0, 'holding_value': 3722901.0}
+2025-04-16 22:00:32,972 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 136, 'holding_amount': 3562800.0, 'holding_value': 3830010.0}
+2025-04-16 22:00:32,973 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:32] "GET /etf_holders_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 22:00:35,545 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:35] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:00:35,559 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:35] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:00:35,560 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:35] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:00:35,574 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:35] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:00:35,574 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:35] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:00:35,575 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:35] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:00:35,576 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:35] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:00:35,577 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:35] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:00:35,581 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:35] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:00:55,706 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:55] "POST /search HTTP/1.1" 200 -
+2025-04-16 22:00:55,715 - app - INFO - ETF自选历史查询: 代码=517880
+2025-04-16 22:00:55,746 - app - INFO - ETF自选历史查询结果: 代码=517880, 记录数=19
+2025-04-16 22:00:55,746 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 45}
+2025-04-16 22:00:55,746 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 44}
+2025-04-16 22:00:55,747 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 45}
+2025-04-16 22:00:55,747 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 45}
+2025-04-16 22:00:55,747 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 45}
+2025-04-16 22:00:55,747 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 45}
+2025-04-16 22:00:55,747 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 45}
+2025-04-16 22:00:55,748 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 45}
+2025-04-16 22:00:55,748 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 45}
+2025-04-16 22:00:55,748 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 45}
+2025-04-16 22:00:55,748 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 45}
+2025-04-16 22:00:55,748 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 45}
+2025-04-16 22:00:55,748 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 45}
+2025-04-16 22:00:55,749 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 48}
+2025-04-16 22:00:55,749 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 48}
+2025-04-16 22:00:55,749 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 49}
+2025-04-16 22:00:55,749 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 49}
+2025-04-16 22:00:55,749 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 49}
+2025-04-16 22:00:55,749 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 55}
+2025-04-16 22:00:55,750 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:55] "GET /etf_attention_history?code=517880 HTTP/1.1" 200 -
+2025-04-16 22:00:55,754 - app - INFO - ETF持有人历史查询: 代码=517880
+2025-04-16 22:00:55,766 - app - INFO - ETF持有人历史查询结果: 代码=517880, 记录数=19
+2025-04-16 22:00:55,766 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 7, 'holding_amount': 34800.0, 'holding_value': 32607.6}
+2025-04-16 22:00:55,766 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 7, 'holding_amount': 35900.0, 'holding_value': 32920.3}
+2025-04-16 22:00:55,767 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 7, 'holding_amount': 41900.0, 'holding_value': 37961.4}
+2025-04-16 22:00:55,767 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 6, 'holding_amount': 41700.0, 'holding_value': 37905.3}
+2025-04-16 22:00:55,767 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 4, 'holding_amount': 7700.0, 'holding_value': 7214.9}
+2025-04-16 22:00:55,767 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 6, 'holding_amount': 41700.0, 'holding_value': 37655.1}
+2025-04-16 22:00:55,767 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 6, 'holding_amount': 37000.0, 'holding_value': 33818.0}
+2025-04-16 22:00:55,767 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 6, 'holding_amount': 38200.0, 'holding_value': 34685.6}
+2025-04-16 22:00:55,767 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 6, 'holding_amount': 42600.0, 'holding_value': 38382.6}
+2025-04-16 22:00:55,767 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 6, 'holding_amount': 46700.0, 'holding_value': 41936.6}
+2025-04-16 22:00:55,767 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 5, 'holding_amount': 41300.0, 'holding_value': 37087.4}
+2025-04-16 22:00:55,768 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 5, 'holding_amount': 43500.0, 'holding_value': 38802.0}
+2025-04-16 22:00:55,768 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 5, 'holding_amount': 46500.0, 'holding_value': 38455.5}
+2025-04-16 22:00:55,768 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 7, 'holding_amount': 49300.0, 'holding_value': 41905.0}
+2025-04-16 22:00:55,768 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 7, 'holding_amount': 49300.0, 'holding_value': 42644.5}
+2025-04-16 22:00:55,768 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 6, 'holding_amount': 46600.0, 'holding_value': 41054.6}
+2025-04-16 22:00:55,768 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 6, 'holding_amount': 47800.0, 'holding_value': 41968.4}
+2025-04-16 22:00:55,768 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 6, 'holding_amount': 48900.0, 'holding_value': 42885.3}
+2025-04-16 22:00:55,768 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 7, 'holding_amount': 98900.0, 'holding_value': 88416.6}
+2025-04-16 22:00:55,769 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:55] "GET /etf_holders_history?code=517880 HTTP/1.1" 200 -
+2025-04-16 22:00:59,564 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:59] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:00:59,565 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:59] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:00:59,565 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:59] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:00:59,569 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:59] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:00:59,571 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:59] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:00:59,573 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:59] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:00:59,575 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:59] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:00:59,577 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:59] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:00:59,580 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:00:59] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:03:17,155 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:17] "POST /search HTTP/1.1" 200 -
+2025-04-16 22:03:17,166 - app - INFO - ETF自选历史查询: 代码=517880
+2025-04-16 22:03:17,204 - app - INFO - ETF自选历史查询结果: 代码=517880, 记录数=19
+2025-04-16 22:03:17,205 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 45}
+2025-04-16 22:03:17,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 44}
+2025-04-16 22:03:17,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 45}
+2025-04-16 22:03:17,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 45}
+2025-04-16 22:03:17,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 45}
+2025-04-16 22:03:17,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 45}
+2025-04-16 22:03:17,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 45}
+2025-04-16 22:03:17,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 45}
+2025-04-16 22:03:17,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 45}
+2025-04-16 22:03:17,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 45}
+2025-04-16 22:03:17,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 45}
+2025-04-16 22:03:17,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 45}
+2025-04-16 22:03:17,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 45}
+2025-04-16 22:03:17,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 48}
+2025-04-16 22:03:17,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 48}
+2025-04-16 22:03:17,208 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 49}
+2025-04-16 22:03:17,208 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 49}
+2025-04-16 22:03:17,208 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 49}
+2025-04-16 22:03:17,208 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 55}
+2025-04-16 22:03:17,209 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:17] "GET /etf_attention_history?code=517880 HTTP/1.1" 200 -
+2025-04-16 22:03:17,356 - app - INFO - ETF持有人历史查询: 代码=517880
+2025-04-16 22:03:17,365 - app - INFO - ETF持有人历史查询结果: 代码=517880, 记录数=19
+2025-04-16 22:03:17,365 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 7, 'holding_amount': 34800.0, 'holding_value': 32607.6}
+2025-04-16 22:03:17,365 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 7, 'holding_amount': 35900.0, 'holding_value': 32920.3}
+2025-04-16 22:03:17,365 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 7, 'holding_amount': 41900.0, 'holding_value': 37961.4}
+2025-04-16 22:03:17,365 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 6, 'holding_amount': 41700.0, 'holding_value': 37905.3}
+2025-04-16 22:03:17,365 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 4, 'holding_amount': 7700.0, 'holding_value': 7214.9}
+2025-04-16 22:03:17,365 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 6, 'holding_amount': 41700.0, 'holding_value': 37655.1}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 6, 'holding_amount': 37000.0, 'holding_value': 33818.0}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 6, 'holding_amount': 38200.0, 'holding_value': 34685.6}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 6, 'holding_amount': 42600.0, 'holding_value': 38382.6}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 6, 'holding_amount': 46700.0, 'holding_value': 41936.6}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 5, 'holding_amount': 41300.0, 'holding_value': 37087.4}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 5, 'holding_amount': 43500.0, 'holding_value': 38802.0}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 5, 'holding_amount': 46500.0, 'holding_value': 38455.5}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 7, 'holding_amount': 49300.0, 'holding_value': 41905.0}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 7, 'holding_amount': 49300.0, 'holding_value': 42644.5}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 6, 'holding_amount': 46600.0, 'holding_value': 41054.6}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 6, 'holding_amount': 47800.0, 'holding_value': 41968.4}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 6, 'holding_amount': 48900.0, 'holding_value': 42885.3}
+2025-04-16 22:03:17,366 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 7, 'holding_amount': 98900.0, 'holding_value': 88416.6}
+2025-04-16 22:03:17,367 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:17] "GET /etf_holders_history?code=517880 HTTP/1.1" 200 -
+2025-04-16 22:03:25,987 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:25] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:03:25,987 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:25] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:03:25,987 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:25] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:03:25,998 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:25] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:03:26,000 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:26] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:03:26,005 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:26] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:03:26,006 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:26] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:03:26,008 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:26] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:03:26,054 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:03:26] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:06:24,427 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/blueprints/search_routes.py', reloading
+2025-04-16 22:06:24,812 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 22:06:27,689 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:06:27,692 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:06:28,302 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 22:06:28,507 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 22:07:16,359 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:07:16,361 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:07:16,876 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5007
+ * Running on http://192.168.31.213:5007
+2025-04-16 22:07:16,876 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-16 22:07:16,878 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 22:07:17,600 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:07:17,602 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:07:18,064 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 22:07:18,172 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 22:07:26,614 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET / HTTP/1.1" 200 -
+2025-04-16 22:07:26,737 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:07:26,742 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:07:26,742 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:07:26,788 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:07:26,792 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:07:26,792 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:07:26,793 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:07:26,794 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:07:26,802 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:07:26,983 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:07:26,992 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:07:26] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:08:57,399 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET / HTTP/1.1" 200 -
+2025-04-16 22:08:57,649 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:08:57,650 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:08:57,651 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:08:57,725 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:08:57,729 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:08:57,729 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:08:57,729 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:08:57,731 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:08:57,749 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:08:57,895 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:08:57,924 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:08:57] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:09:54,177 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:09:54] "POST /search HTTP/1.1" 200 -
+2025-04-16 22:09:54,190 - app - INFO - ETF自选历史查询: 代码=159869
+2025-04-16 22:09:54,205 - app - INFO - ETF自选历史查询结果: 代码=159869, 记录数=19
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 2062}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 2060}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 2058}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 2056}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 2057}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 2060}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 2061}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 2057}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 2060}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 2059}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 2061}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 2067}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 2065}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 2065}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 2067}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 2067}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 2067}
+2025-04-16 22:09:54,206 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 2068}
+2025-04-16 22:09:54,207 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 2071}
+2025-04-16 22:09:54,207 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:09:54] "GET /etf_attention_history?code=159869 HTTP/1.1" 200 -
+2025-04-16 22:09:54,357 - app - INFO - ETF持有人历史查询: 代码=159869
+2025-04-16 22:09:54,367 - app - INFO - ETF持有人历史查询结果: 代码=159869, 记录数=19
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 392, 'holding_amount': 13836596.0, 'holding_value': 16839137.33}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 389, 'holding_amount': 14293796.0, 'holding_value': 17109673.81}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 397, 'holding_amount': 15100396.0, 'holding_value': 17622162.13}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 393, 'holding_amount': 14380396.0, 'holding_value': 16738780.94}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 353, 'holding_amount': 11610096.0, 'holding_value': 14675161.34}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 399, 'holding_amount': 14662496.0, 'holding_value': 16656595.46}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 402, 'holding_amount': 15324496.0, 'holding_value': 17408627.46}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 401, 'holding_amount': 14453996.0, 'holding_value': 16477555.44}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 399, 'holding_amount': 12716796.0, 'holding_value': 14293678.7}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 396, 'holding_amount': 12575896.0, 'holding_value': 14122731.21}
+2025-04-16 22:09:54,367 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 404, 'holding_amount': 12962296.0, 'holding_value': 14595545.3}
+2025-04-16 22:09:54,368 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 405, 'holding_amount': 12701996.0, 'holding_value': 14302447.5}
+2025-04-16 22:09:54,368 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 398, 'holding_amount': 12611596.0, 'holding_value': 12775546.75}
+2025-04-16 22:09:54,368 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 403, 'holding_amount': 13843996.0, 'holding_value': 13608648.07}
+2025-04-16 22:09:54,368 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 401, 'holding_amount': 13509496.0, 'holding_value': 13712138.44}
+2025-04-16 22:09:54,368 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 402, 'holding_amount': 13674196.0, 'holding_value': 14152792.86}
+2025-04-16 22:09:54,368 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 409, 'holding_amount': 13422896.0, 'holding_value': 13879274.46}
+2025-04-16 22:09:54,368 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 404, 'holding_amount': 12581496.0, 'holding_value': 13210570.8}
+2025-04-16 22:09:54,368 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 403, 'holding_amount': 12471096.0, 'holding_value': 13206890.66}
+2025-04-16 22:09:54,368 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:09:54] "GET /etf_holders_history?code=159869 HTTP/1.1" 200 -
+2025-04-16 22:10:05,651 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET / HTTP/1.1" 200 -
+2025-04-16 22:10:05,719 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:10:05,720 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:10:05,720 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:10:05,735 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:10:05,735 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:10:05,737 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:10:05,738 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:10:05,743 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:10:05,744 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:10:05,842 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:10:05,852 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:05] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:10:27,280 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:27] "POST /search HTTP/1.1" 200 -
+2025-04-16 22:10:27,317 - app - INFO - ETF自选历史查询: 代码=513630
+2025-04-16 22:10:27,329 - app - INFO - ETF自选历史查询结果: 代码=513630, 记录数=19
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 703}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 700}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 698}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 697}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 697}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 695}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 691}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 691}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 690}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 690}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 690}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 693}
+2025-04-16 22:10:27,329 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 692}
+2025-04-16 22:10:27,330 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 690}
+2025-04-16 22:10:27,330 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 694}
+2025-04-16 22:10:27,330 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 696}
+2025-04-16 22:10:27,330 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 699}
+2025-04-16 22:10:27,330 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 698}
+2025-04-16 22:10:27,330 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 705}
+2025-04-16 22:10:27,330 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:27] "GET /etf_attention_history?code=513630 HTTP/1.1" 200 -
+2025-04-16 22:10:27,339 - app - INFO - ETF持有人历史查询: 代码=513630
+2025-04-16 22:10:27,347 - app - INFO - ETF持有人历史查询结果: 代码=513630, 记录数=19
+2025-04-16 22:10:27,347 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 64, 'holding_amount': 3295600.0, 'holding_value': 4534745.6}
+2025-04-16 22:10:27,347 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 65, 'holding_amount': 3363700.0, 'holding_value': 4584723.1}
+2025-04-16 22:10:27,347 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 64, 'holding_amount': 3388300.0, 'holding_value': 4564040.1}
+2025-04-16 22:10:27,347 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 66, 'holding_amount': 3461900.0, 'holding_value': 4663179.3}
+2025-04-16 22:10:27,347 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 55, 'holding_amount': 2805400.0, 'holding_value': 3767652.2}
+2025-04-16 22:10:27,347 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 69, 'holding_amount': 3470500.0, 'holding_value': 4646999.5}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 75, 'holding_amount': 3489300.0, 'holding_value': 4682640.6}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 76, 'holding_amount': 3450800.0, 'holding_value': 4593014.8}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 76, 'holding_amount': 3467400.0, 'holding_value': 4615109.4}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 73, 'holding_amount': 3461700.0, 'holding_value': 4652524.8}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 74, 'holding_amount': 3548700.0, 'holding_value': 4794293.7}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 74, 'holding_amount': 3715800.0, 'holding_value': 5034909.0}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 72, 'holding_amount': 3765866.0, 'holding_value': 4733693.56}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 76, 'holding_amount': 3752500.0, 'holding_value': 4694377.5}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 77, 'holding_amount': 3888700.0, 'holding_value': 4880318.5}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 78, 'holding_amount': 3774600.0, 'holding_value': 4842811.8}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 76, 'holding_amount': 3800400.0, 'holding_value': 4872112.8}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 75, 'holding_amount': 3698400.0, 'holding_value': 4815316.8}
+2025-04-16 22:10:27,348 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 77, 'holding_amount': 3690900.0, 'holding_value': 4864606.2}
+2025-04-16 22:10:27,349 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:10:27] "GET /etf_holders_history?code=513630 HTTP/1.1" 200 -
+2025-04-16 22:11:07,163 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET / HTTP/1.1" 200 -
+2025-04-16 22:11:07,274 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:11:07,274 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:11:07,274 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:11:07,305 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:11:07,308 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:11:07,308 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:11:07,310 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:11:07,314 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:11:07,325 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:11:07,525 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:11:07,531 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:07] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:11:10,701 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:10] "POST /search HTTP/1.1" 200 -
+2025-04-16 22:11:10,717 - app - INFO - ETF自选历史查询: 代码=513630
+2025-04-16 22:11:10,729 - app - INFO - ETF自选历史查询结果: 代码=513630, 记录数=19
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 703}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 700}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 698}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 697}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 697}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 695}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 691}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 691}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 690}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 690}
+2025-04-16 22:11:10,729 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 690}
+2025-04-16 22:11:10,730 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 693}
+2025-04-16 22:11:10,730 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 692}
+2025-04-16 22:11:10,730 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 690}
+2025-04-16 22:11:10,730 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 694}
+2025-04-16 22:11:10,730 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 696}
+2025-04-16 22:11:10,730 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 699}
+2025-04-16 22:11:10,730 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 698}
+2025-04-16 22:11:10,730 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 705}
+2025-04-16 22:11:10,730 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:10] "GET /etf_attention_history?code=513630 HTTP/1.1" 200 -
+2025-04-16 22:11:10,733 - app - INFO - ETF持有人历史查询: 代码=513630
+2025-04-16 22:11:10,741 - app - INFO - ETF持有人历史查询结果: 代码=513630, 记录数=19
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 64, 'holding_amount': 3295600.0, 'holding_value': 4534745.6}
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 65, 'holding_amount': 3363700.0, 'holding_value': 4584723.1}
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 64, 'holding_amount': 3388300.0, 'holding_value': 4564040.1}
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 66, 'holding_amount': 3461900.0, 'holding_value': 4663179.3}
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 55, 'holding_amount': 2805400.0, 'holding_value': 3767652.2}
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 69, 'holding_amount': 3470500.0, 'holding_value': 4646999.5}
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 75, 'holding_amount': 3489300.0, 'holding_value': 4682640.6}
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 76, 'holding_amount': 3450800.0, 'holding_value': 4593014.8}
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 76, 'holding_amount': 3467400.0, 'holding_value': 4615109.4}
+2025-04-16 22:11:10,741 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 73, 'holding_amount': 3461700.0, 'holding_value': 4652524.8}
+2025-04-16 22:11:10,742 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 74, 'holding_amount': 3548700.0, 'holding_value': 4794293.7}
+2025-04-16 22:11:10,742 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 74, 'holding_amount': 3715800.0, 'holding_value': 5034909.0}
+2025-04-16 22:11:10,742 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 72, 'holding_amount': 3765866.0, 'holding_value': 4733693.56}
+2025-04-16 22:11:10,742 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 76, 'holding_amount': 3752500.0, 'holding_value': 4694377.5}
+2025-04-16 22:11:10,742 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 77, 'holding_amount': 3888700.0, 'holding_value': 4880318.5}
+2025-04-16 22:11:10,742 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 78, 'holding_amount': 3774600.0, 'holding_value': 4842811.8}
+2025-04-16 22:11:10,742 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 76, 'holding_amount': 3800400.0, 'holding_value': 4872112.8}
+2025-04-16 22:11:10,742 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 75, 'holding_amount': 3698400.0, 'holding_value': 4815316.8}
+2025-04-16 22:11:10,742 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 77, 'holding_amount': 3690900.0, 'holding_value': 4864606.2}
+2025-04-16 22:11:10,742 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:11:10] "GET /etf_holders_history?code=513630 HTTP/1.1" 200 -
+2025-04-16 22:14:40,536 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/database/models.py', reloading
+2025-04-16 22:14:40,822 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 22:14:43,699 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:14:43,702 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:14:44,131 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 22:14:44,299 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 22:16:29,389 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET / HTTP/1.1" 200 -
+2025-04-16 22:16:29,481 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:16:29,485 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:16:29,493 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:16:29,520 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:16:29,520 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:16:29,522 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:16:29,523 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:16:29,525 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:16:29,527 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:16:29,674 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:16:29,695 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:29] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:16:30,081 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/update_manager_shorts.py', reloading
+2025-04-16 22:16:30,248 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 22:16:33,696 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:16:33,700 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:16:34,311 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 22:16:34,527 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 22:16:34,606 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET / HTTP/1.1" 200 -
+2025-04-16 22:16:34,695 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:16:34,707 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:16:34,710 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:16:34,725 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:16:34,728 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:16:34,728 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:16:34,729 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:16:34,730 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:16:34,734 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:16:34,821 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:16:34,833 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:34] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:16:39,336 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET / HTTP/1.1" 200 -
+2025-04-16 22:16:39,400 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:16:39,401 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:16:39,405 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:16:39,414 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:16:39,415 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:16:39,418 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:16:39,419 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:16:39,421 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:16:39,422 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:16:39,489 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:16:39,504 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:16:39] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:19:02,304 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:19:02,307 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:19:02,809 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5007
+ * Running on http://192.168.31.213:5007
+2025-04-16 22:19:02,809 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-16 22:19:02,811 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 22:19:03,618 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:19:03,620 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:19:04,019 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 22:19:04,058 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 22:19:12,270 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:12] "GET / HTTP/1.1" 200 -
+2025-04-16 22:19:13,714 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:13] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:19:13,715 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:13] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:19:13,717 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:13] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:19:13,983 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:13] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:19:13,983 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:13] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:19:13,985 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:13] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:19:13,986 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:13] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:19:13,987 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:13] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:19:13,993 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:13] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:19:14,143 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:14] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:19:14,149 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:19:14] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:20:40,232 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:40] "POST /search HTTP/1.1" 200 -
+2025-04-16 22:20:40,253 - app - INFO - ETF自选历史查询: 代码=513290
+2025-04-16 22:20:40,279 - app - INFO - ETF自选历史查询结果: 代码=513290, 记录数=19
+2025-04-16 22:20:40,279 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 534}
+2025-04-16 22:20:40,279 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 536}
+2025-04-16 22:20:40,279 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 540}
+2025-04-16 22:20:40,279 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 541}
+2025-04-16 22:20:40,279 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 539}
+2025-04-16 22:20:40,279 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 540}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 539}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 540}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 542}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 544}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 544}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 547}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 550}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 558}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 561}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 567}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 570}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 575}
+2025-04-16 22:20:40,280 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 596}
+2025-04-16 22:20:40,281 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:40] "GET /etf_attention_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 22:20:40,451 - app - INFO - ETF持有人历史查询: 代码=513290
+2025-04-16 22:20:40,481 - app - INFO - ETF持有人历史查询结果: 代码=513290, 记录数=19
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 125, 'holding_amount': 3186500.0, 'holding_value': 3731391.5}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 122, 'holding_amount': 2566200.0, 'holding_value': 3033248.4}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 122, 'holding_amount': 2558500.0, 'holding_value': 3006237.5}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 122, 'holding_amount': 2599000.0, 'holding_value': 3072018.0}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 124, 'holding_amount': 2591900.0, 'holding_value': 3048074.4}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 126, 'holding_amount': 2641500.0, 'holding_value': 3098479.5}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 129, 'holding_amount': 2653000.0, 'holding_value': 3069521.0}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 125, 'holding_amount': 2713400.0, 'holding_value': 3142117.2}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 126, 'holding_amount': 2727600.0, 'holding_value': 3095826.0}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 132, 'holding_amount': 2859100.0, 'holding_value': 3225064.8}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 140, 'holding_amount': 3600000.0, 'holding_value': 3956400.0}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 139, 'holding_amount': 3377600.0, 'holding_value': 3695094.4}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 129, 'holding_amount': 3487000.0, 'holding_value': 3473052.0}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 128, 'holding_amount': 3489600.0, 'holding_value': 3629184.0}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 140, 'holding_amount': 3786800.0, 'holding_value': 3764079.2}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 137, 'holding_amount': 3421600.0, 'holding_value': 3592680.0}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 143, 'holding_amount': 3495300.0, 'holding_value': 3565206.0}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 142, 'holding_amount': 3549000.0, 'holding_value': 3722901.0}
+2025-04-16 22:20:40,482 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 136, 'holding_amount': 3562800.0, 'holding_value': 3830010.0}
+2025-04-16 22:20:40,483 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:40] "GET /etf_holders_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 22:20:49,564 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET / HTTP/1.1" 200 -
+2025-04-16 22:20:49,626 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:20:49,628 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:20:49,628 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:20:49,646 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:20:49,648 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:20:49,651 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:20:49,652 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:20:49,653 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:20:49,656 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:20:49,767 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:20:49,783 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:20:49] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:22:01,632 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:01] "POST /search HTTP/1.1" 200 -
+2025-04-16 22:22:01,645 - app - INFO - ETF自选历史查询: 代码=512730
+2025-04-16 22:22:01,656 - app - INFO - ETF自选历史查询结果: 代码=512730, 记录数=19
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 83}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 83}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 82}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 83}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 83}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 84}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 84}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 84}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 85}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 86}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 87}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 87}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 88}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 88}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 88}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 89}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 90}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 91}
+2025-04-16 22:22:01,657 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 91}
+2025-04-16 22:22:01,658 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:01] "GET /etf_attention_history?code=512730 HTTP/1.1" 200 -
+2025-04-16 22:22:01,681 - app - INFO - ETF持有人历史查询: 代码=512730
+2025-04-16 22:22:01,694 - app - INFO - ETF持有人历史查询结果: 代码=512730, 记录数=19
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 9, 'holding_amount': 145900.0, 'holding_value': 230667.9}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 8, 'holding_amount': 143900.0, 'holding_value': 226210.8}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 8, 'holding_amount': 144100.0, 'holding_value': 224075.5}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 8, 'holding_amount': 144100.0, 'holding_value': 225804.7}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 7, 'holding_amount': 143800.0, 'holding_value': 223609.0}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 8, 'holding_amount': 144100.0, 'holding_value': 223787.3}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 8, 'holding_amount': 144100.0, 'holding_value': 224507.8}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 8, 'holding_amount': 144100.0, 'holding_value': 223787.3}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 8, 'holding_amount': 144100.0, 'holding_value': 224507.8}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 8, 'holding_amount': 144100.0, 'holding_value': 223210.9}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 7, 'holding_amount': 143800.0, 'holding_value': 224615.6}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 7, 'holding_amount': 143800.0, 'holding_value': 225190.8}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 8, 'holding_amount': 188900.0, 'holding_value': 283916.7}
+2025-04-16 22:22:01,694 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 9, 'holding_amount': 208900.0, 'holding_value': 317110.2}
+2025-04-16 22:22:01,695 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 10, 'holding_amount': 213900.0, 'holding_value': 321919.5}
+2025-04-16 22:22:01,695 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 10, 'holding_amount': 209000.0, 'holding_value': 317053.0}
+2025-04-16 22:22:01,695 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 11, 'holding_amount': 209500.0, 'holding_value': 318859.0}
+2025-04-16 22:22:01,695 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 12, 'holding_amount': 269300.0, 'holding_value': 411759.7}
+2025-04-16 22:22:01,695 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 11, 'holding_amount': 268800.0, 'holding_value': 417446.4}
+2025-04-16 22:22:01,695 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:01] "GET /etf_holders_history?code=512730 HTTP/1.1" 200 -
+2025-04-16 22:22:56,022 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET / HTTP/1.1" 200 -
+2025-04-16 22:22:56,112 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:22:56,114 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:22:56,114 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:22:56,137 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:22:56,137 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:22:56,137 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:22:56,137 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:22:56,139 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:22:56,142 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:22:56,259 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:22:56,266 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:22:56] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:23:10,484 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET / HTTP/1.1" 200 -
+2025-04-16 22:23:10,531 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:23:10,531 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:23:10,532 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:23:10,547 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:23:10,548 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:23:10,550 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:23:10,550 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:23:10,552 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:23:10,560 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:23:10,653 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:23:10,664 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:10] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:23:46,731 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:46] "POST /search HTTP/1.1" 200 -
+2025-04-16 22:23:46,741 - app - INFO - ETF自选历史查询: 代码=513290
+2025-04-16 22:23:46,756 - app - INFO - ETF自选历史查询结果: 代码=513290, 记录数=19
+2025-04-16 22:23:46,756 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-19', 'attention_count': 534}
+2025-04-16 22:23:46,756 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-20', 'attention_count': 536}
+2025-04-16 22:23:46,757 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-21', 'attention_count': 540}
+2025-04-16 22:23:46,757 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-24', 'attention_count': 541}
+2025-04-16 22:23:46,757 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-25', 'attention_count': 539}
+2025-04-16 22:23:46,757 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-26', 'attention_count': 540}
+2025-04-16 22:23:46,757 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-27', 'attention_count': 539}
+2025-04-16 22:23:46,757 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-28', 'attention_count': 540}
+2025-04-16 22:23:46,757 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-03-31', 'attention_count': 542}
+2025-04-16 22:23:46,757 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-01', 'attention_count': 544}
+2025-04-16 22:23:46,757 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-02', 'attention_count': 544}
+2025-04-16 22:23:46,758 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-03', 'attention_count': 547}
+2025-04-16 22:23:46,758 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-07', 'attention_count': 550}
+2025-04-16 22:23:46,758 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-08', 'attention_count': 558}
+2025-04-16 22:23:46,758 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-09', 'attention_count': 561}
+2025-04-16 22:23:46,758 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-10', 'attention_count': 567}
+2025-04-16 22:23:46,758 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-11', 'attention_count': 570}
+2025-04-16 22:23:46,758 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-14', 'attention_count': 575}
+2025-04-16 22:23:46,758 - app - DEBUG - 处理ETF自选历史记录: {'date': '2025-04-15', 'attention_count': 596}
+2025-04-16 22:23:46,759 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:46] "GET /etf_attention_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 22:23:46,763 - app - INFO - ETF持有人历史查询: 代码=513290
+2025-04-16 22:23:46,774 - app - INFO - ETF持有人历史查询结果: 代码=513290, 记录数=19
+2025-04-16 22:23:46,774 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-19', 'holder_count': 125, 'holding_amount': 3186500.0, 'holding_value': 3731391.5}
+2025-04-16 22:23:46,774 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-20', 'holder_count': 122, 'holding_amount': 2566200.0, 'holding_value': 3033248.4}
+2025-04-16 22:23:46,774 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-21', 'holder_count': 122, 'holding_amount': 2558500.0, 'holding_value': 3006237.5}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-24', 'holder_count': 122, 'holding_amount': 2599000.0, 'holding_value': 3072018.0}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-25', 'holder_count': 124, 'holding_amount': 2591900.0, 'holding_value': 3048074.4}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-26', 'holder_count': 126, 'holding_amount': 2641500.0, 'holding_value': 3098479.5}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-27', 'holder_count': 129, 'holding_amount': 2653000.0, 'holding_value': 3069521.0}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-28', 'holder_count': 125, 'holding_amount': 2713400.0, 'holding_value': 3142117.2}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-03-31', 'holder_count': 126, 'holding_amount': 2727600.0, 'holding_value': 3095826.0}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-01', 'holder_count': 132, 'holding_amount': 2859100.0, 'holding_value': 3225064.8}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-02', 'holder_count': 140, 'holding_amount': 3600000.0, 'holding_value': 3956400.0}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-03', 'holder_count': 139, 'holding_amount': 3377600.0, 'holding_value': 3695094.4}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-07', 'holder_count': 129, 'holding_amount': 3487000.0, 'holding_value': 3473052.0}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-08', 'holder_count': 128, 'holding_amount': 3489600.0, 'holding_value': 3629184.0}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-09', 'holder_count': 140, 'holding_amount': 3786800.0, 'holding_value': 3764079.2}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-10', 'holder_count': 137, 'holding_amount': 3421600.0, 'holding_value': 3592680.0}
+2025-04-16 22:23:46,775 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-11', 'holder_count': 143, 'holding_amount': 3495300.0, 'holding_value': 3565206.0}
+2025-04-16 22:23:46,776 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-14', 'holder_count': 142, 'holding_amount': 3549000.0, 'holding_value': 3722901.0}
+2025-04-16 22:23:46,776 - app - DEBUG - 处理ETF持有人历史记录: {'date': '2025-04-15', 'holder_count': 136, 'holding_amount': 3562800.0, 'holding_value': 3830010.0}
+2025-04-16 22:23:46,776 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:46] "GET /etf_holders_history?code=513290 HTTP/1.1" 200 -
+2025-04-16 22:23:54,343 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET / HTTP/1.1" 200 -
+2025-04-16 22:23:54,407 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-04-16 22:23:54,409 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-04-16 22:23:54,409 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-04-16 22:23:54,426 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-04-16 22:23:54,426 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-04-16 22:23:54,428 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-04-16 22:23:54,428 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-04-16 22:23:54,433 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-04-16 22:23:54,434 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-04-16 22:23:54,578 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /load_data HTTP/1.1" 200 -
+2025-04-16 22:23:54,583 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:23:54] "GET /recommendations HTTP/1.1" 200 -
+2025-04-16 22:24:07,884 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/app.py', reloading
+2025-04-16 22:24:08,062 - werkzeug - INFO -  * Restarting with stat
+2025-04-16 22:24:10,462 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-04-16 22:24:10,464 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-04-16 22:24:10,879 - werkzeug - WARNING -  * Debugger is active!
+2025-04-16 22:24:11,056 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-04-16 22:25:29,338 - werkzeug - INFO - 127.0.0.1 - - [16/Apr/2025 22:25:29] "POST /search HTTP/1.1" 200 -

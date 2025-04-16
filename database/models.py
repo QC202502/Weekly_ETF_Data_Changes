@@ -558,10 +558,52 @@ class Database:
                 print(f"未发现日期字段，使用当前日期：{current_date}")
             else:
                 print(f"使用文件中提供的日期：{final_df['date'].iloc[0]}")
+                
+            # 添加管理人简称
+            print("\n处理基金管理人简称...")
+            
+            # 基金管理人简称提取函数
+            def get_manager_short(full_name):
+                """基金管理人简称提取"""
+                if pd.isna(full_name) or not full_name:
+                    return "未知"
+                
+                # 特定公司单独处理
+                if "摩根基金管理" in full_name:
+                    return "摩根"
+                elif "浙江浙商证券资产管理" in full_name:
+                    return "浙商资管"
+                elif "华泰证券" in full_name and "资产管理" in full_name:
+                    return "华泰资管"
+                elif "中银国际证券" in full_name:
+                    return "中银国际"
+                
+                # 通用后缀处理
+                short_name = full_name
+                # 移除常见后缀
+                suffixes = [
+                    "基金管理有限公司", "基金管理股份有限公司", "基金管理有限责任公司", 
+                    "基金管理公司", "基金", "股份有限公司", "有限公司", "有限责任公司",
+                    "证券资产管理有限公司", "证券资产管理", "资产管理有限公司", "资产管理"
+                ]
+                
+                for suffix in suffixes:
+                    short_name = short_name.replace(suffix, "")
+                
+                return short_name
+            
+            # 生成管理人简称
+            if 'fund_manager' in final_df.columns:
+                final_df['manager_short'] = final_df['fund_manager'].apply(get_manager_short)
+                print("管理人简称示例：")
+                print(final_df[['fund_manager', 'manager_short']].head())
+            else:
+                final_df['manager_short'] = "未知"
+                print("警告: 没有fund_manager字段, 所有manager_short设为默认值'未知'")
             
             # 显示数据示例
             print("\n最终数据示例：")
-            print(final_df[['code', 'name', 'fund_size']].head())
+            print(final_df[['code', 'name', 'fund_manager', 'manager_short', 'fund_size']].head())
             print("\n数据形状：", final_df.shape)
             
             # 删除现有表并重新创建
@@ -573,6 +615,7 @@ class Database:
                     code TEXT PRIMARY KEY,
                     name TEXT,
                     fund_manager TEXT,
+                    manager_short TEXT,
                     fund_size REAL,
                     exchange TEXT,
                     tracking_index_code TEXT,

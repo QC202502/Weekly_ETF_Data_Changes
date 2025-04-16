@@ -201,7 +201,7 @@ function generateIndexGroupsMarkdown(indexGroups) {
                         `==${etfSafe.management_fee_rate.toFixed(2)}==` : 
                         etfSafe.management_fee_rate.toFixed(2);
                     
-                    markdown += `|${code}|${etfSafe.name}|${simplifyCompany(etfSafe.manager)}|${volume}|${size}|${fee}|\n`;
+                    markdown += `|${code}|${etfSafe.name}|${etfSafe.manager_short || simplifyCompany(etfSafe.manager)}|${volume}|${size}|${fee}|\n`;
                 } catch (innerError) {
                     console.error('处理ETF行时出错:', innerError, etf);
                     // 添加错误处理的行，确保不会中断整个表格
@@ -349,7 +349,7 @@ function generateETFTableForGroup(etfs) {
             `==${Number(etf.management_fee_rate || 0).toFixed(2)}==` : 
             Number(etf.management_fee_rate || 0).toFixed(2);
         
-        markdown += `|${code}|${etf.name}|${simplifyCompany(etf.manager)}|${volume}|${size}|${fee}|\n`;
+        markdown += `|${code}|${etf.name}|${etf.manager_short || simplifyCompany(etf.manager)}|${volume}|${size}|${fee}|\n`;
     });
     
     return markdown;

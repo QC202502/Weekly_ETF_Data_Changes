@@ -102,10 +102,22 @@ export function loadRecommendations() {
 function renderRecommendations(recommendations) {
     console.log('渲染推荐数据:', recommendations);
     
-    // 更新价格涨幅标签的文本
-    const priceReturnTitle = document.getElementById('price-return-title');
-    if (priceReturnTitle && recommendations.trade_date) {
-        priceReturnTitle.textContent = `${recommendations.trade_date} 涨幅TOP20 ETF`;
+    // 更新页面标题中的日期
+    if (recommendations.date_for_title) {
+        // 更新页面标题
+        document.title = `${recommendations.date_for_title}涨幅TOP20 - ETF数据分析平台`;
+        
+        // 更新价格涨幅标签的文本
+        const priceReturnTitle = document.getElementById('price-return-title');
+        if (priceReturnTitle) {
+            priceReturnTitle.textContent = `${recommendations.date_for_title}涨幅TOP20 ETF`;
+        }
+        
+        // 更新导航标签（如果有的话）
+        const navTab = document.querySelector('#price-tab');
+        if (navTab) {
+            navTab.textContent = `${recommendations.date_for_title}涨幅TOP20`;
+        }
     }
     
     console.log('价格数据:', recommendations.price_return);
@@ -136,10 +148,14 @@ function renderRecommendationTable(items, type) {
         return;
     }
     
-    console.log(`渲染 ${type} 表格，数据项:`, items.length);
+    console.log(`渲染 ${type} 表格，数据项:`, items);
     
     // 清空容器
     container.innerHTML = '';
+    
+    // 创建表格容器
+    const tableResponsive = document.createElement('div');
+    tableResponsive.className = 'table-responsive';
     
     // 创建表格
     const table = document.createElement('table');
@@ -147,16 +163,26 @@ function renderRecommendationTable(items, type) {
     
     // 创建表头
     const thead = document.createElement('thead');
-    thead.innerHTML = `
-        <tr>
-            <th>代码</th>
-            <th>名称</th>
-            <th>涨幅(%)</th>
-            <th>跟踪指数</th>
-            <th>基金公司</th>
-            <th>规模(亿元)</th>
-        </tr>
-    `;
+    let headerRow = '<tr>';
+    headerRow += '<th>#</th>';
+    headerRow += '<th>代码</th>';
+    headerRow += '<th>名称</th>';
+    
+    // 根据不同类型显示不同的数值列标题
+    if (type === 'price-return') {
+        headerRow += '<th>涨幅</th>';
+    } else if (type === 'attention') {
+        headerRow += '<th>关注人数</th>';
+    } else if (type === 'holders') {
+        headerRow += '<th>持仓人数</th>';
+    }
+    
+    headerRow += '<th>跟踪指数</th>';
+    headerRow += '<th>基金公司</th>';
+    headerRow += '<th>类型</th>';
+    headerRow += '</tr>';
+    
+    thead.innerHTML = headerRow;
     table.appendChild(thead);
     
     // 创建表体
@@ -166,15 +192,29 @@ function renderRecommendationTable(items, type) {
     items.forEach((item, index) => {
         const row = document.createElement('tr');
         
-        // 设置推荐项内容
-        row.innerHTML = `
-            <td>${item.code}</td>
-            <td>${item.name}</td>
-            <td class="${parseFloat(item.change_rate) >= 0 ? 'text-danger' : 'text-success'}">${item.change_rate}</td>
-            <td>${item.index_name || item.tracking_index_name || item.index_code || item.tracking_index_code || '-'}</td>
-            <td>${item.manager || item.fund_manager || '-'}</td>
-            <td>${(item.scale || item.fund_size) ? parseFloat(item.scale || item.fund_size).toFixed(2) : '-'}</td>
-        `;
+        // 基本字段
+        let html = `<td>${index + 1}</td>`;
+        html += `<td>${item.code}</td>`;
+        html += `<td>${item.name}</td>`;
+        
+        // 根据不同类型显示不同的数值
+        if (type === 'price-return') {
+            const change = parseFloat(item.change_rate);
+            const colorClass = change >= 0 ? 'text-danger' : 'text-success';
+            const sign = change >= 0 ? '+' : '';
+            html += `<td class="${colorClass}">${sign}${change}</td>`;
+        } else if (type === 'attention') {
+            html += `<td class="text-primary">${item.attention_change.toLocaleString()}</td>`;
+        } else if (type === 'holders') {
+            html += `<td class="text-primary">${item.holders_change.toLocaleString()}</td>`;
+        }
+        
+        // 共同字段
+        html += `<td>${item.tracking_index_name || item.tracking_index_code || '-'}</td>`;
+        html += `<td>${item.manager_short || item.fund_manager || '-'}</td>`;
+        html += `<td><span class="badge bg-${item.is_business ? 'danger' : 'secondary'}">${item.business_text}</span></td>`;
+        
+        row.innerHTML = html;
         
         // 添加数据属性，用于点击搜索
         row.dataset.code = item.code;
@@ -199,7 +239,8 @@ function renderRecommendationTable(items, type) {
     });
     
     table.appendChild(tbody);
-    container.appendChild(table);
+    tableResponsive.appendChild(table);
+    container.appendChild(tableResponsive);
 }
 
 // 显示推荐项悬浮卡片

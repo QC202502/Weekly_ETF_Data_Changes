@@ -137,8 +137,8 @@ def import_etf_info():
         # 添加日期字段 - 使用从文件名提取的日期，而非当前日期
         df['date'] = formatted_date
         
-        # 创建数据库连接
-        db = Database()
+    # 创建数据库连接
+    db = Database()
     
         # 保存ETF基本信息
         if db.save_etf_info(df):
@@ -428,7 +428,7 @@ def import_etf_attention():
             data_date = date_match.group(1)
             formatted_date = f"{data_date[:4]}-{data_date[4:6]}-{data_date[6:8]}"
             logger.info(f"从文件名中提取的日期: {formatted_date}")
-        else:
+    else:
             # 如果无法从文件名中提取日期，使用当前日期，但记录警告
             formatted_date = datetime.now().strftime('%Y-%m-%d')
             logger.warning(f"无法从文件名中提取日期，使用当前日期: {formatted_date}")

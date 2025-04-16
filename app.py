@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息
-__version__ = "3.5.0"   
+__version__ = "3.5.1"   
 RELEASE_DATE = "2025-04-16"
 
 # 创建Flask应用
@@ -73,12 +73,32 @@ def index():
         "holders": [],
         "value": [],
         "price_return": [],
-        "trade_date": datetime.now().strftime("%m月%d日")
+        "trade_date": "",  # 将由数据库提供的最新日期填充
+        "date_for_title": ""  # 将由数据库提供的最新日期填充
     }
     
     try:
         # 创建数据库连接
         db = Database()
+        
+        # 获取最新的交易日期
+        conn = db.connect()
+        cursor = conn.cursor()
+        cursor.execute("SELECT MAX(date) FROM etf_price")
+        latest_date = cursor.fetchone()[0]
+        
+        if latest_date:
+            # 直接使用最新数据的日期，而不是当前日期
+            date_obj = datetime.strptime(latest_date, '%Y-%m-%d')
+            # 格式化为"MM月DD日"
+            recommendations["trade_date"] = f"{date_obj.month}月{date_obj.day}日"
+            # 给页面标题使用的日期，格式为"04月16日"，补零
+            recommendations["date_for_title"] = f"{date_obj.month:02d}月{date_obj.day:02d}日"
+            print(f"最新数据日期: {latest_date}, 格式化为: {recommendations['date_for_title']}")
+        else:
+            # 如果没有最新日期，使用默认值
+            recommendations["trade_date"] = "最新"
+            recommendations["date_for_title"] = "最新"
         
         # 获取ETF价格数据
         price_data = db.get_etf_price_recommendations()

@@ -5,7 +5,7 @@
  */
 
 import { showLoading, hideLoading, showAlert, formatNumber, showMessage } from './utils.js';
-import { displayETFCharts } from './etf_chart.js';
+import { displayETFCharts, displayFundCompanyCharts } from './etf_chart.js';
 
 console.log("搜索模块已加载 v2.1.0 (2025-04-04)");
 
@@ -259,6 +259,17 @@ export function handleSearchResult(data) {
         } else if (data.search_type === '基金公司名称') {
             // 基金公司搜索结果显示为普通表格，不分组
             htmlContent += generateETFTable(data.results, `${data.company_name || '基金公司'}旗下ETF`);
+            
+            // 添加查看公司数据趋势的按钮和图表容器
+            htmlContent += `
+                <div class="mt-4 mb-3 text-center">
+                    <button id="show-fund-company-charts-btn" class="btn btn-primary">
+                        <i class="bi bi-bar-chart-line-fill"></i> 查看 ${data.company_name || '该公司'} 整体客户数据趋势
+                    </button>
+                </div>
+                <div id="fund-company-charts-container"></div>
+            `;
+            
         } else {
             // 其他搜索类型使用通用表格
             htmlContent += generateETFTable(data.results, data.search_type || '搜索结果');
@@ -276,6 +287,36 @@ export function handleSearchResult(data) {
             
             // 初始化并显示ETF历史数据图表
             displayETFCharts(etfCode, etfName, 'etf-charts-container', manager);
+        }
+
+        // 如果是基金公司搜索，为新按钮绑定事件
+        if (data.search_type === '基金公司名称') {
+            const showCompanyChartsBtn = document.getElementById('show-fund-company-charts-btn');
+            if (showCompanyChartsBtn) {
+                showCompanyChartsBtn.addEventListener('click', () => {
+                    // 确保 etf_chart.js 中的 displayFundCompanyCharts 函数已导入并在作用域内
+                    // 可能需要调整 displayETFCharts 的导入方式，或者在这里直接调用一个etf_chart.js中的新函数
+                    // 例如: import { displayFundCompanyCharts } from './etf_chart.js';
+                    // 然后调用 displayFundCompanyCharts(data.company_name, 'fund-company-charts-container');
+                    
+                    // 假设 displayFundCompanyCharts 存在于 etf_chart.js 并已正确导入或全局可用
+                    // (需要确保 etf_chart.js 中创建此函数)
+                    if (typeof displayFundCompanyCharts === 'function') {
+                        // 清空之前的图表（如果有）
+                        const chartContainer = document.getElementById('fund-company-charts-container');
+                        if(chartContainer) chartContainer.innerHTML = '';
+                        
+                        // 调用函数显示公司图表
+                        displayFundCompanyCharts(data.company_name, 'fund-company-charts-container', data.company_name);
+                        
+                        // 隐藏按钮，防止重复点击或根据需要更新其状态
+                        // showCompanyChartsBtn.style.display = 'none';
+                    } else {
+                        console.error('displayFundCompanyCharts 函数未定义或未导入');
+                        showMessage('danger', '无法加载公司数据趋势图，图表功能缺失。');
+                    }
+                });
+            }
         }
     }
 }

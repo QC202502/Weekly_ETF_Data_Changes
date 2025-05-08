@@ -225,6 +225,35 @@ export async function fetchETFHistoryData(etfCode) {
     }
 }
 
+// 新增：获取基金公司历史数据
+export async function fetchFundCompanyHistoryData(companyName) {
+    try {
+        console.log(`获取基金公司历史数据: ${companyName}`);
+        
+        const attentionResponse = await fetch(`/fund_company_attention_history?name=${encodeURIComponent(companyName)}`);
+        if (!attentionResponse.ok) {
+            throw new Error(`获取自选历史失败: ${attentionResponse.status}`);
+        }
+        const attentionData = await attentionResponse.json();
+        
+        const holdersResponse = await fetch(`/fund_company_holders_history?name=${encodeURIComponent(companyName)}`);
+        if (!holdersResponse.ok) {
+            throw new Error(`获取持有人历史失败: ${holdersResponse.status}`);
+        }
+        const holdersData = await holdersResponse.json();
+        
+        // 后端返回的数据已经是 {date: ..., attention_count: ...} 和 {date: ..., holder_count: ..., holding_value: ...}
+        // 无需像单个ETF那样分别包含在 attention 和 holders 键下，直接返回
+        return {
+            attention: attentionData, // 保持这个结构以兼容 prepareChartData
+            holders: holdersData    // 保持这个结构以兼容 prepareChartData
+        };
+    } catch (error) {
+        console.error('获取基金公司历史数据出错:', error);
+        throw error; // 将错误抛出，由调用者处理
+    }
+}
+
 // 准备图表数据
 function prepareChartData(historyData, options = {}) {
     const { period = 'all', startDate = null, endDate = null } = options;
@@ -1009,7 +1038,7 @@ function bindCustomDateRange(chart, historyData, containerId) {
     });
 }
 
-// 在ETF详情页面展示图表
+// 显示ETF历史数据图表的主函数
 export async function displayETFCharts(etfCode, etfName, targetElement, manager = '') {
     try {
         // 创建图表容器
@@ -1035,5 +1064,132 @@ export async function displayETFCharts(etfCode, etfName, targetElement, manager 
     } catch (error) {
         console.error('展示ETF图表出错:', error);
         return null;
+    }
+}
+
+// 新增：显示基金公司历史数据图表的主函数
+export async function displayFundCompanyCharts(companyQueryName, targetElementId, companyDisplayName) {
+    console.log(`开始显示基金公司图表: ${companyDisplayName}, 容器ID: ${targetElementId}`);
+    const targetElement = document.getElementById(targetElementId);
+    if (!targetElement) {
+        console.error(`未找到目标元素: ${targetElementId}`);
+        return;
+    }
+    
+    // 1. 创建图表容器HTML (使用公司名称)
+    // createETFChartContainer 需要修改或复制一个版本
+    // 为了简单起见，我们先直接构建HTML，或者修改createETFChartContainer使其更通用
+    const chartContainerId = `chart-container-company-${companyQueryName.replace(/\W/g, '-')}`.toLowerCase();
+    const chartSectionHTML = `
+    <div class="etf-chart-section mt-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-graph-up"></i> ${companyDisplayName}｜客户数据趋势</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" data-period="all">全部</button>
+                    <button type="button" class="btn btn-outline-secondary" data-period="month">一个月</button>
+                    <button type="button" class="btn btn-outline-secondary" data-period="week">一周</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="${chartContainerId}" class="chart-container" style="height: 300px;">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">正在加载...</span>
+                                </div>
+                                <p class="mt-2">正在加载图表数据...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stats-card" id="${chartContainerId}-stats">
+                             <div class="card-header d-flex align-items-center">
+                                <h6 class="mb-0">数据变化统计</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="text-center py-3">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">计算中...</span>
+                                    </div>
+                                    <p class="mt-2 small">计算历史数据变化...</p>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="card stats-card mt-3">
+                            <div class="card-header d-flex align-items-center">
+                                <h6 class="mb-0">时间范围选择</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="${chartContainerId}-start-date" class="form-label small">开始日期</label>
+                                        <input type="date" class="form-control form-control-sm" id="${chartContainerId}-start-date">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="${chartContainerId}-end-date" class="form-label small">结束日期</label>
+                                        <input type="date" class="form-control form-control-sm" id="${chartContainerId}-end-date">
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <button class="btn btn-sm btn-primary w-100" id="${chartContainerId}-apply-date">应用日期范围</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>`;
+    targetElement.innerHTML = chartSectionHTML;
+
+    // 2. 获取历史数据
+    try {
+        const historyData = await fetchFundCompanyHistoryData(companyQueryName);
+        
+        // 确保 historyData.attention 和 historyData.holders 中的对象具有 prepareChartData 和 calculateHistoricalChanges 所期望的字段名
+        // 即 attention_count, holder_count, holding_value
+        // 当前后端返回的是 total_attention_count, total_holder_count, total_holding_value
+        // 需要进行转换
+        const adaptedHistoryData = {
+            attention: historyData.attention.map(item => ({ date: item.date, attention_count: item.total_attention_count || item.attention_count })),
+            holders: historyData.holders.map(item => ({
+                date: item.date,
+                holder_count: item.total_holder_count || item.holder_count,
+                holding_value: item.total_holding_value || item.holding_value
+            }))
+        };
+        
+        console.log("基金公司历史数据（已适配）:", adaptedHistoryData);
+
+        // 3. 初始化图表
+        const chartInstance = await initETFChart(chartContainerId, adaptedHistoryData, { period: 'all' });
+        
+        if (chartInstance) {
+            // 4. 计算并显示历史数据变化
+            const changes = calculateHistoricalChanges(adaptedHistoryData);
+            if (changes && !changes.error) {
+                displayHistoricalChanges(chartContainerId, changes);
+            } else {
+                 console.warn('无法计算历史数据变化:', changes ? changes.error : '未知错误');
+                 const statsContainer = document.getElementById(`${chartContainerId}-stats`);
+                 if (statsContainer) {
+                     statsContainer.innerHTML = '<div class="alert alert-warning p-2 small">无法计算历史数据变化。</div>';
+                 }
+            }
+            
+            // 5. 绑定时间段按钮事件
+            bindPeriodButtons(chartInstance, adaptedHistoryData, chartContainerId);
+            // 6. 绑定自定义日期范围事件
+            bindCustomDateRange(chartInstance, adaptedHistoryData, chartContainerId);
+
+        } else {
+            targetElement.innerHTML = '<div class="alert alert-warning">无法加载基金公司数据趋势图。</div>';
+        }
+        
+    } catch (error) {
+        console.error('显示基金公司图表时出错:', error);
+        targetElement.innerHTML = `<div class="alert alert-danger">加载图表数据失败: ${error.message}</div>`;
     }
 } 

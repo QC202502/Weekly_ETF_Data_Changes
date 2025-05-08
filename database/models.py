@@ -1937,29 +1937,23 @@ class Database:
                 amount_changes = self.get_amount_changes(etf_code)
                 
                 result = {
-                    'code': etf_code,
+                    'code': etf_code,  # row[0]
                     'name': row[1],
                     'manager': row[2],
                     'fund_size': float(row[3]) if row[3] is not None else 0.0,
-                    'exchange': row[4],
-                    'tracking_index_code': row[5],
-                    'tracking_index_name': row[6],
-                    'tracking_error': float(row[7]) if row[7] is not None else 0.0,
-                    'information_ratio': float(row[8]) if row[8] is not None else 0.0,
-                    'total_holder_count': int(row[9]) if row[9] is not None else 0,
-                    'management_fee_rate': float(row[10]) if row[10] is not None else 0.0,
-                    'custody_fee_rate': float(row[11]) if row[11] is not None else 0.0,
-                    'index_usage_fee': float(row[12]) if row[12] is not None else 0.0,
-                    'total_annual_fee_rate': float(row[13]) if row[13] is not None else 0.0,
-                    'attention_count': self.get_latest_attention_count(etf_code) or (int(row[14]) if row[14] is not None else 0),  # 优先使用历史表中的最新数据
-                    'is_business': bool(row[15]),
-                    'business_text': '商务品' if row[15] else '非商务品',
-                    'holder_count': int(row[16]) if row[16] is not None else 0,
-                    'holding_amount': float(row[17]) if row[17] is not None else 0.0,
-                    'holding_value': float(row[18]) if row[18] is not None else 0.0,
-                    'daily_avg_volume': float(row[19]) if row[19] is not None else 0.0,
-                    'daily_volume': float(row[20]) if row[20] is not None else 0.0,
-                    # 添加变化数据
+                    'management_fee_rate': float(row[4]) if row[4] is not None else 0.0,
+                    'tracking_error': float(row[5]) if row[5] is not None else 0.0,
+                    'total_holder_count': int(row[6]) if row[6] is not None else 0,
+                    'tracking_index_code': row[7],
+                    'tracking_index_name': row[8],
+                    'attention_count': self.get_latest_attention_count(etf_code) or (int(row[9]) if row[9] is not None else 0),
+                    'is_business': bool(row[10]),
+                    'business_text': '商务品' if bool(row[10]) else '非商务品',
+                    'holder_count': int(row[11]) if row[11] is not None else 0,
+                    'holding_amount': float(row[12]) if row[12] is not None else 0.0,
+                    'holding_value': float(row[13]) if row[13] is not None else 0.0,
+                    'daily_avg_volume': float(row[14]) if row[14] is not None else 0.0,
+                    'daily_volume': float(row[15]) if row[15] is not None else 0.0,
                     'attention_daily_change': attention_changes['daily_change'],
                     'attention_five_day_change': attention_changes['five_day_change'],
                     'holder_daily_change': holder_changes['daily_change'],
@@ -2177,3 +2171,60 @@ class Database:
         except Exception as e:
             print(f"获取ETF最新自选数据出错: {str(e)}")
             return 0
+
+    def get_fund_company_attention_history(self, company_name: str) -> List[Dict]:
+        """获取基金公司自选历史汇总数据"""
+        try:
+            # 使用 LIKE 匹配基金公司名称
+            # 这将汇总所有基金管理人名称包含所提供 company_name 字符串的ETF的自选数据
+            query = """
+            SELECT
+                eah.date,
+                SUM(eah.attention_count) as total_attention_count
+            FROM etf_attention_history eah
+            JOIN etf_info ei ON eah.code = ei.code
+            WHERE ei.fund_manager LIKE ?
+            GROUP BY eah.date
+            ORDER BY eah.date ASC;
+            """
+            params = (f'%{company_name}%',)
+            result = self.execute_query(query, params)
+            return [
+                {
+                    'date': row[0],
+                    'attention_count': row[1] if row[1] is not None else 0
+                }
+                for row in result
+            ]
+        except Exception as e:
+            print(f"获取基金公司 {company_name} 自选历史汇总数据失败: {str(e)}")
+            return []
+
+    def get_fund_company_holders_history(self, company_name: str) -> List[Dict]:
+        """获取基金公司持有人和持仓价值历史汇总数据"""
+        try:
+            # 使用 LIKE 匹配基金公司名称
+            query = """
+            SELECT
+                ehh.date,
+                SUM(ehh.holder_count) as total_holder_count,
+                SUM(ehh.holding_value) as total_holding_value
+            FROM etf_holders_history ehh
+            JOIN etf_info ei ON ehh.code = ei.code
+            WHERE ei.fund_manager LIKE ?
+            GROUP BY ehh.date
+            ORDER BY ehh.date ASC;
+            """
+            params = (f'%{company_name}%',)
+            result = self.execute_query(query, params)
+            return [
+                {
+                    'date': row[0],
+                    'holder_count': row[1] if row[1] is not None else 0,
+                    'holding_value': row[2] if row[2] is not None else 0
+                }
+                for row in result
+            ]
+        except Exception as e:
+            print(f"获取基金公司 {company_name} 持有人历史汇总数据失败: {str(e)}")
+            return []

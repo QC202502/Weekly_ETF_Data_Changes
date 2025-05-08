@@ -40,7 +40,21 @@ def find_latest_file(pattern):
     files = glob.glob(os.path.join(DATA_DIR, pattern))
     if not files:
         return None
-    return max(files, key=os.path.getmtime)
+    
+    # 从文件名中提取日期，并选择日期最新的文件
+    latest_file = None
+    latest_date = None
+    
+    for file in files:
+        filename = os.path.basename(file)
+        date_match = re.search(r'(\d{8})', filename)
+        if date_match:
+            file_date = date_match.group(1)
+            if latest_date is None or file_date > latest_date:
+                latest_date = file_date
+                latest_file = file
+    
+    return latest_file
 
 def save_column_mapping():
     """保存列名映射到JSON文件"""
@@ -137,9 +151,9 @@ def import_etf_info():
         # 添加日期字段 - 使用从文件名提取的日期，而非当前日期
         df['date'] = formatted_date
         
-    # 创建数据库连接
-    db = Database()
-    
+        # 创建数据库连接
+        db = Database()
+        
         # 保存ETF基本信息
         if db.save_etf_info(df):
             logger.info(f"成功导入ETF基本信息，共{len(df)}条记录")
@@ -147,7 +161,7 @@ def import_etf_info():
         else:
             logger.error("导入ETF基本信息失败")
             return False
-    
+        
     except Exception as e:
         logger.error(f"导入ETF基本信息时出错: {str(e)}", exc_info=True)
         return False
@@ -428,7 +442,7 @@ def import_etf_attention():
             data_date = date_match.group(1)
             formatted_date = f"{data_date[:4]}-{data_date[4:6]}-{data_date[6:8]}"
             logger.info(f"从文件名中提取的日期: {formatted_date}")
-    else:
+        else:
             # 如果无法从文件名中提取日期，使用当前日期，但记录警告
             formatted_date = datetime.now().strftime('%Y-%m-%d')
             logger.warning(f"无法从文件名中提取日期，使用当前日期: {formatted_date}")

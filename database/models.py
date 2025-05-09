@@ -236,6 +236,9 @@ class Database:
             cursor.execute("DROP TABLE IF EXISTS etf_business")
             cursor.execute("DROP TABLE IF EXISTS etf_holders")
             cursor.execute("DROP TABLE IF EXISTS etf_attention")
+            cursor.execute("DROP TABLE IF EXISTS etf_price") # 假设etf_price表也在这里管理
+            cursor.execute("DROP TABLE IF EXISTS etf_index_classification") # 假设etf_index_classification表也在这里管理
+            cursor.execute("DROP TABLE IF EXISTS etf_company_analytics") # 新增：删除旧的基金公司分析表
             
             # 创建ETF基本信息表
             cursor.execute("""
@@ -310,16 +313,300 @@ class Database:
                 )
             """)
             
-            conn.commit()
-            print("数据库表创建成功")
-            return True
+            # 创建ETF价格表
+            cursor.execute("""
+                CREATE TABLE etf_price (
+                    code TEXT,
+                    date TEXT,
+                    price_change_rate REAL,
+                    turnover_rate REAL,
+                    amount REAL,
+                    transaction_count INTEGER,
+                    total_market_value REAL,
+                    close_price REAL,
+                    open_price REAL,
+                    high_price REAL,
+                    low_price REAL,
+                    amplitude REAL,
+                    premium_discount REAL,
+                    premium_discount_rate REAL,
+                    update_time TIMESTAMP,
+                    PRIMARY KEY (code, date)
+                )
+            """)
             
+            # 创建ETF指数分类表
+            cursor.execute("""
+                CREATE TABLE etf_index_classification (
+                    index_code TEXT PRIMARY KEY,
+                    level1 TEXT,
+                    level2 TEXT,
+                    level3 TEXT,
+                    index_name TEXT,
+                    fund_count INTEGER
+                )
+            """)
+            
+            # 创建基金公司分析表
+            self.create_company_analytics_table(conn)
+            
+            conn.commit()
+            cursor.close() # 关闭游标，但不关闭连接
+            print("数据库表创建成功")
+            
+            # 创建基金公司分析表
+            self.create_company_analytics_table(conn)
+
         except Exception as e:
             print(f"创建数据库表失败: {str(e)}")
             if self.conn:
                 self.conn.rollback()
             return False
     
+    def create_company_analytics_table(self, conn):
+        """创建基金公司分析表"""
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS etf_company_analytics (
+                    company_name TEXT PRIMARY KEY,
+                    company_short_name TEXT, -- 新增公司简称字段
+                    company_id TEXT, -- 保留，但可能为空
+                    product_count INTEGER,
+                    total_fund_size REAL,
+                    avg_fund_size REAL,
+                    total_holder_count_info INTEGER,
+                    latest_date TEXT,
+                    avg_price_change_rate REAL,
+                    total_amount REAL,
+                    avg_turnover_rate REAL,
+                    total_net_inflow REAL,
+                    total_attention_count INTEGER,
+                    total_shares_holders REAL,
+                    total_holder_count_holders INTEGER,
+                    business_agreement_count INTEGER,
+                    business_agreement_total_size REAL,
+                    business_agreement_avg_mgmt_fee REAL,
+                    business_agreement_avg_cust_fee REAL,
+                    update_timestamp TEXT
+                )
+            """)
+            conn.commit()
+            cursor.close()
+            print("基金公司分析表 'etf_company_analytics' 创建成功或已存在。")
+        except Exception as e:
+            print(f"创建基金公司分析表 'etf_company_analytics' 失败: {str(e)}")
+
+    def update_company_analytics_data(self):
+        """更新基金公司层面的聚合分析数据"""
+        print("开始更新基金公司层面聚合分析数据...")
+        try:
+            conn = self.connect()
+            
+            # 确保表存在且是最新结构：先删除旧表（如果存在），再创建新表
+            cursor = conn.cursor()
+            cursor.execute("DROP TABLE IF EXISTS etf_company_analytics")
+            conn.commit()
+            cursor.close()
+            print("已删除旧的 'etf_company_analytics' 表（如果存在）。")
+            self.create_company_analytics_table(conn) # 用最新定义创建表
+            
+            # 清空旧数据 (现在不需要了，因为表是新创建的)
+            # cursor = conn.cursor()
+            # cursor.execute("DELETE FROM etf_company_analytics")
+            # conn.commit()
+            # cursor.close()
+            # print("已清空 'etf_company_analytics' 表中的旧数据。")
+
+            # 1. 从 etf_info 获取基础公司信息和产品统计
+            # 确保 manager_company_name 不为空，因为它是主键
+            query_info = """
+            SELECT
+                fund_manager as company_name, -- 使用 fund_manager 作为公司名称
+                manager_short as company_short_name, -- 获取管理人简称
+                COUNT(code) as product_count,
+                SUM(fund_size) as total_fund_size,
+                AVG(fund_size) as avg_fund_size,
+                SUM(total_holder_count) as total_holder_count_info
+            FROM etf_info
+            WHERE fund_manager IS NOT NULL AND fund_manager != ''
+            GROUP BY fund_manager, manager_short;
+            """
+            df_info = pd.read_sql_query(query_info, conn)
+            if df_info.empty:
+                print("未从 etf_info 获取到基金公司数据。")
+                return False
+            
+            df_info = df_info.set_index('company_name')
+
+            # 2. 获取各项数据的最新日期
+            def get_latest_data_date(table_name, date_column='date'):
+                try:
+                    query = f"SELECT MAX({date_column}) FROM {table_name}"
+                    cursor = conn.cursor()
+                    cursor.execute(query)
+                    latest_date = cursor.fetchone()[0]
+                    cursor.close()
+                    return latest_date
+                except Exception as e:
+                    print(f"获取表 {table_name} 的最新日期失败: {e}")
+                    return None
+
+            latest_price_date = get_latest_data_date('etf_price')
+            latest_attention_date = get_latest_data_date('etf_attention')
+            latest_holders_date = get_latest_data_date('etf_holders')
+            
+            print(f"最新价格日期: {latest_price_date}, 最新关注日期: {latest_attention_date}, 最新持有人日期: {latest_holders_date}")
+
+            all_company_data = df_info
+            all_company_data['latest_date'] = latest_price_date # 主数据日期
+
+            # 3. 从 etf_price 获取聚合数据
+            if latest_price_date:
+                query_price = f"""
+                SELECT
+                    i.fund_manager as company_name, -- 使用 fund_manager
+                    AVG(p.change_rate) as avg_price_change_rate, -- 改为 change_rate
+                    SUM(p.amount) as total_amount,
+                    AVG(p.turnover_rate) as avg_turnover_rate
+                    -- SUM(p.net_inflow) as total_net_inflow -- 暂时移除 net_inflow，假设不存在
+                FROM etf_price p
+                JOIN etf_info i ON p.code = i.code
+                WHERE p.date = '{latest_price_date}' AND i.fund_manager IS NOT NULL AND i.fund_manager != ''
+                GROUP BY i.fund_manager;
+                """
+                df_price = pd.read_sql_query(query_price, conn)
+                if not df_price.empty:
+                    df_price = df_price.set_index('company_name')
+                    all_company_data = all_company_data.join(df_price, how='left')
+                else:
+                    print(f"在日期 {latest_price_date} 未从 etf_price 获取到聚合数据。")
+            else:
+                print("无法获取 etf_price 最新日期，相关指标将为空。")
+                for col in ['avg_price_change_rate', 'total_amount', 'avg_turnover_rate']:
+                    all_company_data[col] = None
+
+            # 4. 从 etf_attention 获取聚合数据
+            if latest_attention_date:
+                query_attention = f"""
+                SELECT
+                    i.fund_manager as company_name, -- 使用 fund_manager
+                    SUM(a.attention_count) as total_attention_count
+                FROM etf_attention a
+                JOIN etf_info i ON a.code = i.code
+                WHERE a.date = '{latest_attention_date}' AND i.fund_manager IS NOT NULL AND i.fund_manager != ''
+                GROUP BY i.fund_manager;
+                """
+                df_attention = pd.read_sql_query(query_attention, conn)
+                if not df_attention.empty:
+                    df_attention = df_attention.set_index('company_name')
+                    all_company_data = all_company_data.join(df_attention, how='left')
+                else:
+                    print(f"在日期 {latest_attention_date} 未从 etf_attention 获取到聚合数据。")
+            else:
+                print("无法获取 etf_attention 最新日期，相关指标将为空。")
+                all_company_data['total_attention_count'] = None
+            
+            # 5. 从 etf_holders 获取聚合数据
+            if latest_holders_date:
+                query_holders = f"""
+                SELECT
+                    i.fund_manager as company_name, -- 使用 fund_manager
+                    SUM(h.holding_amount) as total_shares_holders, -- 改为 holding_amount
+                    SUM(h.holder_count) as total_holder_count_holders
+                FROM etf_holders h
+                JOIN etf_info i ON h.code = i.code
+                WHERE h.date = '{latest_holders_date}' AND i.fund_manager IS NOT NULL AND i.fund_manager != ''
+                GROUP BY i.fund_manager;
+                """
+                df_holders = pd.read_sql_query(query_holders, conn)
+                if not df_holders.empty:
+                    df_holders = df_holders.set_index('company_name')
+                    all_company_data = all_company_data.join(df_holders, how='left')
+                else:
+                    print(f"在日期 {latest_holders_date} 未从 etf_holders 获取到聚合数据。")
+            else:
+                print("无法获取 etf_holders 最新日期，相关指标将为空。")
+                for col in ['total_shares_holders', 'total_holder_count_holders']:
+                    all_company_data[col] = None
+
+            # 6. 从 etf_business 获取聚合数据
+            # 注意：etf_business 中的 fund_company_short 需要能映射到 manager_company_name
+            # 这里假设 etf_business.code 可以关联到 etf_info.code, 从而得到 manager_company_name
+            query_business = """
+            SELECT
+                i.fund_manager as company_name, -- 使用 fund_manager
+                COUNT(b.code) as business_agreement_count,
+                SUM(b.fund_size) as business_agreement_total_size,
+                AVG(b.management_fee_rate) as business_agreement_avg_mgmt_fee,
+                AVG(b.custody_fee_rate) as business_agreement_avg_cust_fee
+            FROM etf_business b
+            JOIN etf_info i ON b.code = i.code
+            WHERE i.fund_manager IS NOT NULL AND i.fund_manager != ''
+            GROUP BY i.fund_manager;
+            """
+            df_business = pd.read_sql_query(query_business, conn)
+            if not df_business.empty:
+                df_business = df_business.set_index('company_name')
+                all_company_data = all_company_data.join(df_business, how='left')
+            else:
+                print("未从 etf_business 获取到聚合数据。")
+                for col in ['business_agreement_count', 'business_agreement_total_size', 'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee']:
+                    all_company_data[col] = None
+            
+            # 添加更新时间戳
+            all_company_data['update_timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            # 重置索引，使 company_name 成为一列
+            all_company_data = all_company_data.reset_index()
+            # company_name 列已经存在且正确，不需要再 rename
+            
+            # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
+            # company_id 列暂时没有来源，会填充为None
+            # 我们新增了 company_short_name，也加入 expected_cols
+            expected_cols = [
+                'company_name', 'company_short_name', 'company_id', 'product_count', 'total_fund_size', 'avg_fund_size',
+                'total_holder_count_info', 'latest_date', 'avg_price_change_rate', 'total_amount',
+                'avg_turnover_rate', 'total_net_inflow', 'total_attention_count', 'total_shares_holders',
+                'total_holder_count_holders', 'business_agreement_count', 'business_agreement_total_size',
+                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp'
+            ]
+            for col in expected_cols:
+                if col not in all_company_data.columns:
+                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
+            
+            # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
+            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+
+
+            # 插入数据到 etf_company_analytics
+            # 调整列顺序以匹配表定义
+            all_company_data = all_company_data[expected_cols]
+
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='append', index=False)
+            
+            print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
+            return True
+
+        except sqlite3.Error as e:
+            print(f"数据库操作时发生错误: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+        except pd.io.sql.DatabaseError as e:
+            print(f"Pandas SQL操作时发生错误: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+        except Exception as e:
+            print(f"更新基金公司聚合数据时发生未知错误: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+        finally:
+            # self.close() # 通常不在每个方法中关闭，由调用者管理或析构函数处理
+            pass
+
     def get_existing_dates(self, table_name, code=None):
         """获取指定表中已存在的日期"""
         try:
@@ -2228,3 +2515,56 @@ class Database:
         except Exception as e:
             print(f"获取基金公司 {company_name} 持有人历史汇总数据失败: {str(e)}")
             return []
+
+    def get_company_analytics_for_dashboard(self, sort_by: str = 'total_fund_size', ascending: bool = False, limit: int = None) -> List[Dict]:
+        """获取用于仪表盘展示的基金公司分析数据，支持排序和限制数量"""
+        print(f"开始获取基金公司分析数据用于仪表盘，排序依据: {sort_by}, 升序: {ascending}, 限制: {limit}")
+        try:
+            conn = self.connect()
+            # 构建基础查询语句
+            query = "SELECT * FROM etf_company_analytics"
+            
+            # 添加排序逻辑
+            # 为防止SQL注入，sort_by应该是预定义的、安全的列名
+            allowed_sort_columns = [
+                'company_name', 'product_count', 'total_fund_size', 'avg_fund_size',
+                'total_holder_count_info', 'latest_date', 'avg_price_change_rate', 'total_amount',
+                'avg_turnover_rate', 'total_net_inflow', 'total_attention_count', 'total_shares_holders',
+                'total_holder_count_holders', 'business_agreement_count', 'business_agreement_total_size',
+                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp'
+            ]
+            if sort_by and sort_by in allowed_sort_columns:
+                order_direction = "ASC" if ascending else "DESC"
+                query += f" ORDER BY {sort_by} {order_direction}"
+            else:
+                # 默认排序，如果提供的sort_by无效或为空
+                query += " ORDER BY total_fund_size DESC"
+                print(f"警告: 无效或未提供排序字段 '{sort_by}'，将默认按 total_fund_size 降序排序。")
+
+            # 添加数量限制逻辑
+            if limit and isinstance(limit, int) and limit > 0:
+                query += f" LIMIT {limit}"
+            
+            print(f"执行查询: {query}")
+            df = pd.read_sql_query(query, conn)
+            
+            if df.empty:
+                print("未从 'etf_company_analytics' 获取到基金公司分析数据。")
+                return []
+            
+            # 将DataFrame转换为字典列表
+            results = df.to_dict(orient='records')
+            print(f"成功获取 {len(results)} 条基金公司分析数据。")
+            return results
+
+        except sqlite3.Error as e:
+            print(f"数据库操作时发生错误 (get_company_analytics_for_dashboard): {e}")
+            return []
+        except pd.io.sql.DatabaseError as e:
+            print(f"Pandas SQL操作时发生错误 (get_company_analytics_for_dashboard): {e}")
+            return []
+        except Exception as e:
+            print(f"获取基金公司分析数据时发生未知错误: {e}")
+            return []
+        # finally:
+            # self.close() # 保持连接由调用者管理

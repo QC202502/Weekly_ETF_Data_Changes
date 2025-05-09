@@ -673,7 +673,7 @@ def import_all_data():
     logger.info(f"ETF指数分类数据: {'成功' if success_classification else '失败'}")
     logger.info(f"ETF商务协议数据: {'成功' if success_business else '失败'}")
     
-    # 创建数据库连接以获取记录数
+    # 创建数据库连接以获取记录数和更新公司分析数据
     try:
         db = Database()
         conn = db.connect()
@@ -691,6 +691,15 @@ def import_all_data():
         logger.info(f"ETF自选数据表: {etf_attention_count}条记录")
         logger.info(f"ETF商务协议数据表: {etf_business_count}条记录")
         
+        # 更新基金公司分析数据
+        logger.info("开始更新基金公司分析数据...")
+        if db.update_company_analytics_data():
+            logger.info("基金公司分析数据更新成功。")
+            company_analytics_count = conn.execute("SELECT COUNT(*) FROM etf_company_analytics").fetchone()[0]
+            logger.info(f"基金公司分析表: {company_analytics_count}条记录")
+        else:
+            logger.error("基金公司分析数据更新失败。")
+            
         db.close()
         
     except Exception as e:

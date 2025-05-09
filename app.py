@@ -24,8 +24,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息
-__version__ = "3.6.0"   
-RELEASE_DATE = "2025-05-08"
+__version__ = "3.6.1"   
+RELEASE_DATE = "2025-05-09"
 
 # 创建Flask应用
 app = Flask(__name__)
@@ -77,6 +77,9 @@ def index():
         "date_for_title": ""  # 将由数据库提供的最新日期填充
     }
     
+    # 新增：获取基金公司分析数据
+    company_analytics_data = []
+
     try:
         # 创建数据库连接
         db = Database()
@@ -123,7 +126,16 @@ def index():
     except Exception as e:
         print(f"加载ETF推荐数据出错: {str(e)}")
     
-    return render_template('dashboard.html', search_code=code, recommendations=recommendations)
+    # 从数据库获取基金公司分析数据
+    try:
+        db = Database() # 确保db对象已创建
+        # 假设我们有一个方法来获取排序后的公司分析数据
+        company_analytics_data = db.get_company_analytics_for_dashboard(sort_by='total_fund_size', limit=20) # 获取前20家公司
+        # print(f"基金公司分析数据: {company_analytics_data[:2]}") # 打印前两条看看
+    except Exception as e:
+        print(f"加载基金公司分析数据出错: {str(e)}")
+
+    return render_template('dashboard.html', search_code=code, recommendations=recommendations, company_analytics=company_analytics_data)
 
 # 检查端口是否可用
 def is_port_available(port):

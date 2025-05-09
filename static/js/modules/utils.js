@@ -99,21 +99,57 @@ export function showMessage(type, message) {
 
 // 导航功能
 export function showSection(sectionId) {
-    // 隐藏所有内容区域
+    console.log(`[utils.js] showSection called with: ${sectionId}`);
+    // 隐藏所有主要内容区域 (content-section)
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
+        // console.log(`[utils.js] Hiding section: ${section.id}`);
     });
     
-    // 显示选中的内容区域
-    document.getElementById(sectionId).style.display = 'block';
+    // 显示选中的主要内容区域
+    const selectedSection = document.getElementById(sectionId);
+    if (selectedSection) {
+        selectedSection.style.display = 'block';
+        // console.log(`[utils.js] Showing section: ${selectedSection.id}`);
+    } else {
+        console.error(`[utils.js] Element with ID ${sectionId} not found. Falling back to overview.`);
+        const overviewSection = document.getElementById('section-overview');
+        if(overviewSection) {
+            overviewSection.style.display = 'block';
+            // console.log('[utils.js] Fallback: Showing section-overview');
+        }
+    }
+
+    // 控制基金公司分析概览表格的显示
+    const companyAnalyticsSection = document.getElementById('company-analytics-section');
+    if (companyAnalyticsSection) {
+        if (sectionId === 'section-overview') {
+            companyAnalyticsSection.style.display = ''; // 或者 'block'
+            console.log('[utils.js] Displaying company-analytics-section for section-overview');
+        } else {
+            companyAnalyticsSection.style.display = 'none';
+            console.log(`[utils.js] Hiding company-analytics-section for ${sectionId}`);
+        }
+    }
     
     // 更新导航项的激活状态
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
     });
     
-    // 激活对应的导航项
-    document.querySelector(`#nav-${sectionId.replace('section-', '')}`).classList.add('active');
+    // 激活对应的导航项 (处理 nav-id 可能不完全匹配 sectionId 的情况)
+    const navItemId = sectionId.startsWith('section-') ? sectionId.substring('section-'.length) : sectionId;
+    const activeNavLink = document.querySelector(`#nav-${navItemId}`);
+    if (activeNavLink) {
+        activeNavLink.classList.add('active');
+    } else {
+        // Fallback or default active nav item if specific one not found (e.g. for root path)
+        const overviewNav = document.getElementById('nav-overview');
+        if(overviewNav) {
+           overviewNav.classList.add('active'); 
+           // console.log('[utils.js] Fallback: Activating nav-overview');
+        }
+    }
 }
 
 // 显示提示信息

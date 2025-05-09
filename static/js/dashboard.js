@@ -1,3 +1,5 @@
+let pageNavigationContext = 'initial'; // 'initial', 'url_search_load', 'sort_load', 'user_initiated_search'
+
 // 显示加载中
 function showLoading() {
     document.getElementById('loading').style.display = 'block';
@@ -22,53 +24,64 @@ function showMessage(type, message) {
 }
 
 // 搜索ETF函数
-function searchETF() {
-    console.log('搜索ETF函数被调用');
-    
-    // 获取搜索关键词
+function searchETF(options = {}) {
+    const triggeredBy = options.triggeredBy || 'unknown';
     const searchInput = document.getElementById('search-input');
-    if (!searchInput) {
-        console.error('未找到搜索输入框元素 (id="search-input")');
-        
-        // 调试信息：检查DOM中所有input元素
-        const allInputs = document.querySelectorAll('input');
-        console.error(`页面中共有 ${allInputs.length} 个input元素：`);
-        allInputs.forEach((input, index) => {
-            console.error(`[${index}] id=${input.id}, name=${input.name}, type=${input.type}, class=${input.className}`);
-        });
-        
-        showMessage('danger', '系统错误：未找到搜索输入框');
-        return;
+
+    if (!searchInput) { 
+        console.error('[dashboard.js] searchETF: searchInput element #search-input not found. Cannot proceed.');
+        return; 
     }
-    
-    const keyword = searchInput.value.trim();
-    console.log('获取到搜索关键词:', keyword);
-    
+    const keyword = searchInput.value.trim(); 
+
+    console.log(`[dashboard.js] searchETF: Entered. Context='${pageNavigationContext}', Trigger='${triggeredBy}', Keyword='${keyword}', OriginalInput='${searchInput.value}'`);
+
+    if (pageNavigationContext === 'sort_load') {
+        if (triggeredBy === 'button_click' || triggeredBy === 'enter_keypress') {
+            pageNavigationContext = 'user_initiated_search'; // Upgrade context
+            console.log(`[dashboard.js] searchETF: User action ('${triggeredBy}') while Context was 'sort_load'. Updated Context to '${pageNavigationContext}'. Proceeding with search.`);
+        } else if (keyword) { 
+            // Context is 'sort_load', trigger is 'unknown' (or 'url_param_load' which shouldn't happen here),
+            // and there IS a keyword (likely autofill after sort_load cleared it).
+            console.warn(`[dashboard.js] searchETF: Suppressed! Context='${pageNavigationContext}', Trigger='${triggeredBy}', Keyword='${keyword}'. This is likely an unwanted auto-search after sort.`);
+            // Optionally, clear the input again if it was autofilled unwantedly:
+            // searchInput.value = ''; 
+            return; // Suppress this search
+        }
+        // If keyword is empty, it will be caught by the check below.
+    }
+
     if (!keyword) {
-        showMessage('warning', '请输入搜索关键词');
+        if (pageNavigationContext !== 'sort_load') { // Avoid duplicate messages if sort_load already cleared it and it was an intended empty search
+            if (typeof showMessage === 'function') {
+                showMessage('warning', '请输入搜索关键词');
+            }
+        }
+        console.log(`[dashboard.js] searchETF: Empty keyword. Context='${pageNavigationContext}', Trigger='${triggeredBy}'. Aborting search.`);
         return;
     }
+
+    // If this is a user-initiated search and context wasn't updated above (e.g. not a sort_load initially)
+    if ((triggeredBy === 'button_click' || triggeredBy === 'enter_keypress') && pageNavigationContext !== 'user_initiated_search') {
+        pageNavigationContext = 'user_initiated_search';
+        console.log(`[dashboard.js] searchETF: User action ('${triggeredBy}'). Updating Context to '${pageNavigationContext}'.`);
+    }
+    
+    console.log(`[dashboard.js] searchETF: Proceeding with search. Context='${pageNavigationContext}', Trigger='${triggeredBy}', Keyword='${keyword}'`);
     
     showLoading();
-    console.log('发送搜索请求，关键词:', keyword);
+    showSection('section-search'); 
     
-    // 创建FormData对象
     const formData = new FormData();
-    formData.append('code', keyword);  // 使用'code'作为参数名
+    formData.append('code', keyword);
     
-    // 发送搜索请求
     fetch('/search', {
         method: 'POST',
         body: formData
     })
-    .then(response => {
-        console.log('搜索响应状态:', response.status);
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         hideLoading();
-        console.log('搜索结果:', data);
-        
         if (data.error) {
             showMessage('danger', data.error);
             document.getElementById('search-results').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
@@ -78,7 +91,7 @@ function searchETF() {
     })
     .catch(error => {
         hideLoading();
-        console.error('搜索出错:', error);
+        console.error('[dashboard.js] Search fetch error:', error);
         document.getElementById('search-results').innerHTML = `<div class="alert alert-danger">搜索出错: ${error}</div>`;
     });
 }
@@ -699,21 +712,68 @@ function loadData() {
 
 // 导航功能
 function showSection(sectionId) {
-    // 隐藏所有内容区域
+    console.log(`showSection called with: ${sectionId}`);
+
+    const currentURL = new URL(window.location.href);
+    const codeParam = currentURL.searchParams.get('code');
+    const sortByParam = currentURL.searchParams.get('sort_by');
+
+    // 新增逻辑：防止在排序后意外跳转到搜索页面
+    if (sectionId === 'section-search') {
+        const searchInput = document.getElementById('search-input');
+        // 如果目标是搜索区，但URL是排序上下文 (有sort_by，无code)
+        // 并且搜索框是空的 (不是用户刚输入内容触发的搜索)
+        if (sortByParam && (!codeParam || codeParam.trim() === '') && (!searchInput || searchInput.value.trim() === '')) {
+            console.warn(`[dashboard.js] showSection: Attempted to show section-search in a sort context (URL: ${window.location.href}) with empty search input. Forcing section-overview.`);
+            sectionId = 'section-overview'; // 强制切换回概览页
+        }
+    }
+
+    // 隐藏所有主要内容区域 (content-section)
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
+        console.log(`Hiding section: ${section.id}`);
     });
     
-    // 显示选中的内容区域
-    document.getElementById(sectionId).style.display = 'block';
+    // 显示选中的主要内容区域
+    const selectedSection = document.getElementById(sectionId);
+    if (selectedSection) {
+        selectedSection.style.display = 'block';
+        console.log(`Showing section: ${selectedSection.id}`);
+    } else {
+        console.error(`Element with ID ${sectionId} not found.`);
+        // Fallback to showing overview if the target section doesn't exist
+        const overviewSection = document.getElementById('section-overview');
+        if(overviewSection) overviewSection.style.display = 'block';
+    }
+
+    // 控制基金公司分析概览表格的显示
+    const companyAnalyticsSection = document.getElementById('company-analytics-section');
+    if (companyAnalyticsSection) {
+        if (sectionId === 'section-overview') {
+            companyAnalyticsSection.style.display = ''; // 或者 'block'
+            console.log('Displaying company-analytics-section for section-overview');
+        } else {
+            companyAnalyticsSection.style.display = 'none';
+            console.log(`Hiding company-analytics-section for ${sectionId}`);
+        }
+    }
     
     // 更新导航项的激活状态
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
     });
     
-    // 激活对应的导航项
-    document.querySelector(`#nav-${sectionId.replace('section-', '')}`).classList.add('active');
+    // 激活对应的导航项 (处理 nav-id 可能不完全匹配 sectionId 的情况)
+    const navItemId = sectionId.startsWith('section-') ? sectionId.substring('section-'.length) : sectionId;
+    const activeNavLink = document.querySelector(`#nav-${navItemId}`);
+    if (activeNavLink) {
+        activeNavLink.classList.add('active');
+    } else {
+        // Fallback or default active nav item if specific one not found (e.g. for root path)
+        const overviewNav = document.getElementById('nav-overview');
+        if(overviewNav) overviewNav.classList.add('active'); 
+    }
 }
 
 // 初始化推荐栏
@@ -950,75 +1010,143 @@ function hideRecommendationTooltip() {
 
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('页面加载完成，初始化事件监听器');
-    
+    console.log('[dashboard.js] DOMContentLoaded: Event fired.');
+
     // 绑定搜索按钮点击事件
     const searchButton = document.querySelector('#section-search button');
     if (searchButton) {
-        console.log('找到搜索按钮，绑定点击事件');
-        searchButton.addEventListener('click', searchETF);
+        searchButton.addEventListener('click', function() { 
+            searchETF({ triggeredBy: 'button_click' }); 
+        });
     } else {
-        console.error('未找到搜索按钮');
+        const altSearchButton = document.getElementById('searchButton') || document.getElementById('search-button');
+        if (altSearchButton) {
+            altSearchButton.addEventListener('click', function() {
+                 searchETF({ triggeredBy: 'button_click' }); 
+            });
+        } else {
+            console.error('[dashboard.js] Search button not found.');
+        }
     }
     
-    // 绑定搜索输入框事件
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
-        console.log('找到搜索输入框，绑定事件');
-        // 回车事件
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                searchETF();
+                searchETF({ triggeredBy: 'enter_keypress' });
             }
         });
-        
-        // 移除获取焦点时显示推荐栏的事件，因为我们会在页面加载时就显示推荐栏
-        // searchInput.addEventListener('focus', function() {
-        //     loadRecommendations();
-        // });
     } else {
-        console.error('未找到搜索输入框');
+        console.error('[dashboard.js] Search input #search-input not found.');
     }
     
-    // 初始化推荐栏
+    // 初始化推荐栏 (如果函数存在)
+    if (typeof initRecommendations === 'function') {
     initRecommendations();
+    } else {
+        console.warn('initRecommendations function not found (dashboard.js)');
+    }
     
-    // 加载推荐数据
+    // 加载推荐数据 (如果函数存在)
+    if (typeof loadRecommendations === 'function') {
     loadRecommendations();
+    } else {
+        console.warn('loadRecommendations function not found (dashboard.js)');
+    }
     
     // 绑定导航事件
-    document.getElementById('nav-search').addEventListener('click', function(e) {
+    // 确保 showSection 和其他加载函数在使用前是可用的 (由 main.js/utils.js 提供)
+    if (typeof showSection !== 'function') {
+        console.error('showSection function is NOT defined globally or in accessible scope! Navigation will fail.');
+        return; // 阻止后续绑定，因为它们依赖 showSection
+    }
+
+    const navSearch = document.getElementById('nav-search');
+    if (navSearch) {
+        navSearch.addEventListener('click', function(e) {
         e.preventDefault();
         showSection('section-search');
     });
+    } else { console.error('nav-search not found');}
     
-    document.getElementById('nav-overview').addEventListener('click', function(e) {
+    const navOverview = document.getElementById('nav-overview');
+    if (navOverview) {
+        navOverview.addEventListener('click', function(e) {
         e.preventDefault();
         showSection('section-overview');
-        loadOverview();
+            if (typeof loadOverview === 'function') loadOverview();
+            else console.warn('loadOverview function not found');
     });
+    } else { console.error('nav-overview not found');}
     
-    document.getElementById('nav-business').addEventListener('click', function(e) {
+    const navBusiness = document.getElementById('nav-business');
+    if (navBusiness) {
+        navBusiness.addEventListener('click', function(e) {
         e.preventDefault();
         showSection('section-business');
-        loadBusinessAnalysis();
+            if (typeof loadBusinessAnalysis === 'function') loadBusinessAnalysis();
+            else console.warn('loadBusinessAnalysis function not found');
     });
+    } else { console.error('nav-business not found');}
     
-    document.getElementById('nav-report').addEventListener('click', function(e) {
+    const navReport = document.getElementById('nav-report');
+    if (navReport) {
+        navReport.addEventListener('click', function(e) {
         e.preventDefault();
         showSection('section-report');
     });
+    } else { console.error('nav-report not found');}
     
     // 绑定加载数据按钮
-    document.getElementById('load-data-btn').addEventListener('click', function(e) {
+    const loadDataBtn = document.getElementById('load-data-btn');
+    if (loadDataBtn) {
+        loadDataBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        loadData();
+            if (typeof loadData === 'function') loadData();
+            else console.warn('loadData function not found (for load-data-btn)');
     });
+    } else { console.error('load-data-btn not found');}
     
-    // 如果搜索框有预填充的值，自动触发搜索
-    if (searchInput && searchInput.value.trim()) {
-        console.log("检测到预填充的搜索关键词，自动搜索:", searchInput.value);
-        searchETF();
+    // NEW LOGIC FOR INITIAL PAGE LOAD AND AUTO-SEARCH
+    const initialUrlParams = new URLSearchParams(window.location.search);
+    const initialCodeParam = initialUrlParams.get('code');
+    const initialSortByParam = initialUrlParams.get('sort_by');
+    const initialActiveModuleParam = initialUrlParams.get('active_module');
+
+    if (initialCodeParam && initialCodeParam.trim() !== '') {
+        pageNavigationContext = 'url_search_load';
+        if (searchInput) {
+            searchInput.value = initialCodeParam.trim();
+        }
+        console.log(`[dashboard.js] DOMContentLoaded: Context='${pageNavigationContext}'. Auto-searching for code: "${initialCodeParam.trim()}"`);
+        showSection('section-search');
+        searchETF({ triggeredBy: 'url_param_load' });
+    } else if (initialSortByParam) {
+        pageNavigationContext = 'sort_load';
+        if (searchInput) {
+            searchInput.value = ''; // Clear search input
+            console.log(`[dashboard.js] DOMContentLoaded: Context='${pageNavigationContext}'. Search input cleared. URL: ${window.location.href}`);
+        }
+        showSection('section-overview');
+        if (typeof loadOverview === 'function') loadOverview();
+    } else {
+        pageNavigationContext = 'initial';
+        if (searchInput) {
+             searchInput.value = ''; 
+        }
+        if (initialActiveModuleParam) {
+            showSection(initialActiveModuleParam);
+            if (initialActiveModuleParam === 'section-overview' && typeof loadOverview === 'function') loadOverview();
+            else if (initialActiveModuleParam === 'section-business' && typeof loadBusinessAnalysis === 'function') loadBusinessAnalysis();
+            else if (initialActiveModuleParam === 'section-search') { 
+                 const searchResultsEl = document.getElementById('search-results');
+                 if(searchResultsEl) searchResultsEl.innerHTML = '<p class="text-center">请输入搜索条件。</p>';
+            }
+        } else {
+            showSection('section-overview');
+            if (typeof loadOverview === 'function') loadOverview();
+        }
     }
+    console.log(`[dashboard.js] DOMContentLoaded: Final pageNavigationContext set to '${pageNavigationContext}'.`);
 });

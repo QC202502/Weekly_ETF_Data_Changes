@@ -23,8 +23,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 版本信息
-__version__ = "3.6.1"   
+# 版本信息持仓自选比 (%)	
+__version__ = "3.6.2"   
 RELEASE_DATE = "2025-05-09"
 
 # 创建Flask应用
@@ -67,6 +67,11 @@ def index():
     
     code = request.args.get('code', '')
     
+    # 获取排序参数
+    sort_by = request.args.get('sort_by', 'total_holding_value') # 默认按持仓价值排序
+    order = request.args.get('order', 'desc') # 默认降序
+    ascending = True if order == 'asc' else False
+    
     # 获取推荐数据
     recommendations = {
         "attention": [],
@@ -79,7 +84,7 @@ def index():
     
     # 新增：获取基金公司分析数据
     company_analytics_data = []
-
+    
     try:
         # 创建数据库连接
         db = Database()
@@ -129,13 +134,18 @@ def index():
     # 从数据库获取基金公司分析数据
     try:
         db = Database() # 确保db对象已创建
-        # 假设我们有一个方法来获取排序后的公司分析数据
-        company_analytics_data = db.get_company_analytics_for_dashboard(sort_by='total_fund_size', limit=20) # 获取前20家公司
+        # 传递排序参数给数据库查询方法
+        company_analytics_data = db.get_company_analytics_for_dashboard(sort_by=sort_by, ascending=ascending)
         # print(f"基金公司分析数据: {company_analytics_data[:2]}") # 打印前两条看看
     except Exception as e:
         print(f"加载基金公司分析数据出错: {str(e)}")
 
-    return render_template('dashboard.html', search_code=code, recommendations=recommendations, company_analytics=company_analytics_data)
+    return render_template('dashboard.html', 
+                           search_code=code, 
+                           recommendations=recommendations, 
+                           company_analytics=company_analytics_data,
+                           current_sort_by=sort_by,
+                           current_order=order)
 
 # 检查端口是否可用
 def is_port_available(port):

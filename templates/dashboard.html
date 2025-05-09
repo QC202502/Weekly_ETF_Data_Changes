@@ -6,47 +6,90 @@
     {% include "modules/overview.html" %}
 
     <!-- 基金公司分析概览 -->
-    <div class="row mt-4">
+    <div class="row mt-4" id="company-analytics-section" style="display: none;">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title">基金公司分析概览 (按总规模排序)</h4>
+                    <h4 class="card-title">基金公司分析概览
+                        <small class="text-muted">
+                            (当前按 
+                            {% if current_sort_by == 'total_holding_value' %}持仓价值
+                            {% elif current_sort_by == 'product_count' %}产品数量
+                            {% elif current_sort_by == 'total_fund_size' %}总规模
+                            {% elif current_sort_by == 'total_amount' %}总成交额
+                            {% elif current_sort_by == 'total_attention_count' %}自选人数
+                            {% elif current_sort_by == 'total_holder_count_holders' %}持仓人数
+                            {% elif current_sort_by == 'holder_attention_ratio' %}持仓自选比
+                            {% elif current_sort_by == 'business_agreement_count' %}商务品数量
+                            {% elif current_sort_by == 'business_agreement_ratio' %}商务品占比
+                            {% elif current_sort_by == 'latest_date' %}数据日期
+                            {% else %}{{ current_sort_by }}
+                            {% endif %}
+                            {{ '升序' if current_order == 'asc' else '降序' }}排序)
+                        </small>
+                    </h4>
                 </div>
                 <div class="card-body">
                     {% if company_analytics %}
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover table-sm">
                             <thead>
                                 <tr>
-                                    <th>基金公司</th>
-                                    <th class="text-end">产品数量</th>
-                                    <th class="text-end">总规模 (亿)</th>
-                                    <th class="text-end">平均涨跌幅 (%)</th>
-                                    <th class="text-end">总成交额 (万)</th>
-                                    <th class="text-end">总关注人数</th>
-                                    <th class="text-end">商务品数量</th>
-                                    <th class="text-center">数据更新时间</th>
+                                    <th scope="col" style="width: 5%;">#</th>
+                                    {% macro sortable_th(column_key, display_text, current_sort_by, current_order, default_text_align='text-start', specific_align_class=None) %}
+                                        {% set new_order = 'asc' if current_sort_by == column_key and current_order == 'desc' else 'desc' %}
+                                        {% set final_align_class = specific_align_class if specific_align_class else default_text_align %}
+                                        <th scope="col" class="{{ final_align_class }}">
+                                            {# 排序链接不再传递 code 参数，以确保刷新后停留在市场概览 #}
+                                            <a href="{{ url_for('index', sort_by=column_key, order=new_order) }}" class="text-decoration-none text-dark">
+                                                {{ display_text }}
+                                                {% if current_sort_by == column_key %}
+                                                    <i class="fas fa-sort-{{ 'up' if current_order == 'asc' else 'down' }}"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                    {% endmacro %}
+                                    {{ sortable_th('company_short_name', '基金公司', current_sort_by, current_order, default_text_align='text-start') }}
+                                    {{ sortable_th('product_count', '产品数量', current_sort_by, current_order, specific_align_class='text-end') }}
+                                    {{ sortable_th('total_fund_size', '总规模 (亿)', current_sort_by, current_order, specific_align_class='text-end') }}
+                                    {{ sortable_th('total_amount', '总成交额 (亿)', current_sort_by, current_order, specific_align_class='text-end') }}
+                                    {{ sortable_th('total_attention_count', '自选人数', current_sort_by, current_order, specific_align_class='text-end') }}
+                                    {{ sortable_th('total_holder_count_holders', '持仓人数', current_sort_by, current_order, specific_align_class='text-end') }}
+                                    {{ sortable_th('holder_attention_ratio', '持仓自选比 (%)', current_sort_by, current_order, specific_align_class='text-end') }}
+                                    {{ sortable_th('total_holding_value', '持仓价值 (亿)', current_sort_by, current_order, specific_align_class='text-end') }}
+                                    {{ sortable_th('business_agreement_count', '商务品数量', current_sort_by, current_order, specific_align_class='text-end') }}
+                                    {{ sortable_th('business_agreement_ratio', '商务品占比 (%)', current_sort_by, current_order, specific_align_class='text-end') }}
+                                    {{ sortable_th('latest_date', '数据日期', current_sort_by, current_order, specific_align_class='text-center') }}
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for company in company_analytics %}
                                 <tr>
-                                    <td>{{ company.company_name }}</td>
-                                    <td class="text-end">{{ company.product_count }}</td>
-                                    <td class="text-end">{{ "%.2f"|format(company.total_fund_size) if company.total_fund_size is not none else '-' }}</td>
+                                    <td>{{ loop.index }}</td>
+                                    {# Display company_short_name or company_name #}
+                                    <td>{{ company.company_short_name if company.company_short_name else company.company_name }}</td>
+                                    <td class="text-end">{{ company.product_count if company.product_count is not none else '-' }}</td>
+                                    <td class="text-end">{{ "%.0f"|format(company.total_fund_size) if company.total_fund_size is not none else '-' }}</td>
+                                    <td class="text-end">{{ "%.2f"|format(company.total_amount) if company.total_amount is not none else '-' }}</td> {# Already in 亿元 as per previous req #}
+                                    <td class="text-end">{{ "{:,.0f}".format(company.total_attention_count) if company.total_attention_count is not none else '-' }}</td>
+                                    <td class="text-end">{{ "{:,.0f}".format(company.total_holder_count_holders) if company.total_holder_count_holders is not none else '-' }}</td>
                                     <td class="text-end">
-                                        {% if company.avg_price_change_rate is not none %}
-                                            <span class="{{ 'text-danger' if company.avg_price_change_rate < 0 else 'text-success' if company.avg_price_change_rate > 0 else '' }}">
-                                                {{ "%.2f%%"|format(company.avg_price_change_rate * 100) }}
-                                            </span>
+                                        {% if company.holder_attention_ratio is not none %}
+                                            {{ "%.2f%%"|format(company.holder_attention_ratio) }}
                                         {% else %}
-                                            -
+                                            0.00%
                                         {% endif %}
                                     </td>
-                                    <td class="text-end">{{ "%.2f"|format(company.total_amount) if company.total_amount is not none else '-' }}</td>
-                                    <td class="text-end">{{ company.total_attention_count if company.total_attention_count is not none else '-' }}</td>
-                                    <td class="text-end">{{ company.business_agreement_count if company.business_agreement_count is not none else '-' }}</td>
-                                    <td class="text-center">{{ company.update_timestamp.split(' ')[0] if company.update_timestamp else '-' }}</td> {# 仅显示日期部分 #}
+                                    <td class="text-end">{{ "%.1f"|format(company.total_holding_value / 100000000) if company.total_holding_value is not none else '-' }}</td>
+                                    <td class="text-end">{{ company.business_agreement_count if company.business_agreement_count is not none else '0' }}</td>
+                                    <td class="text-end">
+                                        {% if company.business_agreement_ratio is not none %}
+                                            {{ "%.2f%%"|format(company.business_agreement_ratio) }}
+                                        {% else %}
+                                            0.00%
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">{{ company.latest_date if company.latest_date else '-' }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -62,4 +105,34 @@
 
     {% include "modules/business.html" %}
     {% include "modules/report.html" %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Function to check URL parameters and decide module visibility
+        // This function is now largely superseded by the logic in dashboard.js DOMContentLoaded
+        // We can keep it minimal or remove it if dashboard.js handles initial state fully.
+        /*
+        function manageModuleVisibility() {
+            const companyAnalyticsSection = document.getElementById('company-analytics-section');
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeModuleParam = urlParams.get('active_module');
+
+            if (companyAnalyticsSection) {
+                let showCompanyTable = true; 
+                if (activeModuleParam && activeModuleParam !== 'market_overview') {
+                    showCompanyTable = false;
+                }
+                // Defaulting to hidden, let dashboard.js logic explicitly show it.
+                // companyAnalyticsSection.style.display = showCompanyTable ? '' : 'none'; 
+            }
+        }
+        // manageModuleVisibility(); // Called by dashboard.js logic now
+        // window.addEventListener('popstate', manageModuleVisibility); // popstate should also be handled by main init logic
+        */
+       console.log('[dashboard.html] Inline script: Initial module visibility will be handled by dashboard.js');
+    });
+</script>
+{% endblock %}
+
 {% endblock %}

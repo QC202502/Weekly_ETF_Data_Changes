@@ -699,7 +699,7 @@ def import_all_data():
             logger.info(f"基金公司分析表: {company_analytics_count}条记录")
         else:
             logger.error("基金公司分析数据更新失败。")
-            
+        
         db.close()
         
     except Exception as e:

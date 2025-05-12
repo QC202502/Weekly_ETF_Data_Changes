@@ -21783,3 +21783,73 @@ IndentationError: expected an indented block
 2025-05-12 10:14:05,245 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
 2025-05-12 10:14:05,675 - werkzeug - WARNING -  * Debugger is active!
 2025-05-12 10:14:05,829 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-05-12 10:29:08,903 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:29:08] "GET / HTTP/1.1" 200 -
+2025-05-12 10:29:17,435 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:29:17] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-05-12 10:29:17,435 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:29:17] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-05-12 10:48:31,752 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-05-12 10:48:31,755 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-05-12 10:48:32,955 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5007
+ * Running on http://192.168.88.70:5007
+2025-05-12 10:48:32,955 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-12 10:48:32,957 - werkzeug - INFO -  * Restarting with stat
+2025-05-12 10:48:33,881 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-05-12 10:48:33,884 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-05-12 10:48:34,297 - werkzeug - WARNING -  * Debugger is active!
+2025-05-12 10:48:34,460 - werkzeug - INFO -  * Debugger PIN: 513-303-707
+2025-05-12 10:48:34,546 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET / HTTP/1.1" 200 -
+2025-05-12 10:48:34,681 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-05-12 10:48:34,681 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-05-12 10:48:34,682 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-05-12 10:48:34,877 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-05-12 10:48:34,878 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-05-12 10:48:34,880 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-05-12 10:48:34,883 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-05-12 10:48:34,886 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-05-12 10:48:34,897 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:34] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-05-12 10:48:35,015 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:35] "GET /load_data HTTP/1.1" 200 -
+2025-05-12 10:48:35,032 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:35] "GET /recommendations HTTP/1.1" 200 -
+2025-05-12 10:48:43,149 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET / HTTP/1.1" 200 -
+2025-05-12 10:48:43,193 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /static/css/dashboard.css HTTP/1.1" 200 -
+2025-05-12 10:48:43,196 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /static/css/recommendation.css HTTP/1.1" 200 -
+2025-05-12 10:48:43,200 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /static/js/main.js?v=20250404 HTTP/1.1" 200 -
+2025-05-12 10:48:43,231 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /static/js/modules/utils.js HTTP/1.1" 200 -
+2025-05-12 10:48:43,244 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /static/js/modules/recommendation.js HTTP/1.1" 200 -
+2025-05-12 10:48:43,244 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /static/js/modules/search.js HTTP/1.1" 200 -
+2025-05-12 10:48:43,248 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /static/js/modules/data.js HTTP/1.1" 200 -
+2025-05-12 10:48:43,251 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /static/js/modules/markdown_export.js HTTP/1.1" 200 -
+2025-05-12 10:48:43,257 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /static/js/modules/etf_chart.js HTTP/1.1" 200 -
+2025-05-12 10:48:43,344 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /load_data HTTP/1.1" 200 -
+2025-05-12 10:48:43,349 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:43] "GET /recommendations HTTP/1.1" 200 -
+2025-05-12 10:48:45,340 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:45] "GET /overview HTTP/1.1" 200 -
+2025-05-12 10:48:48,293 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:48] "GET /ajax_sort_company_analytics?sort_by=product_count&order=asc HTTP/1.1" 200 -
+2025-05-12 10:48:49,416 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:49] "GET /ajax_sort_company_analytics?sort_by=product_count&order=desc HTTP/1.1" 200 -
+2025-05-12 10:48:50,386 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:50] "GET /ajax_sort_company_analytics?sort_by=business_agreement_count&order=asc HTTP/1.1" 200 -
+2025-05-12 10:48:50,978 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:50] "GET /ajax_sort_company_analytics?sort_by=business_agreement_count&order=desc HTTP/1.1" 200 -
+2025-05-12 10:48:52,119 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:52] "GET /ajax_sort_company_analytics?sort_by=business_agreement_ratio&order=asc HTTP/1.1" 200 -
+2025-05-12 10:48:53,280 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:53] "GET /ajax_sort_company_analytics?sort_by=business_agreement_ratio&order=desc HTTP/1.1" 200 -
+2025-05-12 10:48:54,582 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:54] "GET /ajax_sort_company_analytics?sort_by=total_fund_size&order=asc HTTP/1.1" 200 -
+2025-05-12 10:48:55,363 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:55] "GET /ajax_sort_company_analytics?sort_by=total_fund_size&order=desc HTTP/1.1" 200 -
+2025-05-12 10:48:56,483 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:56] "GET /ajax_sort_company_analytics?sort_by=total_amount&order=asc HTTP/1.1" 200 -
+2025-05-12 10:48:56,955 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:56] "GET /ajax_sort_company_analytics?sort_by=total_amount&order=desc HTTP/1.1" 200 -
+2025-05-12 10:48:57,419 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:57] "GET /ajax_sort_company_analytics?sort_by=total_attention_count&order=asc HTTP/1.1" 200 -
+2025-05-12 10:48:57,847 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:57] "GET /ajax_sort_company_analytics?sort_by=total_attention_count&order=desc HTTP/1.1" 200 -
+2025-05-12 10:48:58,321 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:58] "GET /ajax_sort_company_analytics?sort_by=total_holder_count_holders&order=asc HTTP/1.1" 200 -
+2025-05-12 10:48:58,753 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:58] "GET /ajax_sort_company_analytics?sort_by=total_holder_count_holders&order=desc HTTP/1.1" 200 -
+2025-05-12 10:48:59,458 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:59] "GET /ajax_sort_company_analytics?sort_by=holder_attention_ratio&order=asc HTTP/1.1" 200 -
+2025-05-12 10:48:59,937 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:48:59] "GET /ajax_sort_company_analytics?sort_by=holder_attention_ratio&order=desc HTTP/1.1" 200 -
+2025-05-12 10:49:01,256 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:49:01] "GET /ajax_sort_company_analytics?sort_by=total_holding_value&order=asc HTTP/1.1" 200 -
+2025-05-12 10:49:01,631 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:49:01] "GET /ajax_sort_company_analytics?sort_by=total_holding_value&order=desc HTTP/1.1" 200 -
+2025-05-12 10:49:03,545 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:49:03] "GET /ajax_sort_company_analytics?sort_by=company_short_name&order=asc HTTP/1.1" 200 -
+2025-05-12 10:49:04,051 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:49:04] "GET /ajax_sort_company_analytics?sort_by=company_short_name&order=desc HTTP/1.1" 200 -
+2025-05-12 10:49:06,919 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:49:06] "GET /ajax_sort_company_analytics?sort_by=product_count&order=asc HTTP/1.1" 200 -
+2025-05-12 10:49:07,460 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:49:07] "GET /ajax_sort_company_analytics?sort_by=product_count&order=desc HTTP/1.1" 200 -
+2025-05-12 10:49:10,445 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:49:10] "GET /ajax_sort_company_analytics?sort_by=business_agreement_ratio&order=asc HTTP/1.1" 200 -
+2025-05-12 10:49:11,062 - werkzeug - INFO - 127.0.0.1 - - [12/May/2025 10:49:11] "GET /ajax_sort_company_analytics?sort_by=business_agreement_ratio&order=desc HTTP/1.1" 200 -
+2025-05-12 10:50:44,036 - werkzeug - INFO -  * Detected change in '/Users/admin/PycharmProjects/Weekly_ETF_Data_Changes/app.py', reloading
+2025-05-12 10:50:44,461 - werkzeug - INFO -  * Restarting with stat
+2025-05-12 10:50:46,380 - matplotlib - DEBUG - CACHEDIR=/Users/admin/.matplotlib
+2025-05-12 10:50:46,382 - matplotlib.font_manager - DEBUG - Using fontManager instance from /Users/admin/.matplotlib/fontlist-v330.json
+2025-05-12 10:50:46,843 - werkzeug - WARNING -  * Debugger is active!
+2025-05-12 10:50:46,876 - werkzeug - INFO -  * Debugger PIN: 513-303-707

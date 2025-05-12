@@ -74,6 +74,108 @@ window.handleHttpError = function(message) {
     showMessage('warning', '服务器连接错误，请确认服务是否正常运行');
 }
 
+// 全局变量，用于跟踪当前排序状态
+let currentSortBy = 'total_holding_value'; // 默认与后端一致
+let currentOrder = 'desc'; // 默认与后端一致
+
+// 更新排序指示器的函数
+function updateSortIndicators() {
+    document.querySelectorAll('.sort-indicator').forEach(indicator => {
+        const column = indicator.dataset.column;
+        if (column === currentSortBy) {
+            indicator.innerHTML = currentOrder === 'asc' ? '&#9650;' : '&#9660;'; // Up or Down arrow
+        } else {
+            indicator.innerHTML = ''; // Clear other indicators
+        }
+    });
+}
+
+// 表格排序函数
+function sortCompanyTable(sortBy) {
+    console.log(`sortCompanyTable called with: ${sortBy}`);
+    if (sortBy === currentSortBy) {
+        // Toggle order if same column is clicked
+        currentOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        // Default to ascending for new column
+        currentSortBy = sortBy;
+        currentOrder = 'asc';
+    }
+
+    // Show loading state if you have one
+    // showLoading(); 
+
+    fetch(`/ajax_sort_company_analytics?sort_by=${currentSortBy}&order=${currentOrder}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error('Error sorting company analytics:', data.error);
+                showMessage('danger', `排序失败: ${data.error}`);
+                return;
+            }
+            const tbody = document.getElementById('company-analytics-tbody');
+            if (tbody) {
+                tbody.innerHTML = data.html_fragment;
+            }
+            // Update current sort state from response (if backend modifies it, though unlikely here)
+            currentSortBy = data.sort_by;
+            currentOrder = data.order;
+            updateSortIndicators();
+            
+            // Update the "当前按..." text in the card header
+            const sortInfoText = document.querySelector('#company-analytics-section .card-header .text-muted');
+            if (sortInfoText) {
+                // This part is a bit tricky as it requires mapping column names to Chinese names
+                // For simplicity, we'll just update with column name and order for now
+                // A more robust solution would involve a mapping object or getting the display name from the header
+                let sortByNameDisplay = currentSortBy;
+                const headerTh = document.querySelector(`th[onclick="sortCompanyTable('${currentSortBy}')"]`);
+                if (headerTh) {
+                    // Attempt to get a more friendly name (excluding the sort indicator span)
+                    sortByNameDisplay = headerTh.textContent.replace(/<span.*span>/, '').trim().replace(/ (升序|降序)$/, '').trim();
+                     // Remove existing sort indicators like "产品数量 ▲" before adding new ones
+                    const parts = headerTh.innerText.split('\n'); // Handles multiline text in th if any
+                    sortByNameDisplay = parts[0].trim(); // Use the first line of text
+                }
+
+
+                const orderDisplay = currentOrder === 'asc' ? '升序' : '降序';
+                // A more robust way to update the display name might be needed if column names are not user-friendly.
+                // This example assumes column names are somewhat descriptive or you have a mapping.
+                const columnDisplayNames = {
+                    'company_short_name': '基金公司',
+                    'product_count': '产品数量',
+                    'business_agreement_count': '商务品数量',
+                    'business_agreement_ratio': '商务品占比 (%)',
+                    'total_fund_size': '总管理规模 (亿元)',
+                    'total_amount': '总成交额 (亿元)',
+                    'total_attention_count': '总自选热度',
+                    'total_holder_count_holders': '总持仓人数',
+                    'holder_attention_ratio': '持仓自选比 (%)',
+                    'total_holding_value': '总持仓价值 (亿元)'
+                };
+                const displaySortBy = columnDisplayNames[currentSortBy] || currentSortBy;
+                sortInfoText.innerHTML = `(当前按 ${displaySortBy} ${orderDisplay}排序)`;
+            }
+
+            console.log('Table updated and sort indicators refreshed.');
+        })
+        .catch(error => {
+            console.error('Error fetching sorted company data:', error);
+            showMessage('danger', '加载排序数据失败，请检查网络连接或稍后再试。');
+        })
+        .finally(() => {
+            // hideLoading();
+        });
+}
+// Make sortCompanyTable globally accessible for inline onclick handlers
+window.sortCompanyTable = sortCompanyTable;
+
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
     console.log('页面加载完成，初始化事件监听器');
@@ -228,5 +330,38 @@ document.addEventListener('DOMContentLoaded', function() {
     if (errorBanner && errorBanner.textContent.indexOf('SyntaxError') !== -1) {
         errorBanner.style.display = 'none';
         showMessage('info', '系统已就绪，请输入搜索关键词');
+    }
+
+    // Initialize sort state from the hidden inputs or default from Python
+    // Assuming Python passes initial sort state to the template which sets these global JS vars or data attributes
+    // For now, we'll use the globally defined currentSortBy and currentOrder from above which should match python's default
+    // Or, if you have these values in the HTML (e.g. from current_sort_by, current_order):
+    const companyAnalyticsSection = document.getElementById('company-analytics-section');
+    if (companyAnalyticsSection) { // Only run if the section is on the page
+        const sortInfoText = companyAnalyticsSection.querySelector('.card-header .text-muted');
+        if (sortInfoText && sortInfoText.textContent) {
+            const match = sortInfoText.textContent.match(/当前按 (.*?) (升序|降序)排序/);
+            if (match && match[1] && match[2]) {
+                const columnDisplayNamesReverse = {
+                    '基金公司': 'company_short_name',
+                    '产品数量': 'product_count',
+                    '商务品数量': 'business_agreement_count',
+                    '商务品占比 (%)': 'business_agreement_ratio',
+                    '总管理规模 (亿元)': 'total_fund_size',
+                    '总成交额 (亿元)': 'total_amount',
+                    '总自选热度': 'total_attention_count',
+                    '总持仓人数': 'total_holder_count_holders',
+                    '持仓自选比 (%)': 'holder_attention_ratio',
+                    '总持仓价值 (亿元)': 'total_holding_value'
+                };
+                const matchedSortByDisplay = match[1].trim();
+                currentSortBy = columnDisplayNamesReverse[matchedSortByDisplay] || matchedSortByDisplay; // Fallback if name not in map
+                currentOrder = match[2] === '升序' ? 'asc' : 'desc';
+                console.log(`Initial sort state from HTML: ${currentSortBy} ${currentOrder}`);
+            } else {
+                 console.log('Could not parse initial sort state from HTML, using defaults.');
+            }
+        }
+         updateSortIndicators(); // Initial call to set indicators based on currentSortBy and currentOrder
     }
 });

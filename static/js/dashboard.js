@@ -1,4 +1,6 @@
 let pageNavigationContext = 'initial'; // 'initial', 'url_search_load', 'sort_load', 'user_initiated_search'
+let currentCompanySortBy = 'total_holding_value'; // Default sort for company table
+let currentCompanySortOrder = 'desc';          // Default order
 
 // 显示加载中
 function showLoading() {
@@ -1008,6 +1010,69 @@ function hideRecommendationTooltip() {
     tooltip.style.display = 'none';
 }
 
+function updateCompanySortIndicators() {
+    document.querySelectorAll('#company-analytics-table th .sort-indicator').forEach(span => {
+        const column = span.dataset.column;
+        if (column === currentCompanySortBy) {
+            span.textContent = currentCompanySortOrder === 'asc' ? ' ▲' : ' ▼';
+        } else {
+            span.textContent = ''; // Clear indicator for other columns
+        }
+    });
+
+    // Update card title with sort description
+    const companySortDescription = document.getElementById('company-sort-description');
+    if (companySortDescription) {
+        const columnTh = document.querySelector(`#company-analytics-table th[data-column="${currentCompanySortBy}"]`);
+        let columnText = currentCompanySortBy; // Fallback to column name
+        if (columnTh) {
+            // Get text content of TH, excluding the sort indicator span itself
+            columnText = Array.from(columnTh.childNodes)
+                .filter(node => !(node.nodeType === Node.ELEMENT_NODE && node.classList.contains('sort-indicator')))
+                .map(node => node.textContent.trim())
+                .join('');
+        }
+        const orderText = currentCompanySortOrder === 'asc' ? '升序' : '降序';
+        companySortDescription.textContent = `(当前按 "${columnText}" ${orderText}排列)`;
+    }
+}
+
+function sortCompanyTable(columnName) {
+    if (currentCompanySortBy === columnName) {
+        currentCompanySortOrder = currentCompanySortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentCompanySortBy = columnName;
+        currentCompanySortOrder = 'desc'; // Default to descending for a new column
+    }
+
+    fetch(`/ajax_sort_company_analytics?sort_by=${currentCompanySortBy}&order=${currentCompanySortOrder}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error('Error sorting company analytics:', data.error);
+                // Optionally, display an error message to the user
+                document.getElementById('company-analytics-tbody').innerHTML = 
+                    '<tr><td colspan="12" class="text-center">排序时发生错误，请稍后再试。</td></tr>';
+                return;
+            }
+            document.getElementById('company-analytics-tbody').innerHTML = data.html_fragment;
+            // Update URL without reloading page
+            const newUrl = `${window.location.pathname}?sort_by=${currentCompanySortBy}&order=${currentCompanySortOrder}${window.location.hash}`;
+            history.pushState({ path: newUrl }, '', newUrl);
+            updateCompanySortIndicators();
+        })
+        .catch(error => {
+            console.error('Fetch error when sorting company table:', error);
+            document.getElementById('company-analytics-tbody').innerHTML = 
+                '<tr><td colspan="12" class="text-center">排序请求失败，请检查网络连接或稍后再试。</td></tr>';
+        });
+}
+
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[dashboard.js] DOMContentLoaded: Event fired.');
@@ -1112,7 +1177,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialUrlParams = new URLSearchParams(window.location.search);
     const initialCodeParam = initialUrlParams.get('code');
     const initialSortByParam = initialUrlParams.get('sort_by');
+    const initialOrderParam = initialUrlParams.get('order');
     const initialActiveModuleParam = initialUrlParams.get('active_module');
+
+    // Initialize sort state from URL or defaults
+    currentCompanySortBy = initialSortByParam || 'total_holding_value';
+    currentCompanySortOrder = initialOrderParam || 'desc';
 
     if (initialCodeParam && initialCodeParam.trim() !== '') {
         pageNavigationContext = 'url_search_load';
@@ -1122,14 +1192,15 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`[dashboard.js] DOMContentLoaded: Context='${pageNavigationContext}'. Auto-searching for code: "${initialCodeParam.trim()}"`);
         showSection('section-search');
         searchETF({ triggeredBy: 'url_param_load' });
-    } else if (initialSortByParam) {
-        pageNavigationContext = 'sort_load';
+    } else if (initialSortByParam) { // This means it's a sort context for initial load (e.g. bookmarked/shared sorted URL)
+        pageNavigationContext = 'sort_load'; // Or 'initial_sort_display' to be more precise for this phase
         if (searchInput) {
-            searchInput.value = ''; // Clear search input
+            searchInput.value = ''; 
             console.log(`[dashboard.js] DOMContentLoaded: Context='${pageNavigationContext}'. Search input cleared. URL: ${window.location.href}`);
         }
         showSection('section-overview');
-        if (typeof loadOverview === 'function') loadOverview();
+        if (typeof loadOverview === 'function') loadOverview(); 
+        // updateCompanySortIndicators(); // Call after overview is shown and table exists.
     } else {
         pageNavigationContext = 'initial';
         if (searchInput) {
@@ -1146,7 +1217,22 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             showSection('section-overview');
             if (typeof loadOverview === 'function') loadOverview();
+            // updateCompanySortIndicators(); // Call after overview is shown and table exists.
         }
     }
-    console.log(`[dashboard.js] DOMContentLoaded: Final pageNavigationContext set to '${pageNavigationContext}'.`);
+    console.log(`[dashboard.js] DOMContentLoaded: Final pageNavigationContext set to '${pageNavigationContext}'. Initial sort: ${currentCompanySortBy} ${currentCompanySortOrder}`);
+    
+    // Initial sort indicators update - ensure this runs after the relevant section is visible
+    // It might be better to call this inside showSection when section-overview is shown,
+    // or after loadOverview if that function ensures the table is present.
+    if (document.getElementById('company-analytics-tbody')) { // Check if table is already in DOM
+        updateCompanySortIndicators();
+    } else {
+        // If using showSection which might delay DOM elements, use a small timeout or a callback
+        // For now, let's assume it might be available. If not, this will need refinement.
+        setTimeout(updateCompanySortIndicators, 100); // Small delay to ensure table might be there
+    }
 });
+
+// Make sortCompanyTable globally accessible if it wasn't already due to script placement or module type
+window.sortCompanyTable = sortCompanyTable;

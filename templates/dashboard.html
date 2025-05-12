@@ -32,66 +32,26 @@
                 <div class="card-body">
                     {% if company_analytics %}
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover table-sm">
-                            <thead>
+                        <table class="table table-hover table-sm fixed-column-table">
+                            <thead class="sticky-header">
                                 <tr>
-                                    <th scope="col" style="width: 5%;">#</th>
-                                    {% macro sortable_th(column_key, display_text, current_sort_by, current_order, default_text_align='text-start', specific_align_class=None) %}
-                                        {% set new_order = 'asc' if current_sort_by == column_key and current_order == 'desc' else 'desc' %}
-                                        {% set final_align_class = specific_align_class if specific_align_class else default_text_align %}
-                                        <th scope="col" class="{{ final_align_class }}">
-                                            {# 排序链接不再传递 code 参数，以确保刷新后停留在市场概览 #}
-                                            <a href="{{ url_for('index', sort_by=column_key, order=new_order) }}" class="text-decoration-none text-dark">
-                                                {{ display_text }}
-                                                {% if current_sort_by == column_key %}
-                                                    <i class="fas fa-sort-{{ 'up' if current_order == 'asc' else 'down' }}"></i>
-                                                {% endif %}
-                                            </a>
-                                        </th>
-                                    {% endmacro %}
-                                    {{ sortable_th('company_short_name', '基金公司', current_sort_by, current_order, default_text_align='text-start') }}
-                                    {{ sortable_th('product_count', '产品数量', current_sort_by, current_order, specific_align_class='text-end') }}
-                                    {{ sortable_th('total_fund_size', '总规模 (亿)', current_sort_by, current_order, specific_align_class='text-end') }}
-                                    {{ sortable_th('total_amount', '总成交额 (亿)', current_sort_by, current_order, specific_align_class='text-end') }}
-                                    {{ sortable_th('total_attention_count', '自选人数', current_sort_by, current_order, specific_align_class='text-end') }}
-                                    {{ sortable_th('total_holder_count_holders', '持仓人数', current_sort_by, current_order, specific_align_class='text-end') }}
-                                    {{ sortable_th('holder_attention_ratio', '持仓自选比 (%)', current_sort_by, current_order, specific_align_class='text-end') }}
-                                    {{ sortable_th('total_holding_value', '持仓价值 (亿)', current_sort_by, current_order, specific_align_class='text-end') }}
-                                    {{ sortable_th('business_agreement_count', '商务品数量', current_sort_by, current_order, specific_align_class='text-end') }}
-                                    {{ sortable_th('business_agreement_ratio', '商务品占比 (%)', current_sort_by, current_order, specific_align_class='text-end') }}
-                                    {{ sortable_th('latest_date', '数据日期', current_sort_by, current_order, specific_align_class='text-center') }}
+                                    <th style="width: 5%;">序号</th>
+                                    <th style="width: 15%; cursor: pointer;" onclick="sortCompanyTable('company_short_name')">基金公司 <span class="sort-indicator" data-column="company_short_name"></span></th>
+                                    <th style="width: 7%; cursor: pointer;" onclick="sortCompanyTable('product_count')">产品数量 <span class="sort-indicator" data-column="product_count"></span></th>
+                                    <th style="width: 7%; cursor: pointer;" onclick="sortCompanyTable('business_agreement_count')">商务品数量 <span class="sort-indicator" data-column="business_agreement_count"></span></th>
+                                    <th style="width: 7%; cursor: pointer;" onclick="sortCompanyTable('business_agreement_ratio')">商务品占比 (%) <span class="sort-indicator" data-column="business_agreement_ratio"></span></th>
+                                    <th style="width: 10%; cursor: pointer;" onclick="sortCompanyTable('total_fund_size')">总管理规模 (亿元) <span class="sort-indicator" data-column="total_fund_size"></span></th>
+                                    <th style="width: 10%; cursor: pointer;" onclick="sortCompanyTable('total_amount')">总成交额 (亿元) <span class="sort-indicator" data-column="total_amount"></span></th>
+                                    <th style="width: 8%; cursor: pointer;" onclick="sortCompanyTable('total_attention_count')">总自选热度 <span class="sort-indicator" data-column="total_attention_count"></span></th>
+                                    <th style="width: 8%; cursor: pointer;" onclick="sortCompanyTable('total_holder_count_holders')">总持仓人数 <span class="sort-indicator" data-column="total_holder_count_holders"></span></th>
+                                    <th style="width: 8%; cursor: pointer;" onclick="sortCompanyTable('holder_attention_ratio')">持仓自选比 (%) <span class="sort-indicator" data-column="holder_attention_ratio"></span></th>
+                                    <th style="width: 10%; cursor: pointer;" onclick="sortCompanyTable('total_holding_value')">总持仓价值 (亿元) <span class="sort-indicator" data-column="total_holding_value"></span></th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for company in company_analytics %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    {# Display company_short_name or company_name #}
-                                    <td>{{ company.company_short_name if company.company_short_name else company.company_name }}</td>
-                                    <td class="text-end">{{ company.product_count if company.product_count is not none else '-' }}</td>
-                                    <td class="text-end">{{ "%.0f"|format(company.total_fund_size) if company.total_fund_size is not none else '-' }}</td>
-                                    <td class="text-end">{{ "%.2f"|format(company.total_amount) if company.total_amount is not none else '-' }}</td> {# Already in 亿元 as per previous req #}
-                                    <td class="text-end">{{ "{:,.0f}".format(company.total_attention_count) if company.total_attention_count is not none else '-' }}</td>
-                                    <td class="text-end">{{ "{:,.0f}".format(company.total_holder_count_holders) if company.total_holder_count_holders is not none else '-' }}</td>
-                                    <td class="text-end">
-                                        {% if company.holder_attention_ratio is not none %}
-                                            {{ "%.2f%%"|format(company.holder_attention_ratio) }}
-                                        {% else %}
-                                            0.00%
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">{{ "%.1f"|format(company.total_holding_value / 100000000) if company.total_holding_value is not none else '-' }}</td>
-                                    <td class="text-end">{{ company.business_agreement_count if company.business_agreement_count is not none else '0' }}</td>
-                                    <td class="text-end">
-                                        {% if company.business_agreement_ratio is not none %}
-                                            {{ "%.2f%%"|format(company.business_agreement_ratio) }}
-                                        {% else %}
-                                            0.00%
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">{{ company.latest_date if company.latest_date else '-' }}</td>
-                                </tr>
-                                {% endfor %}
+                            {# Add id to tbody for AJAX update #}
+                            <tbody id="company-analytics-tbody">
+                                {# Initial table body content will be rendered by the main template include #}
+                                {% include '_company_analytics_table_body.html' %}
                             </tbody>
                         </table>
                     </div>

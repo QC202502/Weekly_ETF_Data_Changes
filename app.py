@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, jsonify
 import matplotlib
 matplotlib.use('Agg')  # 非交互式后端
 import socket
@@ -24,8 +24,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息持仓自选比 (%)	
-__version__ = "3.6.2"   
-RELEASE_DATE = "2025-05-09"
+__version__ = "3.6.3"   
+RELEASE_DATE = "2025-05-12"
 
 # 创建Flask应用
 app = Flask(__name__)
@@ -70,7 +70,7 @@ def index():
     # 获取排序参数
     sort_by = request.args.get('sort_by', 'total_holding_value') # 默认按持仓价值排序
     order = request.args.get('order', 'desc') # 默认降序
-    ascending = True if order == 'asc' else False
+    # ascending = True if order == 'asc' else False # This will be handled by the JS now for AJAX, but good for initial load
     
     # 获取推荐数据
     recommendations = {
@@ -131,12 +131,15 @@ def index():
     except Exception as e:
         print(f"加载ETF推荐数据出错: {str(e)}")
     
-    # 从数据库获取基金公司分析数据
+    # 从数据库获取基金公司分析数据 (for initial page load)
     try:
         db = Database() # 确保db对象已创建
         # 传递排序参数给数据库查询方法
-        company_analytics_data = db.get_company_analytics_for_dashboard(sort_by=sort_by, ascending=ascending)
-        # print(f"基金公司分析数据: {company_analytics_data[:2]}") # 打印前两条看看
+        # For initial load, we can decide if we want to use the ascending flag directly
+        # or let the template handle the initial sort direction display and JS handle subsequent.
+        # For now, let's keep it simple and pass the direct ascending for initial load.
+        initial_ascending = True if order == 'asc' else False
+        company_analytics_data = db.get_company_analytics_for_dashboard(sort_by=sort_by, ascending=initial_ascending)
     except Exception as e:
         print(f"加载基金公司分析数据出错: {str(e)}")
 
@@ -146,6 +149,32 @@ def index():
                            company_analytics=company_analytics_data,
                            current_sort_by=sort_by,
                            current_order=order)
+
+# 新的AJAX端点用于基金公司分析表格排序
+@app.route('/ajax_sort_company_analytics')
+def ajax_sort_company_analytics():
+    sort_by = request.args.get('sort_by', 'total_holding_value')
+    order = request.args.get('order', 'desc')
+    ascending = True if order == 'asc' else False
+
+    company_analytics_data = []
+    try:
+        db = Database()
+        company_analytics_data = db.get_company_analytics_for_dashboard(sort_by=sort_by, ascending=ascending)
+        # print(f"AJAX: Fetched {len(company_analytics_data)} companies, sort by {sort_by} {order}")
+    except Exception as e:
+        logger.error(f"AJAX: Error fetching company analytics data: {str(e)}")
+        # Return an empty list or an error indicator if preferred, for now, empty list
+        return jsonify({"error": str(e)}), 500 # Return JSON error
+
+    # 渲染并返回表格主体的HTML片段
+    # We need to pass current_sort_by and current_order to the partial template as well
+    # so it can correctly render sort indicators if needed, or for consistency.
+    html_fragment = render_template('_company_analytics_table_body.html', 
+                                  company_analytics=company_analytics_data, 
+                                  current_sort_by=sort_by, 
+                                  current_order=order)
+    return jsonify({"html_fragment": html_fragment, "sort_by": sort_by, "order": order})
 
 # 检查端口是否可用
 def is_port_available(port):

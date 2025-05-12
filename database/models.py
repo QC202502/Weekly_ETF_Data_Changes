@@ -369,30 +369,29 @@ class Database:
             cursor = conn.cursor()
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS etf_company_analytics (
-                    company_name TEXT PRIMARY KEY,
-                    company_short_name TEXT, -- 新增公司简称字段
-                    -- company_id TEXT, -- 需求2: 删除
+                    company_short_name TEXT PRIMARY KEY,
                     product_count INTEGER,
+                    business_agreement_count INTEGER,
+                    business_agreement_ratio REAL,
                     total_fund_size REAL,
-                    avg_fund_size REAL,
-                    total_holder_count_info INTEGER, -- 来自 etf_info 的总户数
-                    latest_date TEXT,
-                    -- avg_price_change_rate REAL, -- 需求3: 删除
                     total_amount REAL,
-                    avg_turnover_rate REAL,
-                    -- total_net_inflow REAL, -- 需求4: 删除
-                    total_attention_count INTEGER, -- 需求7: 自选人数合计 (来自 etf_attention.attention_count)
-                    total_shares_holders REAL, -- 需求7: 持仓份额合计 (来自 etf_holders.holding_amount)
-                    total_holder_count_holders INTEGER, -- 需求7: 持仓人数合计 (来自 etf_holders.holder_count)
-                    holder_attention_ratio REAL, -- 需求2 (新): 持仓自选比
-                    total_holding_value REAL, -- 需求7: 持仓价值合计 (来自 etf_holders.holding_value)
-                    business_agreement_count INTEGER, -- 需求5: null 显示为 0 (将在聚合逻辑中处理)
-                    business_agreement_ratio REAL, -- 需求6: 商务品占比
-                    business_agreement_total_size REAL,
-                    business_agreement_avg_mgmt_fee REAL,
-                    business_agreement_avg_cust_fee REAL,
-                    update_timestamp TEXT
-                )
+                    total_attention_count INTEGER,
+                    total_holder_count_holders INTEGER,
+                    holder_attention_ratio REAL,
+                    total_holding_value REAL,
+                    business_total_holding_value REAL, -- 新增：商务品总持仓价值
+                    business_holding_value_ratio REAL,  -- 新增：商务品持仓价值占比
+                    latest_date TEXT,
+                    company_name TEXT, -- 需求12: 增加公司全称
+                    avg_fund_size REAL, -- 需求12: 增加平均管理规模
+                    total_holder_count_info REAL, -- 来自etf_info的持有人数，可能与etf_holders不同
+                    avg_turnover_rate REAL, -- 平均换手率
+                    total_shares_holders REAL, -- 总持股数量（来自etf_holders）
+                    business_agreement_total_size REAL, -- 商务协议产品总规模
+                    business_agreement_avg_mgmt_fee REAL, -- 商务协议产品平均管理费率
+                    business_agreement_avg_cust_fee REAL, -- 商务协议产品平均托管费率
+                    update_timestamp TEXT -- 需求11: 增加更新时间戳
+                );
             """)
             conn.commit()
             cursor.close()
@@ -576,6 +575,47 @@ class Database:
             # 添加更新时间戳
             all_company_data['update_timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
+            # 7. 计算商务品总持仓价值和商务品持仓价值占比
+            if latest_holders_date:
+                query_business_holders = f"""
+                SELECT
+                    i.fund_manager as company_name,
+                    SUM(h.holding_value) as business_total_holding_value
+                FROM etf_holders h
+                JOIN etf_info i ON h.code = i.code
+                JOIN etf_business b ON h.code = b.code  -- 只关联商务品
+                WHERE h.date = '{latest_holders_date}' AND i.fund_manager IS NOT NULL AND i.fund_manager != ''
+                GROUP BY i.fund_manager;
+                """
+                df_business_holders = pd.read_sql_query(query_business_holders, conn)
+                if not df_business_holders.empty:
+                    df_business_holders = df_business_holders.set_index('company_name')
+                    all_company_data = all_company_data.join(df_business_holders, how='left')
+                    
+                    # 填充空值为0
+                    all_company_data['business_total_holding_value'] = all_company_data['business_total_holding_value'].fillna(0.0)
+                    
+                    # 确保total_holding_value列存在且非空
+                    if 'total_holding_value' in all_company_data.columns:
+                        all_company_data['total_holding_value'] = all_company_data['total_holding_value'].fillna(0.0)
+                        
+                        # 计算商务品持仓价值占比 (%)
+                        all_company_data['business_holding_value_ratio'] = all_company_data.apply(
+                            lambda row: (row['business_total_holding_value'] * 100.0 / row['total_holding_value'])
+                            if row['total_holding_value'] > 0 else 0.0,
+                            axis=1
+                        ).round(1)
+                    else:
+                        all_company_data['business_holding_value_ratio'] = 0.0
+                else:
+                    print(f"在日期 {latest_holders_date} 未从商务品ETF获取到持仓价值数据。")
+                    all_company_data['business_total_holding_value'] = 0.0
+                    all_company_data['business_holding_value_ratio'] = 0.0
+            else:
+                print("无法获取 etf_holders 最新日期，商务品持仓价值相关指标将为空。")
+                all_company_data['business_total_holding_value'] = 0.0
+                all_company_data['business_holding_value_ratio'] = 0.0
+            
             # 重置索引，使 company_name 成为一列
             all_company_data = all_company_data.reset_index()
             # company_name 列已经存在且正确，不需要再 rename
@@ -595,7 +635,8 @@ class Database:
                 'total_holding_value', 
                 'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
                 'business_agreement_total_size',
-                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp'
+                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
+                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
             ]
             for col in expected_cols:
                 if col not in all_company_data.columns:
@@ -702,7 +743,8 @@ class Database:
             numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
                                   'total_shares_holders', 'total_holding_value', 
                                   'business_agreement_ratio', 'business_agreement_total_size',
-                                  'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio']
+                                  'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
+                                  'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
 
             for col in numeric_int_cols:
                 if col in all_company_data.columns:
@@ -739,7 +781,592 @@ class Database:
                 'total_holding_value', 
                 'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
                 'business_agreement_total_size',
-                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp'
+                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
+                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+            ]
+            for col in expected_cols:
+                if col not in all_company_data.columns:
+                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
+            
+            # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
+            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+
+            # 插入数据到 etf_company_analytics
+            # 调整列顺序以匹配表定义
+            all_company_data = all_company_data[expected_cols]
+
+            # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
+            
+            print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
+
+            # 计算商务品占比 (需求6)
+            print("DEBUG: Before calculating business_agreement_ratio:")
+            if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
+                 # If company_short_name is not there yet (it's the index before reset_index)
+                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
+            elif 'company_short_name' in all_company_data.columns:
+                 temp_company_col = 'company_short_name'
+            else: # Fallback if no suitable company name column is found before reset_index
+                 temp_company_col = None
+
+            if 'product_count' in all_company_data.columns:
+                if temp_company_col and temp_company_col in all_company_data.columns:
+                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
+                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
+                else:
+                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
+                print("product_count dtypes:", all_company_data['product_count'].dtype)
+                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
+                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
+            else:
+                print("product_count column MISSING")
+
+            if 'business_agreement_count' in all_company_data.columns:
+                if temp_company_col and temp_company_col in all_company_data.columns:
+                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col:
+                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
+                else:
+                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
+                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
+                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
+                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
+            else:
+                print("business_agreement_count column MISSING")
+
+            if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
+                #确保 product_count 和 business_agreement_count 是数值类型
+                # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
+                # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
+                
+                # 计算占比，处理分母为0的情况
+                # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
+                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
+                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
+
+                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
+                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
+
+                all_company_data['business_agreement_ratio'] = \
+                    (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
+
+                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+
+                # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
+                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
+                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+            else:
+                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
+                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
+
+            # 计算持仓自选比 (需求2 新)
+            print("DEBUG: Before calculating holder_attention_ratio:")
+            if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
+                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
+                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
+                
+                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
+                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
+
+                all_company_data['holder_attention_ratio'] = \
+                    (h_col * 100.0 / a_col).where(a_col != 0, 0)
+                
+                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
+                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
+            else:
+                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
+                all_company_data['holder_attention_ratio'] = 0.0
+
+            # 重置索引，使 company_name 成为一列
+            all_company_data = all_company_data.reset_index()
+            
+            # 在写入数据库前，对关键数值列进行最终的类型确认和 NaN 处理
+            numeric_int_cols = ['product_count', 'total_holder_count_info', 'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
+            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
+                                  'total_shares_holders', 'total_holding_value', 
+                                  'business_agreement_ratio', 'business_agreement_total_size',
+                                  'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
+                                  'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
+
+            for col in numeric_int_cols:
+                if col in all_company_data.columns:
+                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0).astype(int)
+                else:
+                    all_company_data[col] = 0 # 如果列在聚合过程中未创建，则添加并设为0
+
+            for col in numeric_float_cols:
+                if col in all_company_data.columns:
+                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0.0).astype(float)
+                else:
+                    all_company_data[col] = 0.0 # 如果列在聚合过程中未创建，则添加并设为0.0
+
+            print("DEBUG: Final dtypes before to_sql for key columns:")
+            if 'business_agreement_ratio' in all_company_data.columns:
+                print(f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
+            if 'holder_attention_ratio' in all_company_data.columns:
+                print(f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
+            if 'product_count' in all_company_data.columns:
+                print(f"  product_count dtype: {all_company_data['product_count'].dtype}")
+            if 'business_agreement_count' in all_company_data.columns:
+                print(f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
+
+            # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
+            expected_cols = [
+                'company_name', 'company_short_name', # company_id 已删除
+                'product_count', 'total_fund_size', 'avg_fund_size',
+                'total_holder_count_info', 'latest_date', 
+                # avg_price_change_rate 已删除
+                'total_amount', 'avg_turnover_rate', 
+                # total_net_inflow 已删除
+                'total_attention_count', 'total_shares_holders',
+                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
+                'total_holding_value', 
+                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
+                'business_agreement_total_size',
+                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
+                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+            ]
+            for col in expected_cols:
+                if col not in all_company_data.columns:
+                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
+            
+            # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
+            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+
+            # 插入数据到 etf_company_analytics
+            # 调整列顺序以匹配表定义
+            all_company_data = all_company_data[expected_cols]
+
+            # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
+            
+            print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
+
+            # 计算商务品占比 (需求6)
+            print("DEBUG: Before calculating business_agreement_ratio:")
+            if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
+                 # If company_short_name is not there yet (it's the index before reset_index)
+                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
+            elif 'company_short_name' in all_company_data.columns:
+                 temp_company_col = 'company_short_name'
+            else: # Fallback if no suitable company name column is found before reset_index
+                 temp_company_col = None
+
+            if 'product_count' in all_company_data.columns:
+                if temp_company_col and temp_company_col in all_company_data.columns:
+                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
+                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
+                else:
+                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
+                print("product_count dtypes:", all_company_data['product_count'].dtype)
+                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
+                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
+            else:
+                print("product_count column MISSING")
+
+            if 'business_agreement_count' in all_company_data.columns:
+                if temp_company_col and temp_company_col in all_company_data.columns:
+                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col:
+                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
+                else:
+                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
+                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
+                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
+                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
+            else:
+                print("business_agreement_count column MISSING")
+
+            if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
+                #确保 product_count 和 business_agreement_count 是数值类型
+                # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
+                # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
+                
+                # 计算占比，处理分母为0的情况
+                # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
+                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
+                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
+
+                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
+                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
+
+                all_company_data['business_agreement_ratio'] = \
+                    (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
+
+                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+
+                # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
+                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
+                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+            else:
+                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
+                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
+
+            # 计算持仓自选比 (需求2 新)
+            print("DEBUG: Before calculating holder_attention_ratio:")
+            if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
+                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
+                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
+                
+                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
+                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
+
+                all_company_data['holder_attention_ratio'] = \
+                    (h_col * 100.0 / a_col).where(a_col != 0, 0)
+                
+                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
+                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
+            else:
+                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
+                all_company_data['holder_attention_ratio'] = 0.0
+
+            # 重置索引，使 company_name 成为一列
+            all_company_data = all_company_data.reset_index()
+            
+            # 在写入数据库前，对关键数值列进行最终的类型确认和 NaN 处理
+            numeric_int_cols = ['product_count', 'total_holder_count_info', 'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
+            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
+                                  'total_shares_holders', 'total_holding_value', 
+                                  'business_agreement_ratio', 'business_agreement_total_size',
+                                  'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
+                                  'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
+
+            for col in numeric_int_cols:
+                if col in all_company_data.columns:
+                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0).astype(int)
+                else:
+                    all_company_data[col] = 0 # 如果列在聚合过程中未创建，则添加并设为0
+
+            for col in numeric_float_cols:
+                if col in all_company_data.columns:
+                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0.0).astype(float)
+                else:
+                    all_company_data[col] = 0.0 # 如果列在聚合过程中未创建，则添加并设为0.0
+
+            print("DEBUG: Final dtypes before to_sql for key columns:")
+            if 'business_agreement_ratio' in all_company_data.columns:
+                print(f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
+            if 'holder_attention_ratio' in all_company_data.columns:
+                print(f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
+            if 'product_count' in all_company_data.columns:
+                print(f"  product_count dtype: {all_company_data['product_count'].dtype}")
+            if 'business_agreement_count' in all_company_data.columns:
+                print(f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
+
+            # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
+            expected_cols = [
+                'company_name', 'company_short_name', # company_id 已删除
+                'product_count', 'total_fund_size', 'avg_fund_size',
+                'total_holder_count_info', 'latest_date', 
+                # avg_price_change_rate 已删除
+                'total_amount', 'avg_turnover_rate', 
+                # total_net_inflow 已删除
+                'total_attention_count', 'total_shares_holders',
+                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
+                'total_holding_value', 
+                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
+                'business_agreement_total_size',
+                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
+                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+            ]
+            for col in expected_cols:
+                if col not in all_company_data.columns:
+                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
+            
+            # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
+            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+
+            # 插入数据到 etf_company_analytics
+            # 调整列顺序以匹配表定义
+            all_company_data = all_company_data[expected_cols]
+
+            # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
+            
+            print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
+
+            # 计算商务品占比 (需求6)
+            print("DEBUG: Before calculating business_agreement_ratio:")
+            if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
+                 # If company_short_name is not there yet (it's the index before reset_index)
+                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
+            elif 'company_short_name' in all_company_data.columns:
+                 temp_company_col = 'company_short_name'
+            else: # Fallback if no suitable company name column is found before reset_index
+                 temp_company_col = None
+
+            if 'product_count' in all_company_data.columns:
+                if temp_company_col and temp_company_col in all_company_data.columns:
+                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
+                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
+                else:
+                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
+                print("product_count dtypes:", all_company_data['product_count'].dtype)
+                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
+                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
+            else:
+                print("product_count column MISSING")
+
+            if 'business_agreement_count' in all_company_data.columns:
+                if temp_company_col and temp_company_col in all_company_data.columns:
+                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col:
+                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
+                else:
+                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
+                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
+                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
+                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
+            else:
+                print("business_agreement_count column MISSING")
+
+            if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
+                #确保 product_count 和 business_agreement_count 是数值类型
+                # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
+                # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
+                
+                # 计算占比，处理分母为0的情况
+                # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
+                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
+                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
+
+                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
+                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
+
+                all_company_data['business_agreement_ratio'] = \
+                    (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
+
+                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+
+                # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
+                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
+                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+            else:
+                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
+                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
+
+            # 计算持仓自选比 (需求2 新)
+            print("DEBUG: Before calculating holder_attention_ratio:")
+            if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
+                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
+                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
+                
+                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
+                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
+
+                all_company_data['holder_attention_ratio'] = \
+                    (h_col * 100.0 / a_col).where(a_col != 0, 0)
+                
+                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
+                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
+            else:
+                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
+                all_company_data['holder_attention_ratio'] = 0.0
+
+            # 重置索引，使 company_name 成为一列
+            all_company_data = all_company_data.reset_index()
+            
+            # 在写入数据库前，对关键数值列进行最终的类型确认和 NaN 处理
+            numeric_int_cols = ['product_count', 'total_holder_count_info', 'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
+            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
+                                  'total_shares_holders', 'total_holding_value', 
+                                  'business_agreement_ratio', 'business_agreement_total_size',
+                                  'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
+                                  'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
+
+            for col in numeric_int_cols:
+                if col in all_company_data.columns:
+                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0).astype(int)
+                else:
+                    all_company_data[col] = 0 # 如果列在聚合过程中未创建，则添加并设为0
+
+            for col in numeric_float_cols:
+                if col in all_company_data.columns:
+                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0.0).astype(float)
+                else:
+                    all_company_data[col] = 0.0 # 如果列在聚合过程中未创建，则添加并设为0.0
+
+            print("DEBUG: Final dtypes before to_sql for key columns:")
+            if 'business_agreement_ratio' in all_company_data.columns:
+                print(f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
+            if 'holder_attention_ratio' in all_company_data.columns:
+                print(f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
+            if 'product_count' in all_company_data.columns:
+                print(f"  product_count dtype: {all_company_data['product_count'].dtype}")
+            if 'business_agreement_count' in all_company_data.columns:
+                print(f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
+
+            # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
+            expected_cols = [
+                'company_name', 'company_short_name', # company_id 已删除
+                'product_count', 'total_fund_size', 'avg_fund_size',
+                'total_holder_count_info', 'latest_date', 
+                # avg_price_change_rate 已删除
+                'total_amount', 'avg_turnover_rate', 
+                # total_net_inflow 已删除
+                'total_attention_count', 'total_shares_holders',
+                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
+                'total_holding_value', 
+                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
+                'business_agreement_total_size',
+                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
+                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+            ]
+            for col in expected_cols:
+                if col not in all_company_data.columns:
+                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
+            
+            # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
+            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+
+            # 插入数据到 etf_company_analytics
+            # 调整列顺序以匹配表定义
+            all_company_data = all_company_data[expected_cols]
+
+            # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
+            
+            print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
+
+            # 计算商务品占比 (需求6)
+            print("DEBUG: Before calculating business_agreement_ratio:")
+            if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
+                 # If company_short_name is not there yet (it's the index before reset_index)
+                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
+            elif 'company_short_name' in all_company_data.columns:
+                 temp_company_col = 'company_short_name'
+            else: # Fallback if no suitable company name column is found before reset_index
+                 temp_company_col = None
+
+            if 'product_count' in all_company_data.columns:
+                if temp_company_col and temp_company_col in all_company_data.columns:
+                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
+                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
+                else:
+                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
+                print("product_count dtypes:", all_company_data['product_count'].dtype)
+                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
+                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
+            else:
+                print("product_count column MISSING")
+
+            if 'business_agreement_count' in all_company_data.columns:
+                if temp_company_col and temp_company_col in all_company_data.columns:
+                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col:
+                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
+                else:
+                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
+                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
+                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
+                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
+            else:
+                print("business_agreement_count column MISSING")
+
+            if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
+                #确保 product_count 和 business_agreement_count 是数值类型
+                # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
+                # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
+                
+                # 计算占比，处理分母为0的情况
+                # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
+                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
+                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
+
+                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
+                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
+
+                all_company_data['business_agreement_ratio'] = \
+                    (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
+
+                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+
+                # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
+                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
+                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+            else:
+                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
+                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
+
+            # 计算持仓自选比 (需求2 新)
+            print("DEBUG: Before calculating holder_attention_ratio:")
+            if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
+                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
+                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
+                
+                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
+                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
+
+                all_company_data['holder_attention_ratio'] = \
+                    (h_col * 100.0 / a_col).where(a_col != 0, 0)
+                
+                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
+                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
+            else:
+                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
+                all_company_data['holder_attention_ratio'] = 0.0
+
+            # 重置索引，使 company_name 成为一列
+            all_company_data = all_company_data.reset_index()
+            
+            # 在写入数据库前，对关键数值列进行最终的类型确认和 NaN 处理
+            numeric_int_cols = ['product_count', 'total_holder_count_info', 'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
+            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
+                                  'total_shares_holders', 'total_holding_value', 
+                                  'business_agreement_ratio', 'business_agreement_total_size',
+                                  'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
+                                  'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
+
+            for col in numeric_int_cols:
+                if col in all_company_data.columns:
+                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0).astype(int)
+                else:
+                    all_company_data[col] = 0 # 如果列在聚合过程中未创建，则添加并设为0
+
+            for col in numeric_float_cols:
+                if col in all_company_data.columns:
+                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0.0).astype(float)
+                else:
+                    all_company_data[col] = 0.0 # 如果列在聚合过程中未创建，则添加并设为0.0
+
+            print("DEBUG: Final dtypes before to_sql for key columns:")
+            if 'business_agreement_ratio' in all_company_data.columns:
+                print(f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
+            if 'holder_attention_ratio' in all_company_data.columns:
+                print(f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
+            if 'product_count' in all_company_data.columns:
+                print(f"  product_count dtype: {all_company_data['product_count'].dtype}")
+            if 'business_agreement_count' in all_company_data.columns:
+                print(f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
+
+            # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
+            expected_cols = [
+                'company_name', 'company_short_name', # company_id 已删除
+                'product_count', 'total_fund_size', 'avg_fund_size',
+                'total_holder_count_info', 'latest_date', 
+                # avg_price_change_rate 已删除
+                'total_amount', 'avg_turnover_rate', 
+                # total_net_inflow 已删除
+                'total_attention_count', 'total_shares_holders',
+                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
+                'total_holding_value', 
+                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
+                'business_agreement_total_size',
+                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
+                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
             ]
             for col in expected_cols:
                 if col not in all_company_data.columns:
@@ -866,22 +1493,24 @@ class Database:
         """返回 etf_company_analytics 表的SQL列类型字典，供 to_sql 使用"""
         # 这有助于确保Pandas在创建/替换表时使用正确的SQLite数据类型
         return {
-            'company_name': 'TEXT PRIMARY KEY',
-            'company_short_name': 'TEXT',
+            'company_short_name': 'TEXT', 
             'product_count': 'INTEGER',
+            'business_agreement_count': 'INTEGER',
+            'business_agreement_ratio': 'REAL',
             'total_fund_size': 'REAL',
-            'avg_fund_size': 'REAL',
-            'total_holder_count_info': 'INTEGER',
-            'latest_date': 'TEXT',
             'total_amount': 'REAL',
-            'avg_turnover_rate': 'REAL',
             'total_attention_count': 'INTEGER',
-            'total_shares_holders': 'REAL',
             'total_holder_count_holders': 'INTEGER',
             'holder_attention_ratio': 'REAL',
             'total_holding_value': 'REAL',
-            'business_agreement_count': 'INTEGER',
-            'business_agreement_ratio': 'REAL',
+            'business_total_holding_value': 'REAL', # 新增
+            'business_holding_value_ratio': 'REAL',  # 新增
+            'latest_date': 'TEXT',
+            'company_name': 'TEXT',
+            'avg_fund_size': 'REAL',
+            'total_holder_count_info': 'REAL',
+            'avg_turnover_rate': 'REAL',
+            'total_shares_holders': 'REAL',
             'business_agreement_total_size': 'REAL',
             'business_agreement_avg_mgmt_fee': 'REAL',
             'business_agreement_avg_cust_fee': 'REAL',
@@ -2814,10 +3443,11 @@ class Database:
                 'avg_turnover_rate', 'total_attention_count', 'total_shares_holders',
                 'total_holder_count_holders', 'holder_attention_ratio', 'total_holding_value',
                 'business_agreement_count', 'business_agreement_ratio', 'business_agreement_total_size',
-                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp'
+                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
+                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
             ]
             # 确保 sort_by 是安全的，如果不在允许列表中，则使用默认值
-            if not sort_by or sort_by not in allowed_sort_columns:
+            if not sort_by or sort_by not in allowed_sort_columns: # This check will fail for new columns until allowed_sort_columns is updated.
                 print(f"警告: 无效或未提供排序字段 '{sort_by}'，将默认按 total_holding_value 降序排序。")
                 sort_by = 'total_holding_value' # 默认排序字段
                 ascending = False # 默认排序方向

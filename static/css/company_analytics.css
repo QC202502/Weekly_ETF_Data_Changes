@@ -1,0 +1,759 @@
+/* 基金公司分析表格增强样式 */
+
+/* 整体卡片样式 */
+.analytics-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.analytics-card .card-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 20px;
+}
+
+.analytics-card .card-header h4 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 18px;
+  color: #1e293b;
+}
+
+.analytics-card .card-header .text-muted {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.analytics-card .card-body {
+  padding: 0;
+  background-color: #fff;
+  overflow-x: auto;
+  border-radius: 0 0 12px 12px;
+}
+
+/* 过滤工具栏 */
+.table-filter-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 20px;
+  padding: 12px 16px;
+  background-color: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.filter-input-container {
+  position: relative;
+  flex: 1;
+}
+
+.filter-input-container i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.filter-input {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  padding: 10px 12px 10px 36px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background-color: white;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.filter-label {
+  font-weight: 500;
+  font-size: 14px;
+  white-space: nowrap;
+  color: #64748b;
+}
+
+/* 状态监控标签 */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.status-badge-success {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+.status-badge-warning {
+  background-color: #fffbeb;
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.status-badge-danger {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+/* 表格整体样式 */
+.company-analytics-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 0;
+  table-layout: auto;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 表头样式 */
+.company-analytics-table thead th {
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #475569;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #cbd5e1;
+  padding: 10px 5px;
+  text-transform: none;
+  font-size: 11px;
+  letter-spacing: 0;
+  line-height: 1.2;
+  transition: background-color 0.2s;
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 40px;
+  border-right: 1px solid rgba(203, 213, 225, 0.4);
+}
+
+/* 表头悬停样式 */
+.company-analytics-table thead th:hover {
+  background: linear-gradient(180deg, #f1f5f9 0%, #cbd5e1 100%);
+  color: #1e293b;
+  cursor: pointer;
+}
+
+/* 当前排序列突出显示 */
+.company-analytics-table th.active-sort {
+  background: linear-gradient(180deg, #ecf0ff 0%, #dbe4ff 100%);
+  color: #4f46e5;
+  box-shadow: inset 0 1px 0 #f5f7ff, 0 1px 2px rgba(79, 70, 229, 0.1);
+  border-bottom: 2px solid #4f46e5;
+}
+
+/* 添加条纹效果 */
+.company-analytics-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.company-analytics-table tbody tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+/* 行悬停效果 */
+.company-analytics-table tbody tr:hover {
+  background-color: #f1f5f9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+/* 调整各列宽度 */
+.company-analytics-table th:nth-child(1), 
+.company-analytics-table td:nth-child(1) {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+}
+
+.company-analytics-table th:nth-child(2), 
+.company-analytics-table td:nth-child(2) {
+  width: 110px;
+  min-width: 90px;
+  max-width: 150px;
+  font-weight: 600;
+  color: #1e293b;
+  padding-left: 16px;
+  border-right: 1px solid #f1f5f9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: width 0.3s ease;
+}
+
+.company-analytics-table th:nth-child(3), 
+.company-analytics-table td:nth-child(3),
+.company-analytics-table th:nth-child(4), 
+.company-analytics-table td:nth-child(4) {
+  width: 70px;
+  min-width: 60px;
+  max-width: 80px;
+}
+
+.company-analytics-table th:nth-child(5), 
+.company-analytics-table td:nth-child(5) {
+  width: 90px;
+  min-width: 80px;
+  max-width: 100px;
+}
+
+.company-analytics-table th:nth-child(6), 
+.company-analytics-table td:nth-child(6),
+.company-analytics-table th:nth-child(7), 
+.company-analytics-table td:nth-child(7) {
+  width: 100px;
+  min-width: 90px;
+  max-width: 110px;
+}
+
+.company-analytics-table th:nth-child(8), 
+.company-analytics-table td:nth-child(8),
+.company-analytics-table th:nth-child(9), 
+.company-analytics-table td:nth-child(9) {
+  width: 80px;
+  min-width: 70px;
+  max-width: 90px;
+}
+
+.company-analytics-table th:nth-child(10), 
+.company-analytics-table td:nth-child(10) {
+  width: 90px;
+  min-width: 80px;
+  max-width: 100px;
+}
+
+.company-analytics-table th:nth-child(11), 
+.company-analytics-table td:nth-child(11) {
+  width: 90px;
+  min-width: 85px;
+  max-width: 100px;
+}
+
+.company-analytics-table th:nth-child(12), 
+.company-analytics-table td:nth-child(12) {
+  width: 90px;
+  min-width: 85px;
+  max-width: 100px;
+}
+
+.company-analytics-table th:nth-child(13), 
+.company-analytics-table td:nth-child(13) {
+  width: 90px;
+  min-width: 85px;
+  max-width: 100px;
+}
+
+/* 单元格基本样式 */
+.company-analytics-table td {
+  padding: 10px 5px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+/* 排序指示器增强 */
+.sort-indicator {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  color: #64748b;
+}
+
+th[onclick] {
+  cursor: pointer;
+  user-select: none;
+}
+
+th[onclick]:hover .sort-indicator {
+  opacity: 1;
+}
+
+th[onclick] .sort-indicator[data-active="true"] {
+  opacity: 1;
+  color: #0369a1;
+  font-weight: bold;
+}
+
+/* 高亮特定数值 */
+.highlight-high {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.highlight-medium {
+  color: #ea580c;
+  font-weight: 600;
+}
+
+.highlight-low {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+/* 百分比可视化 */
+.percent-bar {
+  display: inline-block;
+  height: 6px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  width: 65px;
+  margin-right: 8px;
+  vertical-align: middle;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.percent-bar-fill {
+  position: absolute;
+  height: 100%;
+  left: 0;
+  top: 0;
+  border-radius: 6px;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 百分比颜色 */
+.percent-high .percent-bar-fill {
+  background: linear-gradient(90deg, #ff6b6b 0%, #dc2626 100%);
+  box-shadow: 0 0 4px rgba(220, 38, 38, 0.5);
+}
+
+.percent-medium .percent-bar-fill {
+  background: linear-gradient(90deg, #ff9f5a 0%, #ea580c 100%);
+  box-shadow: 0 0 4px rgba(234, 88, 12, 0.5);
+}
+
+.percent-low .percent-bar-fill {
+  background: linear-gradient(90deg, #4ade80 0%, #16a34a 100%);
+  box-shadow: 0 0 4px rgba(22, 163, 74, 0.5);
+}
+
+/* 序号列样式 */
+.company-analytics-table td:first-child {
+  color: #94a3b8;
+  font-weight: 500;
+  text-align: center;
+  border-right: 1px solid #f1f5f9;
+  width: 40px;
+  min-width: 40px;
+  font-size: 13px;
+  background-color: #f8fafc;
+}
+
+/* 公司名称列样式 */
+.company-analytics-table td:nth-child(2) {
+  font-weight: 600;
+  color: #1e293b;
+  padding-left: 16px;
+  min-width: 100px;
+  max-width: 150px;
+  border-right: 1px solid #f1f5f9;
+}
+
+/* 数值单元格样式 */
+.company-analytics-table tbody td.text-right {
+  font-weight: 500;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  text-align: right;
+  padding-right: 16px;
+  white-space: nowrap;
+  font-size: 13px;
+  letter-spacing: -0.3px;
+  color: #334155;
+}
+
+/* 商务品总持仓价值列样式 */
+.business-value-column {
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-weight: 600;
+  font-size: 13px;
+  color: #1e293b;
+  text-align: right !important;
+  padding-right: 12px;
+  min-width: 110px;
+  max-width: 130px;
+  white-space: nowrap;
+  background-color: rgba(248, 250, 252, 0.5);
+  border-left: 1px solid #f1f5f9;
+}
+
+/* 公司名称单元格样式 */
+.company-name-cell {
+  position: relative;
+  font-weight: 600;
+  color: #1e293b;
+  padding-left: 16px;
+  padding-right: 8px !important;
+}
+
+/* 公司名称文本样式 - 自适应显示 */
+.company-name-text {
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* 根据不同屏幕宽度适配公司名称显示 */
+@media (min-width: 1200px) {
+  .company-name-text {
+    max-width: 180px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .company-name-text {
+    max-width: 150px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .company-name-text {
+    max-width: 120px;
+  }
+}
+
+@media (max-width: 767px) {
+  .company-name-text {
+    max-width: 100px;
+  }
+}
+
+.business-value-column .value-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.business-value-column .mono-value {
+  font-size: 14px;
+  letter-spacing: -0.3px;
+  font-weight: 600;
+  color: #ef4444;
+}
+
+.business-value-column .trend-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-weight: 600;
+  min-width: 36px;
+  height: 18px;
+}
+
+.business-value-column .trend-up {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.business-value-column .trend-down {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* 商务品持仓价值占比样式增强 */
+.business-ratio-column {
+  position: relative;
+  min-width: 120px;
+  max-width: 140px;
+  padding-right: 12px;
+  text-align: right;
+  white-space: nowrap;
+  background-color: rgba(248, 250, 252, 0.3);
+}
+
+.business-ratio-column .ratio-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.business-ratio-column .ratio-value {
+  display: inline-block;
+  min-width: 40px;
+  text-align: right;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.business-ratio-column .ratio-bar-container {
+  width: 70px;
+  display: flex;
+  align-items: center;
+}
+
+.business-ratio-column .ratio-bar {
+  height: 6px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.business-ratio-column .ratio-bar-fill {
+  position: absolute;
+  height: 100%;
+  left: 0;
+  top: 0;
+  border-radius: 6px;
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 商务品持仓价值占比颜色区间 */
+.ratio-high .ratio-bar-fill {
+  background: linear-gradient(90deg, #ff6b6b 0%, #dc2626 100%);
+  box-shadow: 0 0 4px rgba(220, 38, 38, 0.5);
+}
+
+.ratio-medium .ratio-bar-fill {
+  background: linear-gradient(90deg, #ff9f5a 0%, #ea580c 100%);
+  box-shadow: 0 0 4px rgba(234, 88, 12, 0.5);
+}
+
+.ratio-low .ratio-bar-fill {
+  background: linear-gradient(90deg, #4ade80 0%, #16a34a 100%);
+  box-shadow: 0 0 6px rgba(22, 163, 74, 0.5);
+}
+
+/* 商务品持仓价值占比标签 */
+.ratio-label {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.ratio-label-high {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.1);
+}
+
+.ratio-label-medium {
+  background-color: #fffbeb;
+  color: #ea580c;
+  border: 1px solid rgba(234, 88, 12, 0.1);
+}
+
+.ratio-label-low {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.1);
+}
+
+/* 悬停交互效果 */
+.company-row:hover .business-value-column,
+.company-row:hover .business-ratio-column {
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+/* 数值变化动画 */
+@keyframes pulse-value {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.value-changed {
+  animation: pulse-value 0.5s ease;
+  color: #0369a1;
+}
+
+/* 响应式布局优化 */
+@media (max-width: 992px) {
+  .company-analytics-table {
+    table-layout: auto;
+  }
+  
+  .company-analytics-table th:nth-child(2), 
+  .company-analytics-table td:nth-child(2) {
+    min-width: 100px; /* 移动设备上允许更小的最小宽度 */
+  }
+  
+  .business-ratio-column .ratio-bar-container {
+    width: 60px;
+  }
+  
+  .business-ratio-column .ratio-value {
+    min-width: 40px;
+    font-size: 12px;
+  }
+  
+  .business-value-column {
+    padding-right: 8px;
+    font-size: 12px;
+  }
+  
+  .business-value-column .trend-badge {
+    font-size: 10px;
+    padding: 1px 3px;
+    margin-left: 4px;
+  }
+}
+
+/* 悬停高亮效果 */
+.highlight-hover {
+  background-color: rgba(79, 70, 229, 0.08) !important;
+  transition: background-color 0.2s ease;
+  box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.2);
+  z-index: 1;
+  position: relative;
+}
+
+/* 调整表格容器，添加圆角和阴影 */
+.analytics-card .card-body {
+  padding: 0;
+  background-color: #fff;
+  overflow-x: auto;
+  border-radius: 0 0 12px 12px;
+}
+
+/* 调整表格外边距和内边距 */
+.company-analytics-table {
+  margin: 0;
+  padding: 0;
+}
+
+/* 确保表格内容垂直居中 */
+.company-analytics-table td {
+  vertical-align: middle;
+}
+
+/* 调整表头列名对齐方式，使其与单元格内容对齐 */
+.company-analytics-table th:nth-child(n+3) {
+  text-align: right;
+}
+
+/* 确保表格行有足够的高度 */
+.company-analytics-table tbody tr {
+  height: 54px;
+  transition: all 0.2s ease;
+}
+
+/* 当行数少时美化表格底部 */
+.company-analytics-table tbody:after {
+  content: '';
+  display: block;
+  height: 10px;
+}
+
+/* 增加最后一列的视觉重要性 */
+.company-analytics-table th:last-child, 
+.company-analytics-table td:last-child {
+  background-color: rgba(236, 240, 255, 0.5);
+  border-left: 1px solid #e2e8f0;
+}
+
+/* 百分比值样式 */
+.percent-value {
+  font-weight: 600;
+  font-size: 13px;
+  color: #475569;
+  margin-left: 4px;
+}
+
+/* 空数据消息样式 */
+.empty-data-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #94a3b8;
+  font-size: 15px;
+}
+
+.empty-data-message i {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+/* 数值着色样式增强 */
+.mono-value.highlight-high {
+  color: #dc2626;
+}
+
+.mono-value.highlight-medium {
+  color: #ea580c;
+}
+
+.mono-value.highlight-low {
+  color: #16a34a;
+}
+
+.ratio-value.highlight-high {
+  color: #dc2626;
+}
+
+.ratio-value.highlight-medium {
+  color: #ea580c;
+}
+
+.ratio-value.highlight-low {
+  color: #16a34a;
+}
+
+/* 调整表格中的图标 */
+.business-value-column .trend-badge i {
+  font-size: 14px;
+  line-height: 1;
+  margin-right: 1px;
+}
+
+/* 表格总标题样式 */
+.section-title {
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.section-subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 20px;
+} 

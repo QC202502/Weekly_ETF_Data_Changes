@@ -24,8 +24,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息持仓自选比 (%)	
-__version__ = "3.6.5"   
-RELEASE_DATE = "2025-05-12"
+__version__ = "3.6.6"   
+RELEASE_DATE = "2025-05-13"
 
 # 创建Flask应用
 app = Flask(__name__)

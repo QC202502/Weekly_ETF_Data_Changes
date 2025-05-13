@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/company_analytics.css') }}?v={{ config.get('__version__', '1.0') }}">
+{% endblock %}
+
 {% block content %}
     <!-- 引入各个功能模块 -->
     {% include "modules/search.html" %}
@@ -22,6 +26,8 @@
                             {% elif current_sort_by == 'holder_attention_ratio' %}持仓自选比
                             {% elif current_sort_by == 'business_agreement_count' %}商务品数量
                             {% elif current_sort_by == 'business_agreement_ratio' %}商务品占比
+                            {% elif current_sort_by == 'business_total_holding_value' %}商务品总持仓价值
+                            {% elif current_sort_by == 'business_holding_value_ratio' %}商务品持仓价值占比
                             {% elif current_sort_by == 'latest_date' %}数据日期
                             {% else %}{{ current_sort_by }}
                             {% endif %}
@@ -31,23 +37,29 @@
                 </div>
                 <div class="card-body">
                     {% if company_analytics %}
+                    <!-- 添加过滤工具栏 -->
+                    <div class="table-filter-toolbar">
+                        <div class="filter-label">快速筛选:</div>
+                        <input type="text" class="filter-input" id="company-filter" placeholder="输入公司名称进行筛选..." aria-label="筛选公司">
+                        <div class="filter-label">显示: <span id="filter-count" class="status-badge status-badge-success">全部 {{ company_analytics|length }}</span></div>
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-hover table-sm fixed-column-table">
+                        <table class="table table-hover table-sm fixed-column-table company-analytics-table">
                             <thead class="sticky-header">
                                 <tr>
-                                    <th style="width: 5%;">序号</th>
-                                    <th style="width: 15%; cursor: pointer;" onclick="sortCompanyTable('company_short_name')">基金公司 <span class="sort-indicator" data-column="company_short_name"></span></th>
-                                    <th style="width: 7%; cursor: pointer;" onclick="sortCompanyTable('product_count')">产品数量 <span class="sort-indicator" data-column="product_count"></span></th>
-                                    <th style="width: 7%; cursor: pointer;" onclick="sortCompanyTable('business_agreement_count')">商务品数量 <span class="sort-indicator" data-column="business_agreement_count"></span></th>
-                                    <th style="width: 7%; cursor: pointer;" onclick="sortCompanyTable('business_agreement_ratio')">商务品占比 (%) <span class="sort-indicator" data-column="business_agreement_ratio"></span></th>
-                                    <th style="width: 10%; cursor: pointer;" onclick="sortCompanyTable('total_fund_size')">总管理规模 (亿元) <span class="sort-indicator" data-column="total_fund_size"></span></th>
-                                    <th style="width: 10%; cursor: pointer;" onclick="sortCompanyTable('total_amount')">总成交额 (亿元) <span class="sort-indicator" data-column="total_amount"></span></th>
-                                    <th style="width: 8%; cursor: pointer;" onclick="sortCompanyTable('total_attention_count')">总自选热度 <span class="sort-indicator" data-column="total_attention_count"></span></th>
-                                    <th style="width: 8%; cursor: pointer;" onclick="sortCompanyTable('total_holder_count_holders')">总持仓人数 <span class="sort-indicator" data-column="total_holder_count_holders"></span></th>
-                                    <th style="width: 8%; cursor: pointer;" onclick="sortCompanyTable('holder_attention_ratio')">持仓自选比 (%) <span class="sort-indicator" data-column="holder_attention_ratio"></span></th>
-                                    <th style="width: 10%; cursor: pointer;" onclick="sortCompanyTable('total_holding_value')">总持仓价值 (亿元) <span class="sort-indicator" data-column="total_holding_value"></span></th>
-                                    <th style="width: 10%; cursor: pointer;" onclick="sortCompanyTable('business_total_holding_value')">商务品总持仓价值 (亿元) <span class="sort-indicator" data-column="business_total_holding_value"></span></th>
-                                    <th style="width: 7%; cursor: pointer;" onclick="sortCompanyTable('business_holding_value_ratio')">商务品持仓价值占比 (%) <span class="sort-indicator" data-column="business_holding_value_ratio"></span></th>
+                                    <th>序号</th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('company_short_name')">基金公司 <span class="sort-indicator" data-column="company_short_name"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('product_count')">产品数量 <span class="sort-indicator" data-column="product_count"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('business_agreement_count')">商务品数量 <span class="sort-indicator" data-column="business_agreement_count"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('business_agreement_ratio')">商务品占比 (%) <span class="sort-indicator" data-column="business_agreement_ratio"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('total_fund_size')">总管理规模 (亿元) <span class="sort-indicator" data-column="total_fund_size"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('total_amount')">总成交额 (亿元) <span class="sort-indicator" data-column="total_amount"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('total_attention_count')">总自选热度 <span class="sort-indicator" data-column="total_attention_count"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('total_holder_count_holders')">总持仓人数 <span class="sort-indicator" data-column="total_holder_count_holders"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('holder_attention_ratio')">持仓自选比 (%) <span class="sort-indicator" data-column="holder_attention_ratio"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('total_holding_value')">总持仓价值 (亿元) <span class="sort-indicator" data-column="total_holding_value"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('business_total_holding_value')">商务品总持仓价值 (亿元) <span class="sort-indicator" data-column="business_total_holding_value"></span></th>
+                                    <th style="cursor: pointer;" onclick="sortCompanyTable('business_holding_value_ratio')">商务品持仓价值占比 (%) <span class="sort-indicator" data-column="business_holding_value_ratio"></span></th>
                                 </tr>
                             </thead>
                             {# Add id to tbody for AJAX update #}
@@ -67,34 +79,109 @@
 
     {% include "modules/business.html" %}
     {% include "modules/report.html" %}
+{% endblock %}
 
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Function to check URL parameters and decide module visibility
-        // This function is now largely superseded by the logic in dashboard.js DOMContentLoaded
-        // We can keep it minimal or remove it if dashboard.js handles initial state fully.
-        /*
-        function manageModuleVisibility() {
-            const companyAnalyticsSection = document.getElementById('company-analytics-section');
-            const urlParams = new URLSearchParams(window.location.search);
-            const activeModuleParam = urlParams.get('active_module');
-
-            if (companyAnalyticsSection) {
-                let showCompanyTable = true; 
-                if (activeModuleParam && activeModuleParam !== 'market_overview') {
-                    showCompanyTable = false;
+        // 初始化排序指示器
+        updateSortIndicators();
+        
+        // 添加公司筛选功能
+        const filterInput = document.getElementById('company-filter');
+        if (filterInput) {
+            filterInput.addEventListener('input', function() {
+                const filterText = this.value.toLowerCase().trim();
+                const rows = document.querySelectorAll('#company-analytics-tbody tr');
+                let visibleCount = 0;
+                
+                rows.forEach(row => {
+                    const companyNameCell = row.querySelector('td:nth-child(2)');
+                    if (companyNameCell) {
+                        const companyName = companyNameCell.textContent.toLowerCase();
+                        if (companyName.includes(filterText) || filterText === '') {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+                
+                // 更新筛选状态
+                const filterCountBadge = document.getElementById('filter-count');
+                if (filterCountBadge) {
+                    filterCountBadge.textContent = filterText ? `${visibleCount} / ${rows.length}` : `全部 ${rows.length}`;
+                    
+                    if (visibleCount === 0) {
+                        filterCountBadge.className = 'status-badge status-badge-danger';
+                    } else if (visibleCount < rows.length) {
+                        filterCountBadge.className = 'status-badge status-badge-warning';
+                    } else {
+                        filterCountBadge.className = 'status-badge status-badge-success';
+                    }
                 }
-                // Defaulting to hidden, let dashboard.js logic explicitly show it.
-                // companyAnalyticsSection.style.display = showCompanyTable ? '' : 'none'; 
-            }
+            });
         }
-        // manageModuleVisibility(); // Called by dashboard.js logic now
-        // window.addEventListener('popstate', manageModuleVisibility); // popstate should also be handled by main init logic
-        */
-       console.log('[dashboard.html] Inline script: Initial module visibility will be handled by dashboard.js');
+        
+        // 为当前排序列添加高亮样式
+        highlightSortColumn();
+        
+        // 根据列宽度自动调整公司名称显示
+        if (typeof adjustCompanyColumnWidth === 'function') {
+            adjustCompanyColumnWidth();
+            
+            // 监听窗口大小变化，重新调整列宽
+            window.addEventListener('resize', function() {
+                setTimeout(adjustCompanyColumnWidth, 100);
+            });
+        }
+        
+        // 初始化进度条和动画效果
+        if (typeof reapplyProgressBars === 'function') {
+            setTimeout(function() {
+                reapplyProgressBars();
+            }, 500);
+        }
+        
+        // 初始化商务品持仓价值相关交互
+        if (typeof initBusinessValueInteractions === 'function') {
+            initBusinessValueInteractions();
+        }
+        
+        console.log('[dashboard.html] 页面初始化完成，已应用交互效果和动画');
     });
+    
+    // 用于高亮当前排序列的函数
+    function highlightSortColumn() {
+        // 清除所有高亮
+        document.querySelectorAll('.company-analytics-table th').forEach(th => {
+            th.classList.remove('active-sort');
+        });
+        
+        // 添加高亮到当前排序列
+        const currentColumn = document.querySelector(`.company-analytics-table th [data-column="${currentSortBy}"]`);
+        if (currentColumn && currentColumn.parentElement) {
+            currentColumn.parentElement.classList.add('active-sort');
+            currentColumn.setAttribute('data-active', 'true');
+        }
+    }
+    
+    // 更新原有的排序指示器函数，增加高亮功能
+    function updateSortIndicators() {
+        document.querySelectorAll('.sort-indicator').forEach(indicator => {
+            const column = indicator.dataset.column;
+            if (column === currentSortBy) {
+                indicator.innerHTML = currentOrder === 'asc' ? '&#9650;' : '&#9660;'; // Up or Down arrow
+                indicator.setAttribute('data-active', 'true');
+            } else {
+                indicator.innerHTML = ''; // Clear other indicators
+                indicator.removeAttribute('data-active');
+            }
+        });
+        
+        // 高亮当前排序列
+        highlightSortColumn();
+    }
 </script>
-{% endblock %}
-
 {% endblock %}

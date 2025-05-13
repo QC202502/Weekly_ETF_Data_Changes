@@ -75,110 +75,579 @@ window.handleHttpError = function(message) {
 }
 
 // 全局变量，用于跟踪当前排序状态
-let currentSortBy = 'total_holding_value'; // 默认与后端一致
-let currentOrder = 'desc'; // 默认与后端一致
+window.currentSortBy = 'total_holding_value'; // 默认与后端一致
+window.currentOrder = 'desc'; // 默认与后端一致
 
 // 更新排序指示器的函数
 function updateSortIndicators() {
     document.querySelectorAll('.sort-indicator').forEach(indicator => {
         const column = indicator.dataset.column;
-        if (column === currentSortBy) {
-            indicator.innerHTML = currentOrder === 'asc' ? '&#9650;' : '&#9660;'; // Up or Down arrow
+        if (column === window.currentSortBy) {
+            indicator.innerHTML = window.currentOrder === 'asc' ? '&#9650;' : '&#9660;'; // Up or Down arrow
+            indicator.setAttribute('data-active', 'true');
         } else {
             indicator.innerHTML = ''; // Clear other indicators
+            indicator.removeAttribute('data-active');
         }
     });
+    
+    // 高亮当前排序列
+    highlightSortColumn();
 }
 
 // 表格排序函数
 function sortCompanyTable(sortBy) {
-    console.log(`sortCompanyTable called with: ${sortBy}`);
-    if (sortBy === currentSortBy) {
-        // Toggle order if same column is clicked
-        currentOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+    // 获取当前排序方向
+    let order;
+    
+    // 如果点击的是当前排序列，则切换排序方向
+    if (sortBy === window.currentSortBy) {
+        order = window.currentOrder === 'asc' ? 'desc' : 'asc';
     } else {
-        // Default to ascending for new column
-        currentSortBy = sortBy;
-        currentOrder = 'asc';
+        // 如果点击的是新列，默认使用升序
+        order = 'asc';
     }
-
-    // Show loading state if you have one
-    // showLoading(); 
-
-    fetch(`/ajax_sort_company_analytics?sort_by=${currentSortBy}&order=${currentOrder}`)
+    
+    // 发送AJAX请求到后端进行排序
+    fetch(`/ajax_sort_company_analytics?sort_by=${encodeURIComponent(sortBy)}&order=${order}`)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            return response.json();
+            return response.json(); // 服务器返回JSON格式
         })
         .then(data => {
             if (data.error) {
-                console.error('Error sorting company analytics:', data.error);
-                showMessage('danger', `排序失败: ${data.error}`);
+                console.error('排序错误:', data.error);
                 return;
             }
-            const tbody = document.getElementById('company-analytics-tbody');
-            if (tbody) {
-                tbody.innerHTML = data.html_fragment;
-            }
-            // Update current sort state from response (if backend modifies it, though unlikely here)
-            currentSortBy = data.sort_by;
-            currentOrder = data.order;
+            
+            // 更新表格内容 - 使用返回的HTML片段
+            document.getElementById('company-analytics-tbody').innerHTML = data.html_fragment;
+            
+            // 更新全局变量以便其他函数使用
+            window.currentSortBy = data.sort_by;
+            window.currentOrder = data.order;
+            
+            // 更新排序指示器
             updateSortIndicators();
             
-            // Update the "当前按..." text in the card header
-            const sortInfoText = document.querySelector('#company-analytics-section .card-header .text-muted');
-            if (sortInfoText) {
-                // This part is a bit tricky as it requires mapping column names to Chinese names
-                // For simplicity, we'll just update with column name and order for now
-                // A more robust solution would involve a mapping object or getting the display name from the header
-                let sortByNameDisplay = currentSortBy;
-                const headerTh = document.querySelector(`th[onclick="sortCompanyTable('${currentSortBy}')"]`);
-                if (headerTh) {
-                    // Attempt to get a more friendly name (excluding the sort indicator span)
-                    sortByNameDisplay = headerTh.textContent.replace(/<span.*span>/, '').trim().replace(/ (升序|降序)$/, '').trim();
-                     // Remove existing sort indicators like "产品数量 ▲" before adding new ones
-                    const parts = headerTh.innerText.split('\n'); // Handles multiline text in th if any
-                    sortByNameDisplay = parts[0].trim(); // Use the first line of text
-                }
-
-
-                const orderDisplay = currentOrder === 'asc' ? '升序' : '降序';
-                // A more robust way to update the display name might be needed if column names are not user-friendly.
-                // This example assumes column names are somewhat descriptive or you have a mapping.
-                const columnDisplayNames = {
-                    'company_short_name': '基金公司',
-                    'product_count': '产品数量',
-                    'business_agreement_count': '商务品数量',
-                    'business_agreement_ratio': '商务品占比 (%)',
-                    'total_fund_size': '总管理规模 (亿元)',
-                    'total_amount': '总成交额 (亿元)',
-                    'total_attention_count': '总自选热度',
-                    'total_holder_count_holders': '总持仓人数',
-                    'holder_attention_ratio': '持仓自选比 (%)',
-                    'total_holding_value': '总持仓价值 (亿元)'
-                };
-                const displaySortBy = columnDisplayNames[currentSortBy] || currentSortBy;
-                sortInfoText.innerHTML = `(当前按 ${displaySortBy} ${orderDisplay}排序)`;
+            // 重新应用动画效果
+            if (typeof reapplyProgressBars === 'function') {
+                setTimeout(reapplyProgressBars, 100);
             }
-
-            console.log('Table updated and sort indicators refreshed.');
+            
+            // 根据排序后的公司名称长度重新调整列宽度
+            if (typeof adjustCompanyColumnWidth === 'function') {
+                setTimeout(adjustCompanyColumnWidth, 150);
+            }
+            
+            console.log(`表格已按 ${data.sort_by} ${data.order === 'asc' ? '升序' : '降序'} 排序`);
         })
         .catch(error => {
-            console.error('Error fetching sorted company data:', error);
-            showMessage('danger', '加载排序数据失败，请检查网络连接或稍后再试。');
-        })
-        .finally(() => {
-            // hideLoading();
+            console.error('排序请求失败:', error);
         });
 }
+
+// 应用公司筛选逻辑
+function applyCompanyFilter() {
+    const filterInput = document.getElementById('company-filter');
+    if (filterInput) {
+        const filterText = filterInput.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#company-analytics-tbody tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const companyNameCell = row.querySelector('td:nth-child(2)');
+            if (companyNameCell) {
+                const companyName = companyNameCell.textContent.toLowerCase();
+                if (companyName.includes(filterText) || filterText === '') {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+        
+        // 更新筛选状态
+        const filterCountBadge = document.getElementById('filter-count');
+        if (filterCountBadge) {
+            filterCountBadge.textContent = filterText ? `${visibleCount} / ${rows.length}` : `全部 ${rows.length}`;
+            
+            if (visibleCount === 0) {
+                filterCountBadge.className = 'status-badge status-badge-danger';
+            } else if (visibleCount < rows.length) {
+                filterCountBadge.className = 'status-badge status-badge-warning';
+            } else {
+                filterCountBadge.className = 'status-badge status-badge-success';
+            }
+        }
+    }
+}
+
+// 初始化商务品持仓价值相关的交互
+function initBusinessValueInteractions() {
+    console.log('初始化商务品持仓价值相关交互...');
+    
+    // 获取所有的商务品持仓价值列
+    const holdingValueCells = document.querySelectorAll('.business-value-column');
+    const holdingRatioCells = document.querySelectorAll('.business-ratio-column');
+    
+    // 为商务品持仓价值列添加悬停效果
+    holdingValueCells.forEach(cell => {
+        cell.addEventListener('mouseenter', () => {
+            // 高亮显示该单元格
+            cell.classList.add('highlight-hover');
+            
+            // 获取当前行
+            const row = cell.closest('tr');
+            if (row) {
+                // 高亮显示对应的公司名称单元格
+                const companyNameCell = row.querySelector('td:nth-child(2)');
+                if (companyNameCell) {
+                    companyNameCell.classList.add('highlight-hover');
+                }
+                
+                // 高亮显示对应的商务品持仓价值占比单元格
+                const ratioCell = row.querySelector('.business-ratio-column');
+                if (ratioCell) {
+                    ratioCell.classList.add('highlight-hover');
+                }
+            }
+        });
+        
+        cell.addEventListener('mouseleave', () => {
+            // 移除高亮效果
+            cell.classList.remove('highlight-hover');
+            
+            // 移除其他单元格的高亮效果
+            document.querySelectorAll('.highlight-hover').forEach(elem => {
+                elem.classList.remove('highlight-hover');
+            });
+        });
+    });
+    
+    // 也为持仓价值占比列添加相同的悬停效果
+    holdingRatioCells.forEach(cell => {
+        cell.addEventListener('mouseenter', () => {
+            // 高亮显示该单元格
+            cell.classList.add('highlight-hover');
+            
+            // 获取当前行
+            const row = cell.closest('tr');
+            if (row) {
+                // 高亮显示对应的公司名称单元格
+                const companyNameCell = row.querySelector('td:nth-child(2)');
+                if (companyNameCell) {
+                    companyNameCell.classList.add('highlight-hover');
+                }
+                
+                // 高亮显示对应的商务品持仓价值单元格
+                const valueCell = row.querySelector('.business-value-column');
+                if (valueCell) {
+                    valueCell.classList.add('highlight-hover');
+                }
+            }
+        });
+        
+        cell.addEventListener('mouseleave', () => {
+            // 移除高亮效果
+            cell.classList.remove('highlight-hover');
+            
+            // 移除其他单元格的高亮效果
+            document.querySelectorAll('.highlight-hover').forEach(elem => {
+                elem.classList.remove('highlight-hover');
+            });
+        });
+    });
+    
+    // 增强进度条动画效果 - 使用交错动画
+    function animateProgressBars() {
+        const ratioBarFills = document.querySelectorAll('.ratio-bar-fill');
+        if (ratioBarFills.length === 0) {
+            console.log('未找到比率条元素，无法应用动画');
+            return;
+        }
+        
+        console.log(`为${ratioBarFills.length}个进度条应用动画效果`);
+        
+        // 首先将所有进度条宽度重置为0
+        ratioBarFills.forEach(bar => {
+            bar.style.width = '0%';
+        });
+        
+        // 然后使用staggered动画，依次显示进度条
+        ratioBarFills.forEach((bar, index) => {
+            const finalWidth = bar.getAttribute('data-width') || bar.parentElement.getAttribute('data-width');
+            
+            if (!finalWidth) {
+                // 如果没有存储的宽度属性，从内联样式中提取
+                const inlineWidth = bar.style.width;
+                if (inlineWidth) {
+                    // 存储原始宽度值以便动画
+                    bar.setAttribute('data-width', inlineWidth);
+                } else {
+                    console.log(`进度条 #${index+1} 没有有效的宽度值`);
+                    return;
+                }
+            }
+            
+            // 延迟每个进度条动画，创建瀑布效果
+            setTimeout(() => {
+                bar.style.width = finalWidth || bar.getAttribute('data-width');
+            }, 100 + (index * 20)); // 基础延迟100ms，每个进度条增加20ms
+        });
+    }
+    
+    // 在排序操作后重新触发动画
+    window.reinitProgressBars = animateProgressBars;
+    
+    // 执行初始动画
+    setTimeout(animateProgressBars, 500);
+    
+    console.log('商务品持仓价值相关交互已初始化');
+}
+
+// 用于高亮当前排序列的函数
+function highlightSortColumn() {
+    // 清除所有高亮
+    document.querySelectorAll('.company-analytics-table th').forEach(th => {
+        th.classList.remove('active-sort');
+    });
+    
+    // 添加高亮到当前排序列
+    const currentColumn = document.querySelector(`.company-analytics-table th [data-column="${window.currentSortBy}"]`);
+    if (currentColumn && currentColumn.parentElement) {
+        currentColumn.parentElement.classList.add('active-sort');
+        currentColumn.setAttribute('data-active', 'true');
+    }
+}
+
 // Make sortCompanyTable globally accessible for inline onclick handlers
 window.sortCompanyTable = sortCompanyTable;
+window.applyCompanyFilter = applyCompanyFilter;
+window.highlightSortColumn = highlightSortColumn;
 
-// 页面加载完成后执行
+// 初始化商务品持仓价值列动画效果
+function initBusinessValueAnimations() {
+    console.log('初始化商务品持仓价值列动画效果');
+    
+    // 获取所有进度条并应用动画
+    const progressBars = document.querySelectorAll('.ratio-bar-fill');
+    if (progressBars.length > 0) {
+        console.log(`找到 ${progressBars.length} 个进度条，应用动画效果`);
+        
+        // 先将所有进度条设置为宽度0
+        progressBars.forEach(bar => {
+            const originalWidth = bar.style.width;
+            bar.setAttribute('data-width', originalWidth);
+            bar.style.width = '0%';
+        });
+        
+        // 然后使用延迟动画依次显示进度条
+        setTimeout(() => {
+            progressBars.forEach((bar, index) => {
+                setTimeout(() => {
+                    const targetWidth = bar.getAttribute('data-width');
+                    if (targetWidth) {
+                        bar.style.width = targetWidth;
+                    }
+                }, index * 30); // 每个进度条延迟30ms，创建瀑布效果
+            });
+        }, 300); // 等待300ms后开始动画
+    }
+    
+    // 应用数值高亮效果
+    const valueColumns = document.querySelectorAll('.business-value-column .mono-value');
+    if (valueColumns.length > 0) {
+        console.log(`找到 ${valueColumns.length} 个数值列，应用高亮效果`);
+        
+        valueColumns.forEach((col, index) => {
+            setTimeout(() => {
+                col.classList.add('value-changed');
+                // 1秒后移除动画类
+                setTimeout(() => {
+                    col.classList.remove('value-changed');
+                }, 1000);
+            }, index * 50);
+        });
+    }
+}
+
+// 在表格排序后重新应用动画
+function reapplyBusinessAnimations() {
+    console.log('重新应用商务品持仓价值列动画效果');
+    setTimeout(initBusinessValueAnimations, 100);
+}
+
+// 重新应用进度条动画的函数
+function reapplyProgressBars() {
+    // 先获取所有进度条元素
+    const ratioBarFills = document.querySelectorAll('.ratio-bar-fill, .percent-bar-fill');
+    
+    // 如果找不到元素，退出
+    if (ratioBarFills.length === 0) {
+        console.log('没有找到进度条元素');
+        return;
+    }
+    
+    console.log(`找到 ${ratioBarFills.length} 个进度条元素`);
+    
+    // 为所有进度条添加data-width属性（如果还没有）
+    ratioBarFills.forEach(bar => {
+        if (!bar.hasAttribute('data-width')) {
+            // 从style.width中提取宽度
+            const width = bar.style.width;
+            if (width) {
+                bar.setAttribute('data-width', width);
+            }
+        }
+    });
+    
+    // 先将所有进度条宽度重置为0
+    ratioBarFills.forEach(bar => {
+        // 存储原始宽度（如果还没有存储）
+        const originalWidth = bar.style.width;
+        if (!bar.hasAttribute('data-width') && originalWidth) {
+            bar.setAttribute('data-width', originalWidth);
+        }
+        // 重置宽度为0
+        bar.style.width = '0%';
+    });
+    
+    // 然后延迟依次显示
+    setTimeout(() => {
+        ratioBarFills.forEach((bar, index) => {
+            setTimeout(() => {
+                const targetWidth = bar.getAttribute('data-width');
+                if (targetWidth) {
+                    bar.style.width = targetWidth;
+                }
+            }, index * 50); // 每个进度条间隔50ms
+        });
+    }, 300); // 整体延迟300ms
+}
+
+// 完全重新初始化表格所有进度条动画效果的函数
+function fullResetProgressBars() {
+    console.log('执行完全进度条重置操作...');
+    
+    // 强制暂停一下让DOM更新
+    setTimeout(() => {
+        // 获取所有进度条容器元素
+        const ratioContainers = document.querySelectorAll('.ratio-bar, .percent-bar');
+        console.log(`找到 ${ratioContainers.length} 个进度条容器`);
+        
+        if (ratioContainers.length === 0) return;
+        
+        // 从ratio-container匹配数据源获取真实数值
+        ratioContainers.forEach((container, index) => {
+            // 1. 查找该行对应的文本百分比值
+            const row = container.closest('tr');
+            if (!row) return;
+            
+            // 判断是哪种类型的进度条
+            let percentText = '';
+            let percentValue = 0;
+            let barFill = container.querySelector('.ratio-bar-fill, .percent-bar-fill');
+            
+            if (!barFill) {
+                console.log(`进度条#${index}没有填充元素`);
+                return;
+            }
+            
+            // 查找百分比文本(针对不同类型进度条位置不同)
+            if (container.classList.contains('ratio-bar')) {
+                // 商务品持仓价值占比
+                const valueSpan = row.querySelector('.ratio-value');
+                if (valueSpan) {
+                    percentText = valueSpan.textContent.trim();
+                }
+            } else if (container.classList.contains('percent-bar')) {
+                // 常规百分比列
+                const cell = container.closest('td');
+                if (cell) {
+                    const valueSpan = cell.querySelector('.percent-value');
+                    if (valueSpan) {
+                        percentText = valueSpan.textContent.trim();
+                    }
+                }
+            }
+            
+            // 从文本中提取数值
+            if (percentText) {
+                percentText = percentText.replace('%', '').trim();
+                percentValue = parseFloat(percentText);
+                
+                if (!isNaN(percentValue)) {
+                    console.log(`进度条#${index} 解析到百分比值: ${percentValue}%`);
+                    
+                    // 临时将宽度设为0
+                    barFill.style.width = '0%';
+                    
+                    // 存储目标宽度到data属性
+                    const targetWidth = `${percentValue}%`;
+                    barFill.setAttribute('data-width', targetWidth);
+                }
+            }
+        });
+        
+        // 强制浏览器重绘
+        document.body.offsetHeight;
+        
+        // 开始应用动画，获取所有填充元素
+        const barFills = document.querySelectorAll('.ratio-bar-fill, .percent-bar-fill');
+        console.log(`准备为${barFills.length}个进度条应用动画效果`);
+        
+        // 逐个应用动画效果
+        setTimeout(() => {
+            barFills.forEach((barFill, index) => {
+                setTimeout(() => {
+                    const targetWidth = barFill.getAttribute('data-width');
+                    if (targetWidth) {
+                        barFill.style.width = targetWidth;
+                        console.log(`进度条#${index}设置宽度为${targetWidth}`);
+                    } else {
+                        console.log(`进度条#${index}没有目标宽度值`);
+                    }
+                }, index * 40); // 错开动画时间
+            });
+        }, 200); // 等待一小段时间后开始动画
+    }, 100); // 给DOM更新的时间
+}
+
+// 创建一个特别针对商务品持仓价值占比列的修复函数
+function fixBusinessRatioProgressBars() {
+    console.log('专门修复商务品持仓价值占比进度条...');
+    
+    // 获取所有商务品持仓价值占比单元格
+    const ratioCells = document.querySelectorAll('.business-ratio-column');
+    if (ratioCells.length === 0) {
+        console.log('未找到商务品持仓价值占比单元格');
+        return;
+    }
+    
+    console.log(`找到 ${ratioCells.length} 个商务品持仓价值占比单元格`);
+    
+    // 处理每个单元格
+    ratioCells.forEach((cell, index) => {
+        // 查找百分比文本和进度条 - 根据实际HTML结构查找
+        const ratioValue = cell.querySelector('.ratio-value');
+        const ratioBarContainer = cell.querySelector('.ratio-bar-container');
+        const ratioBar = cell.querySelector('.ratio-bar');
+        const ratioBarFill = cell.querySelector('.ratio-bar-fill');
+        
+        if (!ratioValue || !ratioBar || !ratioBarFill) {
+            console.log(`单元格 #${index} 缺少必要元素`);
+            return;
+        }
+        
+        // 获取百分比值
+        const percentText = ratioValue.textContent.trim();
+        const percentValue = parseFloat(percentText.replace('%', ''));
+        
+        if (isNaN(percentValue)) {
+            console.log(`单元格 #${index} 无法解析百分比值: ${percentText}`);
+            return;
+        }
+        
+        console.log(`商务品单元格 #${index} 解析到百分比值: ${percentValue}%`);
+        
+        // 确保目标宽度值保存在data属性
+        const targetWidth = `${percentValue}%`;
+        ratioBarFill.setAttribute('data-width', targetWidth);
+        
+        // 强制设置宽度0
+        ratioBarFill.style.width = '0%';
+        
+        // 强制重流
+        void ratioBarContainer.offsetWidth;
+    });
+    
+    // 强制浏览器重绘
+    void document.body.offsetWidth;
+    
+    // 应用动画效果
+    setTimeout(() => {
+        const barFills = document.querySelectorAll('.business-ratio-column .ratio-bar-fill');
+        
+        barFills.forEach((barFill, index) => {
+            setTimeout(() => {
+                const targetWidth = barFill.getAttribute('data-width');
+                if (targetWidth) {
+                    console.log(`设置商务品进度条 #${index} 宽度为 ${targetWidth}`);
+                    barFill.style.width = targetWidth;
+                }
+            }, index * 50); // 错开动画
+        });
+    }, 150);
+}
+
+// 添加一个紧急修复函数，直接设置商务品持仓价值占比进度条宽度
+function emergencyFixRatioBars() {
+    console.log('执行紧急修复：直接设置所有进度条宽度');
+    
+    // 获取所有占比单元格
+    const ratioCells = document.querySelectorAll('.business-ratio-column');
+    if (ratioCells.length === 0) {
+        console.log('未找到进度条单元格');
+        return;
+    }
+    
+    // 遍历每个单元格
+    ratioCells.forEach((cell, index) => {
+        // 获取值和进度条元素
+        const valueSpan = cell.querySelector('.ratio-value');
+        const barFill = cell.querySelector('.ratio-bar-fill');
+        
+        if (!valueSpan || !barFill) return;
+        
+        // 提取百分比值
+        const text = valueSpan.textContent.trim();
+        const value = parseFloat(text.replace('%', ''));
+        
+        if (isNaN(value)) return;
+        
+        // 直接设置宽度，跳过动画
+        const width = `${value}%`;
+        console.log(`设置进度条 #${index} 宽度为 ${width}`);
+        
+        // 立即应用宽度
+        barFill.style.width = width;
+        barFill.style.transition = 'none'; // 禁用过渡动画
+        
+        // 确保应用
+        void barFill.offsetWidth;
+    });
+    
+    // 完成后恢复过渡动画
+    setTimeout(() => {
+        document.querySelectorAll('.ratio-bar-fill').forEach(bar => {
+            bar.style.transition = '';
+        });
+        console.log('紧急修复完成，所有进度条已直接设置宽度');
+    }, 100);
+}
+
+// 将紧急修复函数添加到window对象
+window.emergencyFixRatioBars = emergencyFixRatioBars;
+
+// 在页面加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
     console.log('页面加载完成，初始化事件监听器');
+    
+    // 初始排序指示器
+    updateSortIndicators();
+    
+    // 初始化商务品持仓价值列动画效果
+    initBusinessValueAnimations();
+    
+    // 初始化公司筛选功能
+    const filterInput = document.getElementById('company-filter');
+    if (filterInput) {
+        filterInput.addEventListener('input', applyCompanyFilter);
+    }
     
     // 检查页面元素，输出调试信息
     const elements = {
@@ -355,13 +824,108 @@ document.addEventListener('DOMContentLoaded', function() {
                     '总持仓价值 (亿元)': 'total_holding_value'
                 };
                 const matchedSortByDisplay = match[1].trim();
-                currentSortBy = columnDisplayNamesReverse[matchedSortByDisplay] || matchedSortByDisplay; // Fallback if name not in map
-                currentOrder = match[2] === '升序' ? 'asc' : 'desc';
-                console.log(`Initial sort state from HTML: ${currentSortBy} ${currentOrder}`);
+                window.currentSortBy = columnDisplayNamesReverse[matchedSortByDisplay] || matchedSortByDisplay; // Fallback if name not in map
+                window.currentOrder = match[2] === '升序' ? 'asc' : 'desc';
+                console.log(`Initial sort state from HTML: ${window.currentSortBy} ${window.currentOrder}`);
             } else {
                  console.log('Could not parse initial sort state from HTML, using defaults.');
             }
         }
          updateSortIndicators(); // Initial call to set indicators based on currentSortBy and currentOrder
     }
+
+    // 初始化商务品持仓价值相关的交互
+    initBusinessValueInteractions();
+    
+    // 添加高亮样式到当前排序列
+    highlightSortColumn();
+    
+    // 初始化进度条动画
+    reapplyProgressBars();
+    
+    // 给window对象添加重新应用进度条动画的方法
+    window.reapplyProgressBars = reapplyProgressBars;
+    
+    // 添加完全重置进度条方法以便从控制台调用
+    window.fullResetProgressBars = fullResetProgressBars;
+    
+    // 添加专用修复商务品持仓价值占比进度条函数
+    window.fixBusinessRatioProgressBars = fixBusinessRatioProgressBars;
+    
+    // 添加紧急修复进度条函数
+    window.emergencyFixRatioBars = emergencyFixRatioBars;
+    
+    // 初始化时运行一次紧急修复确保进度条显示正确
+    setTimeout(emergencyFixRatioBars, 800);
+    
+    console.log('页面初始化完成，交互功能已加载');
 });
+
+// 根据基金公司名称长度动态调整列宽度
+function adjustCompanyColumnWidth() {
+    // 获取表格的实际宽度
+    const table = document.querySelector('.company-analytics-table');
+    if (!table) return;
+    
+    // 使用MutationObserver监听表格DOM变化
+    if (typeof MutationObserver !== 'undefined') {
+        const observer = new MutationObserver(function(mutations) {
+            optimizeColumnWidths();
+        });
+        
+        // 监听表格内容变化
+        observer.observe(table, { 
+            childList: true, 
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
+        });
+    }
+    
+    // 调用一次以进行初始优化
+    optimizeColumnWidths();
+    
+    // 优化列宽的函数
+    function optimizeColumnWidths() {
+        // 检测表格总宽度
+        const tableWidth = table.offsetWidth;
+        
+        // 检测当前所有列宽度总和
+        const thElements = table.querySelectorAll('thead th');
+        let totalWidth = 0;
+        thElements.forEach(th => {
+            totalWidth += th.offsetWidth;
+        });
+        
+        // 如果总宽度超过表格宽度，进一步优化缩短不必要的列
+        if (totalWidth > tableWidth) {
+            console.log(`表格列总宽度(${totalWidth}px)超过表格容器宽度(${tableWidth}px)，尝试优化...`);
+            
+            // 减少非重要列的宽度
+            const lessImportantColumns = [2, 3, 4, 7, 8]; // 索引从0开始，这些列可以适当缩小
+            lessImportantColumns.forEach(index => {
+                if (thElements[index]) {
+                    const currentWidth = thElements[index].offsetWidth;
+                    // 宽度超过100px的列可以适当缩小10%
+                    if (currentWidth > 100) {
+                        const newWidth = Math.floor(currentWidth * 0.9);
+                        thElements[index].style.width = `${newWidth}px`;
+                        console.log(`优化第${index+1}列宽度: ${currentWidth}px -> ${newWidth}px`);
+                    }
+                }
+            });
+        }
+        
+        // 为公司名称设置适当的宽度
+        const companyColumn = table.querySelector('th:nth-child(2)');
+        if (companyColumn) {
+            // 设置适当的固定宽度，不再需要太宽
+            companyColumn.style.width = '80px'; 
+        }
+    }
+    
+    // 添加窗口大小变化监听器
+    window.addEventListener('resize', function() {
+        setTimeout(optimizeColumnWidths, 100);
+    });
+}

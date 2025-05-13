@@ -1493,7 +1493,7 @@ class Database:
         """返回 etf_company_analytics 表的SQL列类型字典，供 to_sql 使用"""
         # 这有助于确保Pandas在创建/替换表时使用正确的SQLite数据类型
         return {
-            'company_short_name': 'TEXT', 
+            'company_short_name': 'TEXT',
             'product_count': 'INTEGER',
             'business_agreement_count': 'INTEGER',
             'business_agreement_ratio': 'REAL',

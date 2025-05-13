@@ -1,0 +1,35 @@
+{% for company in companies %}
+<tr class="company-row" data-company-id="{{ company.id }}">
+    <td class="company-name">
+        <div class="d-flex align-items-center">
+            <span class="company-name-text">{{ company.name }}</span>
+            {% if company.is_new %}
+            <span class="badge bg-success ms-2">新</span>
+            {% endif %}
+        </div>
+    </td>
+    <td class="business-value-column">
+        <span class="value">{{ company.total_holding_value|floatformat:2 }}</span>
+        <span class="value-unit">亿元</span>
+        {% if company.holding_value_change %}
+        <span class="trend-indicator {% if company.holding_value_change > 0 %}trend-up{% else %}trend-down{% endif %}">
+            {% if company.holding_value_change > 0 %}↑{% else %}↓{% endif %}
+            {{ company.holding_value_change|abs|floatformat:2 }}%
+        </span>
+        {% endif %}
+    </td>
+    <td class="business-ratio-column {% if company.holding_ratio > 50 %}ratio-high{% elif company.holding_ratio > 30 %}ratio-medium{% else %}ratio-low{% endif %}">
+        <span class="ratio-value">{{ company.holding_ratio|floatformat:2 }}%</span>
+        <div class="ratio-bar">
+            <div class="ratio-bar-fill" style="width: {{ company.holding_ratio }}%"></div>
+        </div>
+        <span class="ratio-label {% if company.holding_ratio > 50 %}ratio-label-high{% elif company.holding_ratio > 30 %}ratio-label-medium{% else %}ratio-label-low{% endif %}">
+            {% if company.holding_ratio > 50 %}高占比{% elif company.holding_ratio > 30 %}中占比{% else %}低占比{% endif %}
+        </span>
+    </td>
+    <td class="text-end">{{ company.etf_count }}</td>
+    <td class="text-end">{{ company.avg_holding_ratio|floatformat:2 }}%</td>
+    <td class="text-end">{{ company.max_holding_ratio|floatformat:2 }}%</td>
+    <td class="text-end">{{ company.min_holding_ratio|floatformat:2 }}%</td>
+</tr>
+{% endfor %} 

@@ -1,21 +1,72 @@
 {% for item in company_analytics %}
 <tr>
     <td>{{ loop.index }}</td>
-    <td>{{ item.company_short_name if item.company_short_name is not none else '-' }}</td>
+    <td class="company-name-cell">
+        <span class="company-name-text">{{ item.company_short_name if item.company_short_name is not none else '-' }}</span>
+    </td>
     <td class="text-right">{{ '{:,}'.format(item.product_count) if item.product_count is not none else '0' }}</td>
     <td class="text-right">{{ '{:,}'.format(item.business_agreement_count) if item.business_agreement_count is not none else '0' }}</td>
-    <td class="text-right">{{ "%.1f" % item.business_agreement_ratio if item.business_agreement_ratio is not none else '0.0' }}</td>
+    <td class="business-ratio-column">
+        {% set ratio = item.business_agreement_ratio if item.business_agreement_ratio is not none else 0.0 %}
+        <div class="ratio-container">
+            <span class="ratio-value {% if ratio > 70 %}highlight-high{% elif ratio > 30 %}highlight-medium{% else %}highlight-low{% endif %}">{{ "%.1f" % ratio }}%</span>
+            <div class="ratio-bar-container">
+                <div class="ratio-bar {% if ratio > 70 %}ratio-high{% elif ratio > 30 %}ratio-medium{% else %}ratio-low{% endif %}">
+                    <div class="ratio-bar-fill" style="width: {{ ratio }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </td>
     <td class="text-right">{{ "%.2f" % item.total_fund_size if item.total_fund_size is not none and item.total_fund_size != 0 else '0.00' }}</td>
     <td class="text-right">{{ "%.2f" % item.total_amount if item.total_amount is not none and item.total_amount != 0 else '0.00' }}</td>
     <td class="text-right">{{ '{:,}'.format(item.total_attention_count) if item.total_attention_count is not none else '0' }}</td>
     <td class="text-right">{{ '{:,}'.format(item.total_holder_count_holders) if item.total_holder_count_holders is not none else '0' }}</td>
-    <td class="text-right">{{ "%.1f" % item.holder_attention_ratio if item.holder_attention_ratio is not none else '0.0' }}</td>
-    <td class="text-right">{{ "%.2f" % (item.total_holding_value / 100000000) if item.total_holding_value is not none and item.total_holding_value != 0 else '0.00' }}</td>
-    <td class="text-right">{{ "%.2f" % (item.get('business_total_holding_value', 0) / 100000000) if item.get('business_total_holding_value') is not none and item.get('business_total_holding_value') != 0 else '0.00' }}</td>
-    <td class="text-right">{{ "%.1f" % item.get('business_holding_value_ratio', 0.0) if item.get('business_holding_value_ratio') is not none else '0.0' }}</td>
+    <td class="business-ratio-column">
+        {% set holder_ratio = item.holder_attention_ratio if item.holder_attention_ratio is not none else 0.0 %}
+        <div class="ratio-container">
+            <span class="ratio-value {% if holder_ratio > 40 %}highlight-high{% elif holder_ratio > 20 %}highlight-medium{% else %}highlight-low{% endif %}">{{ "%.1f" % holder_ratio }}%</span>
+            <div class="ratio-bar-container">
+                <div class="ratio-bar {% if holder_ratio > 40 %}ratio-high{% elif holder_ratio > 20 %}ratio-medium{% else %}ratio-low{% endif %}">
+                    <div class="ratio-bar-fill" style="width: {{ holder_ratio }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </td>
+    <td class="text-right {% if item.total_holding_value is not none and item.total_holding_value/100000000 >= 20 %}highlight-high{% elif item.total_holding_value is not none and item.total_holding_value/100000000 >= 10 %}highlight-medium{% endif %}">
+        {{ "%.2f" % (item.total_holding_value / 100000000) if item.total_holding_value is not none and item.total_holding_value != 0 else '0.00' }}
+    </td>
+    <td class="business-value-column">
+        <div class="value-container">
+            <span class="mono-value {% if item.business_total_holding_value is not none and item.business_total_holding_value/100000000 >= 10 %}highlight-high{% elif item.business_total_holding_value is not none and item.business_total_holding_value/100000000 >= 5 %}highlight-medium{% else %}highlight-low{% endif %}">
+                {{ "%.2f" % (item.business_total_holding_value / 100000000) if item.business_total_holding_value is not none and item.business_total_holding_value != 0 else '0.00' }}
+            </span>
+            {% if item.business_value_change is defined and item.business_value_change is not none %}
+                <span class="trend-badge {% if item.business_value_change > 0 %}trend-up{% elif item.business_value_change < 0 %}trend-down{% endif %}">
+                    {% if item.business_value_change > 0 %}<i class="bi bi-arrow-up-short"></i>{% elif item.business_value_change < 0 %}<i class="bi bi-arrow-down-short"></i>{% endif %}
+                    {{ "%.1f" % (item.business_value_change|abs) }}%
+                </span>
+            {% endif %}
+        </div>
+    </td>
+    <td class="business-ratio-column">
+        {% set value_ratio = item.business_holding_value_ratio if item.business_holding_value_ratio is not none else 0.0 %}
+        <div class="ratio-container">
+            <span class="ratio-value {% if value_ratio > 70 %}highlight-high{% elif value_ratio > 30 %}highlight-medium{% else %}highlight-low{% endif %}">{{ "%.1f" % value_ratio }}%</span>
+            <div class="ratio-bar-container">
+                <div class="ratio-bar {% if value_ratio > 70 %}ratio-high{% elif value_ratio > 30 %}ratio-medium{% else %}ratio-low{% endif %}">
+                    <div class="ratio-bar-fill" style="width: {{ value_ratio }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </td>
 </tr>
 {% else %}
 <tr>
-    <td colspan="13" class="text-center">没有可供显示的基金公司分析数据。</td>
+    <td colspan="13" class="text-center">
+        <div class="empty-data-message">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>没有可供显示的基金公司分析数据。</span>
+        </div>
+    </td>
 </tr>
 {% endfor %} 

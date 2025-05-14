@@ -1,0 +1,42 @@
+/* 总成交额四分位数颜色 */
+.amount-q4,
+span.amount-q4,
+td span.amount-q4,
+table td span.amount-q4,
+.company-analytics-table tbody tr td span.amount-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+
+.amount-q3,
+span.amount-q3,
+td span.amount-q3,
+table td span.amount-q3,
+.company-analytics-table tbody tr td span.amount-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+
+.amount-q2,
+span.amount-q2,
+td span.amount-q2,
+table td span.amount-q2,
+.company-analytics-table tbody tr td span.amount-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+
+.amount-q1,
+span.amount-q1,
+td span.amount-q1,
+table td span.amount-q1,
+.company-analytics-table tbody tr td span.amount-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 确保内联样式可以正确应用 */
+.company-analytics-table tbody td.amount-cell span.amount-value[style*="color"] {
+  /* 保留内联样式的颜色，增加优先级 */
+  color: inherit !important;
+} 

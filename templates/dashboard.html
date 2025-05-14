@@ -1,7 +1,146 @@
 {% extends "base.html" %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/company_analytics.css') }}?v={{ config.get('__version__', '1.0') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/company_analytics.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fund_size_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/amount_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/holding_value_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business_value_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/business_ratio_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/holder_ratio_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/value_ratio_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+<style>
+/* 内联CSS，确保即使外部CSS加载失败也能应用样式 */
+.fund-size-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+.fund-size-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+.fund-size-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+.fund-size-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 总成交额四分位数颜色 */
+.amount-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+.amount-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+.amount-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+.amount-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 总持仓价值四分位数颜色 */
+.holding-value-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+.holding-value-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+.holding-value-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+.holding-value-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 商务品总持仓价值四分位数颜色 */
+.business-value-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+.business-value-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+.business-value-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+.business-value-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 商务品占比四分位数颜色 */
+.business-ratio-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+.business-ratio-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+.business-ratio-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+.business-ratio-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 持仓自选比四分位数颜色 */
+.holder-ratio-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+.holder-ratio-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+.holder-ratio-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+.holder-ratio-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 商务品持仓价值占比四分位数颜色 */
+.value-ratio-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+.value-ratio-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+.value-ratio-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+.value-ratio-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 直接添加内联样式，避免任何冲突 */
+#company-analytics-tbody td.text-right {
+  color: inherit; /* 重置可能覆盖的颜色 */
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -82,6 +221,1035 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- 直接内联脚本，确保立即执行 -->
+<script>
+    // 内联版本的四分位数着色函数，确保即使主JS未加载也能执行
+    function applyFundSizeQuartileColorsInline() {
+        console.log('内联脚本: 开始应用总管理规模四分位数着色');
+        
+        // 获取所有总管理规模单元格
+        const cells = document.querySelectorAll('#company-analytics-tbody tr td.fund-size-cell');
+        if (cells.length === 0) {
+            console.log('内联脚本: 未找到总管理规模单元格');
+            return;
+        }
+        
+        // 收集所有有效的规模值
+        const values = [];
+        cells.forEach((cell, index) => {
+            try {
+                const valueSpan = cell.querySelector('span.fund-size-value');
+                let text = valueSpan ? valueSpan.textContent.trim() : cell.textContent.trim();
+                const value = parseFloat(text);
+                
+                if (!isNaN(value)) {
+                    values.push({ cell, value, index, valueSpan });
+                }
+            } catch (error) {
+                console.error('内联脚本: 处理单元格时出错', error);
+            }
+        });
+        
+        if (values.length === 0) {
+            console.log('内联脚本: 未找到有效的总管理规模值');
+            return;
+        }
+        
+        // 排序并计算四分位数
+        values.sort((a, b) => a.value - b.value);
+        const q1Index = Math.floor(values.length * 0.25);
+        const q2Index = Math.floor(values.length * 0.5);
+        const q3Index = Math.floor(values.length * 0.75);
+        
+        const q1 = values[q1Index].value;
+        const q2 = values[q2Index].value;
+        const q3 = values[q3Index].value;
+        
+        console.log(`内联脚本: 四分位数: Q1=${q1.toFixed(2)}, Q2=${q2.toFixed(2)}, Q3=${q3.toFixed(2)}`);
+        
+        // 应用颜色
+        values.forEach(item => {
+            try {
+                // 首先清除可能存在的之前的样式
+                if (item.cell) {
+                    item.cell.style.removeProperty('color');
+                    item.cell.classList.remove('fund-size-q1', 'fund-size-q2', 'fund-size-q3', 'fund-size-q4');
+                }
+                
+                const targetElement = item.valueSpan || item.cell;
+                
+                // 移除之前可能存在的任何四分位数类
+                targetElement.classList.remove('fund-size-q1', 'fund-size-q2', 'fund-size-q3', 'fund-size-q4');
+                
+                // 决定颜色
+                let color, colorClass;
+                if (item.value >= q3) {
+                    color = '#dc2626';
+                    colorClass = 'fund-size-q4';
+                } else if (item.value >= q2) {
+                    color = '#ea580c';
+                    colorClass = 'fund-size-q3';
+                } else if (item.value >= q1) {
+                    color = '#0369a1';
+                    colorClass = 'fund-size-q2';
+                } else {
+                    color = '#16a34a';
+                    colorClass = 'fund-size-q1';
+                }
+                
+                // 应用内联样式，并确保最高优先级
+                targetElement.style.setProperty('color', color, 'important');
+                targetElement.style.setProperty('font-weight', '600', 'important');
+                
+                // 同时添加类
+                targetElement.classList.add(colorClass);
+                
+                // 添加data属性，用于调试
+                targetElement.setAttribute('data-quartile', colorClass);
+                targetElement.setAttribute('data-value', item.value);
+                
+                // 强制重新计算样式
+                void targetElement.offsetWidth;
+                
+                console.log(`内联脚本: 应用颜色 ${color} 到元素 #${item.index}`);
+            } catch (error) {
+                console.error('内联脚本: 应用颜色时出错', error);
+            }
+        });
+        
+        console.log('内联脚本: 总管理规模四分位数着色完成');
+        
+        // 同时处理总成交额四分位数着色
+        applyAmountQuartileColorsInline();
+        
+        // 处理总持仓价值四分位数着色
+        applyHoldingValueQuartileColorsInline();
+        
+        // 处理商务品总持仓价值四分位数着色
+        applyBusinessValueQuartileColorsInline();
+        
+        // 处理商务品占比四分位数着色
+        applyBusinessRatioQuartileColorsInline();
+        
+        // 处理持仓自选比四分位数着色
+        applyHolderRatioQuartileColorsInline();
+        
+        // 处理商务品持仓价值占比四分位数着色
+        applyValueRatioQuartileColorsInline();
+    }
+    
+    // 内联版本的总成交额四分位数着色函数
+    function applyAmountQuartileColorsInline() {
+        console.log('内联脚本: 开始应用总成交额四分位数着色');
+        
+        // 获取所有总成交额单元格
+        const cells = document.querySelectorAll('#company-analytics-tbody tr td.amount-cell');
+        if (cells.length === 0) {
+            console.log('内联脚本: 未找到总成交额单元格');
+            return;
+        }
+        
+        // 收集所有有效的成交额值
+        const values = [];
+        cells.forEach((cell, index) => {
+            try {
+                const valueSpan = cell.querySelector('span.amount-value');
+                let text = valueSpan ? valueSpan.textContent.trim() : cell.textContent.trim();
+                const value = parseFloat(text);
+                
+                if (!isNaN(value)) {
+                    values.push({ cell, value, index, valueSpan });
+                }
+            } catch (error) {
+                console.error('内联脚本: 处理总成交额单元格时出错', error);
+            }
+        });
+        
+        if (values.length === 0) {
+            console.log('内联脚本: 未找到有效的总成交额值');
+            return;
+        }
+        
+        // 排序并计算四分位数
+        values.sort((a, b) => a.value - b.value);
+        const q1Index = Math.floor(values.length * 0.25);
+        const q2Index = Math.floor(values.length * 0.5);
+        const q3Index = Math.floor(values.length * 0.75);
+        
+        const q1 = values[q1Index].value;
+        const q2 = values[q2Index].value;
+        const q3 = values[q3Index].value;
+        
+        console.log(`内联脚本: 总成交额四分位数: Q1=${q1.toFixed(2)}, Q2=${q2.toFixed(2)}, Q3=${q3.toFixed(2)}`);
+        
+        // 应用颜色
+        values.forEach(item => {
+            try {
+                // 首先清除可能存在的之前的样式
+                if (item.cell) {
+                    item.cell.style.removeProperty('color');
+                    item.cell.classList.remove('amount-q1', 'amount-q2', 'amount-q3', 'amount-q4');
+                }
+                
+                const targetElement = item.valueSpan || item.cell;
+                
+                // 移除之前可能存在的任何四分位数类
+                targetElement.classList.remove('amount-q1', 'amount-q2', 'amount-q3', 'amount-q4');
+                
+                // 决定颜色
+                let color, colorClass;
+                if (item.value >= q3) {
+                    color = '#dc2626';
+                    colorClass = 'amount-q4';
+                } else if (item.value >= q2) {
+                    color = '#ea580c';
+                    colorClass = 'amount-q3';
+                } else if (item.value >= q1) {
+                    color = '#0369a1';
+                    colorClass = 'amount-q2';
+                } else {
+                    color = '#16a34a';
+                    colorClass = 'amount-q1';
+                }
+                
+                // 应用内联样式，并确保最高优先级
+                targetElement.style.setProperty('color', color, 'important');
+                targetElement.style.setProperty('font-weight', '600', 'important');
+                
+                // 同时添加类
+                targetElement.classList.add(colorClass);
+                
+                // 添加data属性，用于调试
+                targetElement.setAttribute('data-quartile', colorClass);
+                targetElement.setAttribute('data-value', item.value);
+                
+                // 强制重新计算样式
+                void targetElement.offsetWidth;
+                
+                console.log(`内联脚本: 应用总成交额颜色 ${color} 到元素 #${item.index}`);
+            } catch (error) {
+                console.error('内联脚本: 应用总成交额颜色时出错', error);
+            }
+        });
+        
+        console.log('内联脚本: 总成交额四分位数着色完成');
+    }
+    
+    // 内联版本的总持仓价值四分位数着色函数
+    function applyHoldingValueQuartileColorsInline() {
+        console.log('内联脚本: 开始应用总持仓价值四分位数着色');
+        
+        // 获取所有总持仓价值单元格
+        const cells = document.querySelectorAll('#company-analytics-tbody tr td.holding-value-cell');
+        if (cells.length === 0) {
+            console.log('内联脚本: 未找到总持仓价值单元格');
+            return;
+        }
+        
+        // 收集所有有效的持仓价值
+        const values = [];
+        cells.forEach((cell, index) => {
+            try {
+                const valueSpan = cell.querySelector('span.holding-value-value');
+                let text = valueSpan ? valueSpan.textContent.trim() : cell.textContent.trim();
+                const value = parseFloat(text);
+                
+                if (!isNaN(value)) {
+                    values.push({ cell, value, index, valueSpan });
+                }
+            } catch (error) {
+                console.error('内联脚本: 处理总持仓价值单元格时出错', error);
+            }
+        });
+        
+        if (values.length === 0) {
+            console.log('内联脚本: 未找到有效的总持仓价值');
+            return;
+        }
+        
+        // 排序并计算四分位数
+        values.sort((a, b) => a.value - b.value);
+        const q1Index = Math.floor(values.length * 0.25);
+        const q2Index = Math.floor(values.length * 0.5);
+        const q3Index = Math.floor(values.length * 0.75);
+        
+        const q1 = values[q1Index].value;
+        const q2 = values[q2Index].value;
+        const q3 = values[q3Index].value;
+        
+        console.log(`内联脚本: 总持仓价值四分位数: Q1=${q1.toFixed(2)}, Q2=${q2.toFixed(2)}, Q3=${q3.toFixed(2)}`);
+        
+        // 应用颜色
+        values.forEach(item => {
+            try {
+                // 首先清除可能存在的之前的样式
+                if (item.cell) {
+                    item.cell.style.removeProperty('color');
+                    item.cell.classList.remove('holding-value-q1', 'holding-value-q2', 'holding-value-q3', 'holding-value-q4');
+                }
+                
+                const targetElement = item.valueSpan || item.cell;
+                
+                // 移除之前可能存在的任何四分位数类
+                targetElement.classList.remove('holding-value-q1', 'holding-value-q2', 'holding-value-q3', 'holding-value-q4');
+                
+                // 决定颜色
+                let color, colorClass;
+                if (item.value >= q3) {
+                    color = '#dc2626';
+                    colorClass = 'holding-value-q4';
+                } else if (item.value >= q2) {
+                    color = '#ea580c';
+                    colorClass = 'holding-value-q3';
+                } else if (item.value >= q1) {
+                    color = '#0369a1';
+                    colorClass = 'holding-value-q2';
+                } else {
+                    color = '#16a34a';
+                    colorClass = 'holding-value-q1';
+                }
+                
+                // 应用内联样式，并确保最高优先级
+                targetElement.style.setProperty('color', color, 'important');
+                targetElement.style.setProperty('font-weight', '600', 'important');
+                
+                // 同时添加类
+                targetElement.classList.add(colorClass);
+                
+                // 添加data属性，用于调试
+                targetElement.setAttribute('data-quartile', colorClass);
+                targetElement.setAttribute('data-value', item.value);
+                
+                // 强制重新计算样式
+                void targetElement.offsetWidth;
+                
+                console.log(`内联脚本: 应用总持仓价值颜色 ${color} 到元素 #${item.index}`);
+            } catch (error) {
+                console.error('内联脚本: 应用总持仓价值颜色时出错', error);
+            }
+        });
+        
+        console.log('内联脚本: 总持仓价值四分位数着色完成');
+    }
+    
+    // 内联版本的商务品总持仓价值四分位数着色函数
+    function applyBusinessValueQuartileColorsInline() {
+        console.log('内联脚本: 开始应用商务品总持仓价值四分位数着色');
+        
+        // 获取所有商务品总持仓价值单元格
+        const cells = document.querySelectorAll('#company-analytics-tbody tr td.business-value-column');
+        if (cells.length === 0) {
+            console.log('内联脚本: 未找到商务品总持仓价值单元格');
+            return;
+        }
+        
+        // 收集所有有效的商务品持仓价值
+        const values = [];
+        cells.forEach((cell, index) => {
+            try {
+                const valueSpan = cell.querySelector('span.mono-value');
+                let text = valueSpan ? valueSpan.textContent.trim() : cell.textContent.trim();
+                const value = parseFloat(text);
+                
+                if (!isNaN(value)) {
+                    values.push({ cell, value, index, valueSpan });
+                }
+            } catch (error) {
+                console.error('内联脚本: 处理商务品总持仓价值单元格时出错', error);
+            }
+        });
+        
+        if (values.length === 0) {
+            console.log('内联脚本: 未找到有效的商务品总持仓价值');
+            return;
+        }
+        
+        // 排序并计算四分位数
+        values.sort((a, b) => a.value - b.value);
+        const q1Index = Math.floor(values.length * 0.25);
+        const q2Index = Math.floor(values.length * 0.5);
+        const q3Index = Math.floor(values.length * 0.75);
+        
+        const q1 = values[q1Index].value;
+        const q2 = values[q2Index].value;
+        const q3 = values[q3Index].value;
+        
+        console.log(`内联脚本: 商务品总持仓价值四分位数: Q1=${q1.toFixed(2)}, Q2=${q2.toFixed(2)}, Q3=${q3.toFixed(2)}`);
+        
+        // 应用颜色
+        values.forEach(item => {
+            try {
+                // 首先清除可能存在的之前的样式
+                if (item.cell) {
+                    item.cell.classList.remove('highlight-high', 'highlight-medium', 'highlight-low');
+                }
+                
+                const targetElement = item.valueSpan || item.cell;
+                
+                // 移除之前可能存在的任何四分位数类
+                targetElement.classList.remove('business-value-q1', 'business-value-q2', 'business-value-q3', 'business-value-q4', 'highlight-high', 'highlight-medium', 'highlight-low');
+                
+                // 决定颜色
+                let color, colorClass;
+                if (item.value >= q3) {
+                    color = '#dc2626';
+                    colorClass = 'business-value-q4';
+                } else if (item.value >= q2) {
+                    color = '#ea580c';
+                    colorClass = 'business-value-q3';
+                } else if (item.value >= q1) {
+                    color = '#0369a1';
+                    colorClass = 'business-value-q2';
+                } else {
+                    color = '#16a34a';
+                    colorClass = 'business-value-q1';
+                }
+                
+                // 应用内联样式，并确保最高优先级
+                targetElement.style.setProperty('color', color, 'important');
+                targetElement.style.setProperty('font-weight', '600', 'important');
+                
+                // 同时添加类
+                targetElement.classList.add(colorClass);
+                
+                // 添加data属性，用于调试
+                targetElement.setAttribute('data-quartile', colorClass);
+                targetElement.setAttribute('data-value', item.value);
+                
+                // 强制重新计算样式
+                void targetElement.offsetWidth;
+                
+                console.log(`内联脚本: 应用商务品总持仓价值颜色 ${color} 到元素 #${item.index}`);
+            } catch (error) {
+                console.error('内联脚本: 应用商务品总持仓价值颜色时出错', error);
+            }
+        });
+        
+        console.log('内联脚本: 商务品总持仓价值四分位数着色完成');
+    }
+    
+    // 内联版本的商务品占比四分位数着色函数
+    function applyBusinessRatioQuartileColorsInline() {
+        console.log('内联脚本: 开始应用商务品占比四分位数着色');
+        
+        // 更精确地选择商务品占比单元格
+        const cells = document.querySelectorAll('#company-analytics-tbody tr td.business-ratio-column:nth-child(5)');
+        if (cells.length === 0) {
+            console.log('内联脚本: 未找到商务品占比单元格 (nth-child(5))');
+            
+            // 尝试其他可能的选择器
+            const altCells = document.querySelectorAll('#company-analytics-tbody tr td:nth-child(5)');
+            if (altCells.length > 0) {
+                console.log('内联脚本: 找到替代单元格 td:nth-child(5)，尝试处理');
+                processBusinessRatioCells(altCells);
+            } else {
+                console.log('内联脚本: 所有选择器都未找到商务品占比单元格');
+            }
+            return;
+        }
+        
+        processBusinessRatioCells(cells);
+        
+        function processBusinessRatioCells(cells) {
+            // 收集所有有效的商务品占比
+            const values = [];
+            const allValues = []; // 保存所有值，包括0
+            
+            cells.forEach((cell, index) => {
+                try {
+                    const valueSpan = cell.querySelector('span.ratio-value');
+                    // 如果没有找到 .ratio-value，尝试查找任何包含数字和%的文本
+                    if (!valueSpan) {
+                        const text = cell.textContent.trim();
+                        if (text && text.includes('%')) {
+                            const numMatch = text.match(/(\d+\.?\d*)%/);
+                            if (numMatch && numMatch[1]) {
+                                const value = parseFloat(numMatch[1]);
+                                if (!isNaN(value)) {
+                                    // 创建一个伪元素对象
+                                    const item = { 
+                                        cell, 
+                                        value, 
+                                        index,
+                                        textNode: true
+                                    };
+                                    allValues.push(item);
+                                    if (value > 0) { // 只将大于0的值用于四分位数计算
+                                        values.push(item);
+                                    }
+                                }
+                            }
+                        }
+                        return;
+                    }
+                    
+                    let text = valueSpan.textContent.trim();
+                    // 移除百分号再解析
+                    text = text.replace('%', '');
+                    const value = parseFloat(text);
+                    
+                    if (!isNaN(value)) {
+                        const item = { cell, value, index, valueSpan };
+                        allValues.push(item);
+                        if (value > 0) { // 只将大于0的值用于四分位数计算
+                            values.push(item);
+                        }
+                    }
+                } catch (error) {
+                    console.error('内联脚本: 处理商务品占比单元格时出错', error);
+                }
+            });
+            
+            if (values.length === 0) {
+                console.log('内联脚本: 未找到大于0的商务品占比值，使用所有值进行计算');
+                // 如果没有大于0的值，则使用所有值
+                if (allValues.length > 0) {
+                    applyColorsToValues(allValues);
+                }
+                return;
+            }
+            
+            // 使用非零值计算四分位数
+            applyColorsToValues(values, allValues);
+            
+            // 应用颜色到所有值（包括零值）
+            function applyColorsToValues(validValues, allValuesToColor) {
+                // 排序并计算四分位数
+                validValues.sort((a, b) => a.value - b.value);
+                const q1Index = Math.floor(validValues.length * 0.25);
+                const q2Index = Math.floor(validValues.length * 0.5);
+                const q3Index = Math.floor(validValues.length * 0.75);
+                
+                const q1 = validValues[q1Index]?.value || 0;
+                const q2 = validValues[q2Index]?.value || 0;
+                const q3 = validValues[q3Index]?.value || 0;
+                
+                console.log(`内联脚本: 商务品占比四分位数 (大于0的值): Q1=${q1.toFixed(2)}, Q2=${q2.toFixed(2)}, Q3=${q3.toFixed(2)}`);
+                console.log(`内联脚本: 找到 ${validValues.length} 个大于0的商务品占比值`);
+                
+                // 确定要应用颜色的值集合
+                const itemsToColor = allValuesToColor || validValues;
+                
+                // 应用颜色
+                itemsToColor.forEach(item => {
+                    try {
+                        // 处理纯文本节点
+                        if (item.textNode) {
+                            if (!item.cell) return;
+                            
+                            // 决定颜色
+                            let color, colorClass;
+                            if (item.value === 0) {
+                                color = '#64748b'; // 灰色，用于0值
+                                colorClass = 'business-ratio-q0';
+                            } else if (item.value >= q3) {
+                                color = '#dc2626';
+                                colorClass = 'business-ratio-q4';
+                            } else if (item.value >= q2) {
+                                color = '#ea580c';
+                                colorClass = 'business-ratio-q3';
+                            } else if (item.value >= q1) {
+                                color = '#0369a1';
+                                colorClass = 'business-ratio-q2';
+                            } else {
+                                color = '#16a34a';
+                                colorClass = 'business-ratio-q1';
+                            }
+                            
+                            // 直接设置单元格样式
+                            item.cell.style.setProperty('color', color, 'important');
+                            item.cell.style.setProperty('font-weight', '600', 'important');
+                            item.cell.setAttribute('data-quartile', colorClass);
+                            item.cell.setAttribute('data-value', item.value);
+                            return;
+                        }
+                        
+                        // 处理正常的值元素
+                        const targetElement = item.valueSpan;
+                        if (!targetElement) return;
+                        
+                        // 移除之前可能存在的任何四分位数类和高亮类
+                        targetElement.classList.remove(
+                            'business-ratio-q0', 'business-ratio-q1', 'business-ratio-q2', 'business-ratio-q3', 'business-ratio-q4', 
+                            'highlight-high', 'highlight-medium', 'highlight-low'
+                        );
+                        
+                        // 决定颜色
+                        let color, colorClass;
+                        if (item.value === 0) {
+                            color = '#64748b'; // 灰色，用于0值
+                            colorClass = 'business-ratio-q0';
+                        } else if (item.value >= q3) {
+                            color = '#dc2626';
+                            colorClass = 'business-ratio-q4';
+                        } else if (item.value >= q2) {
+                            color = '#ea580c';
+                            colorClass = 'business-ratio-q3';
+                        } else if (item.value >= q1) {
+                            color = '#0369a1';
+                            colorClass = 'business-ratio-q2';
+                        } else {
+                            color = '#16a34a';
+                            colorClass = 'business-ratio-q1';
+                        }
+                        
+                        // 应用内联样式，并确保最高优先级
+                        targetElement.style.setProperty('color', color, 'important');
+                        targetElement.style.setProperty('font-weight', '600', 'important');
+                        
+                        // 同时添加类
+                        targetElement.classList.add(colorClass);
+                        
+                        // 添加data属性，用于调试
+                        targetElement.setAttribute('data-quartile', colorClass);
+                        targetElement.setAttribute('data-value', item.value);
+                        
+                        // 强制重新计算样式
+                        void targetElement.offsetWidth;
+                        
+                        console.log(`内联脚本: 应用商务品占比颜色 ${color} 到元素 #${item.index}, 值: ${item.value}`);
+                    } catch (error) {
+                        console.error('内联脚本: 应用商务品占比颜色时出错', error);
+                    }
+                });
+                
+                console.log('内联脚本: 商务品占比四分位数着色完成');
+            }
+        }
+    }
+    
+    // 内联版本的持仓自选比四分位数着色函数
+    function applyHolderRatioQuartileColorsInline() {
+        console.log('内联脚本: 开始应用持仓自选比四分位数着色');
+        
+        // 获取所有持仓自选比单元格
+        const cells = document.querySelectorAll('#company-analytics-tbody tr td.business-ratio-column:nth-child(10)');
+        if (cells.length === 0) {
+            console.log('内联脚本: 未找到持仓自选比单元格 (nth-child(10))');
+            
+            // 尝试其他可能的选择器
+            const altCells = document.querySelectorAll('#company-analytics-tbody tr td:nth-child(10)');
+            if (altCells.length > 0) {
+                console.log('内联脚本: 找到替代单元格 td:nth-child(10)，尝试处理');
+                processHolderRatioCells(altCells);
+            } else {
+                console.log('内联脚本: 所有选择器都未找到持仓自选比单元格');
+            }
+            return;
+        }
+        
+        processHolderRatioCells(cells);
+        
+        function processHolderRatioCells(cells) {
+            // 收集所有有效的持仓自选比
+            const values = [];
+            cells.forEach((cell, index) => {
+                try {
+                    const valueSpan = cell.querySelector('span.ratio-value');
+                    // 如果没有找到 .ratio-value，尝试查找任何包含数字和%的文本
+                    if (!valueSpan) {
+                        const text = cell.textContent.trim();
+                        if (text && text.includes('%')) {
+                            const numMatch = text.match(/(\d+\.?\d*)%/);
+                            if (numMatch && numMatch[1]) {
+                                const value = parseFloat(numMatch[1]);
+                                if (!isNaN(value)) {
+                                    // 创建一个伪元素对象
+                                    values.push({ 
+                                        cell, 
+                                        value, 
+                                        index,
+                                        textNode: true
+                                    });
+                                }
+                            }
+                        }
+                        return;
+                    }
+                    
+                    let text = valueSpan.textContent.trim();
+                    // 移除百分号再解析
+                    text = text.replace('%', '');
+                    const value = parseFloat(text);
+                    
+                    if (!isNaN(value)) {
+                        values.push({ cell, value, index, valueSpan });
+                    }
+                } catch (error) {
+                    console.error('内联脚本: 处理持仓自选比单元格时出错', error);
+                }
+            });
+            
+            if (values.length === 0) {
+                console.log('内联脚本: 未找到有效的持仓自选比值');
+                return;
+            }
+            
+            // 排序并计算四分位数
+            values.sort((a, b) => a.value - b.value);
+            const q1Index = Math.floor(values.length * 0.25);
+            const q2Index = Math.floor(values.length * 0.5);
+            const q3Index = Math.floor(values.length * 0.75);
+            
+            const q1 = values[q1Index].value;
+            const q2 = values[q2Index].value;
+            const q3 = values[q3Index].value;
+            
+            console.log(`内联脚本: 持仓自选比四分位数: Q1=${q1.toFixed(2)}, Q2=${q2.toFixed(2)}, Q3=${q3.toFixed(2)}`);
+            console.log(`内联脚本: 找到 ${values.length} 个持仓自选比值`);
+            
+            // 应用颜色
+            values.forEach(item => {
+                try {
+                    // 处理纯文本节点
+                    if (item.textNode) {
+                        if (!item.cell) return;
+                        
+                        // 决定颜色
+                        let color, colorClass;
+                        if (item.value >= q3) {
+                            color = '#dc2626';
+                            colorClass = 'holder-ratio-q4';
+                        } else if (item.value >= q2) {
+                            color = '#ea580c';
+                            colorClass = 'holder-ratio-q3';
+                        } else if (item.value >= q1) {
+                            color = '#0369a1';
+                            colorClass = 'holder-ratio-q2';
+                        } else {
+                            color = '#16a34a';
+                            colorClass = 'holder-ratio-q1';
+                        }
+                        
+                        // 直接设置单元格样式
+                        item.cell.style.setProperty('color', color, 'important');
+                        item.cell.style.setProperty('font-weight', '600', 'important');
+                        item.cell.setAttribute('data-quartile', colorClass);
+                        item.cell.setAttribute('data-value', item.value);
+                        return;
+                    }
+                    
+                    const targetElement = item.valueSpan;
+                    if (!targetElement) return;
+                    
+                    // 移除之前可能存在的任何四分位数类和高亮类
+                    targetElement.classList.remove(
+                        'holder-ratio-q1', 'holder-ratio-q2', 'holder-ratio-q3', 'holder-ratio-q4', 
+                        'highlight-high', 'highlight-medium', 'highlight-low'
+                    );
+                    
+                    // 决定颜色
+                    let color, colorClass;
+                    if (item.value >= q3) {
+                        color = '#dc2626';
+                        colorClass = 'holder-ratio-q4';
+                    } else if (item.value >= q2) {
+                        color = '#ea580c';
+                        colorClass = 'holder-ratio-q3';
+                    } else if (item.value >= q1) {
+                        color = '#0369a1';
+                        colorClass = 'holder-ratio-q2';
+                    } else {
+                        color = '#16a34a';
+                        colorClass = 'holder-ratio-q1';
+                    }
+                    
+                    // 应用内联样式，并确保最高优先级
+                    targetElement.style.setProperty('color', color, 'important');
+                    targetElement.style.setProperty('font-weight', '600', 'important');
+                    
+                    // 同时添加类
+                    targetElement.classList.add(colorClass);
+                    
+                    // 添加data属性，用于调试
+                    targetElement.setAttribute('data-quartile', colorClass);
+                    targetElement.setAttribute('data-value', item.value);
+                    
+                    // 强制重新计算样式
+                    void targetElement.offsetWidth;
+                    
+                    console.log(`内联脚本: 应用持仓自选比颜色 ${color} 到元素 #${item.index}, 值: ${item.value}`);
+                } catch (error) {
+                    console.error('内联脚本: 应用持仓自选比颜色时出错', error);
+                }
+            });
+            
+            console.log('内联脚本: 持仓自选比四分位数着色完成');
+        }
+    }
+    
+    // 内联版本的商务品持仓价值占比四分位数着色函数
+    function applyValueRatioQuartileColorsInline() {
+        console.log('内联脚本: 开始应用商务品持仓价值占比四分位数着色');
+        
+        // 获取所有商务品持仓价值占比单元格
+        const cells = document.querySelectorAll('#company-analytics-tbody tr td.business-ratio-column:nth-child(13)');
+        if (cells.length === 0) {
+            console.log('内联脚本: 未找到商务品持仓价值占比单元格 (nth-child(13))');
+            
+            // 尝试其他可能的选择器
+            const altCells = document.querySelectorAll('#company-analytics-tbody tr td:nth-child(13)');
+            if (altCells.length > 0) {
+                console.log('内联脚本: 找到替代单元格 td:nth-child(13)，尝试处理');
+                processValueRatioCells(altCells);
+            } else {
+                console.log('内联脚本: 所有选择器都未找到商务品持仓价值占比单元格');
+            }
+            return;
+        }
+        
+        processValueRatioCells(cells);
+        
+        function processValueRatioCells(cells) {
+            // 收集所有有效的商务品持仓价值占比
+            const values = [];
+            const allValues = []; // 保存所有值，包括0
+            
+            cells.forEach((cell, index) => {
+                try {
+                    const valueSpan = cell.querySelector('span.ratio-value');
+                    // 如果没有找到 .ratio-value，尝试查找任何包含数字和%的文本
+                    if (!valueSpan) {
+                        const text = cell.textContent.trim();
+                        if (text && text.includes('%')) {
+                            const numMatch = text.match(/(\d+\.?\d*)%/);
+                            if (numMatch && numMatch[1]) {
+                                const value = parseFloat(numMatch[1]);
+                                if (!isNaN(value)) {
+                                    // 创建一个伪元素对象
+                                    const item = { 
+                                        cell, 
+                                        value, 
+                                        index,
+                                        textNode: true
+                                    };
+                                    allValues.push(item);
+                                    if (value > 0) { // 只将大于0的值用于四分位数计算
+                                        values.push(item);
+                                    }
+                                }
+                            }
+                        }
+                        return;
+                    }
+                    
+                    let text = valueSpan.textContent.trim();
+                    // 移除百分号再解析
+                    text = text.replace('%', '');
+                    const value = parseFloat(text);
+                    
+                    if (!isNaN(value)) {
+                        const item = { cell, value, index, valueSpan };
+                        allValues.push(item);
+                        if (value > 0) { // 只将大于0的值用于四分位数计算
+                            values.push(item);
+                        }
+                    }
+                } catch (error) {
+                    console.error('内联脚本: 处理商务品持仓价值占比单元格时出错', error);
+                }
+            });
+            
+            if (values.length === 0) {
+                console.log('内联脚本: 未找到大于0的商务品持仓价值占比值，使用所有值进行计算');
+                // 如果没有大于0的值，则使用所有值
+                if (allValues.length > 0) {
+                    applyColorsToValues(allValues);
+                }
+                return;
+            }
+            
+            // 使用非零值计算四分位数
+            applyColorsToValues(values, allValues);
+            
+            // 应用颜色到所有值（包括零值）
+            function applyColorsToValues(validValues, allValuesToColor) {
+                // 排序并计算四分位数
+                validValues.sort((a, b) => a.value - b.value);
+                const q1Index = Math.floor(validValues.length * 0.25);
+                const q2Index = Math.floor(validValues.length * 0.5);
+                const q3Index = Math.floor(validValues.length * 0.75);
+                
+                const q1 = validValues[q1Index]?.value || 0;
+                const q2 = validValues[q2Index]?.value || 0;
+                const q3 = validValues[q3Index]?.value || 0;
+                
+                console.log(`内联脚本: 商务品持仓价值占比四分位数 (大于0的值): Q1=${q1.toFixed(2)}, Q2=${q2.toFixed(2)}, Q3=${q3.toFixed(2)}`);
+                console.log(`内联脚本: 找到 ${validValues.length} 个大于0的商务品持仓价值占比值`);
+                
+                // 确定要应用颜色的值集合
+                const itemsToColor = allValuesToColor || validValues;
+                
+                // 应用颜色
+                itemsToColor.forEach(item => {
+                    try {
+                        // 处理纯文本节点
+                        if (item.textNode) {
+                            if (!item.cell) return;
+                            
+                            // 决定颜色
+                            let color, colorClass;
+                            if (item.value === 0) {
+                                color = '#64748b'; // 灰色，用于0值
+                                colorClass = 'value-ratio-q0';
+                            } else if (item.value >= q3) {
+                                color = '#dc2626';
+                                colorClass = 'value-ratio-q4';
+                            } else if (item.value >= q2) {
+                                color = '#ea580c';
+                                colorClass = 'value-ratio-q3';
+                            } else if (item.value >= q1) {
+                                color = '#0369a1';
+                                colorClass = 'value-ratio-q2';
+                            } else {
+                                color = '#16a34a';
+                                colorClass = 'value-ratio-q1';
+                            }
+                            
+                            // 直接设置单元格样式
+                            item.cell.style.setProperty('color', color, 'important');
+                            item.cell.style.setProperty('font-weight', '600', 'important');
+                            item.cell.setAttribute('data-quartile', colorClass);
+                            item.cell.setAttribute('data-value', item.value);
+                            return;
+                        }
+                        
+                        // 处理正常的值元素
+                        const targetElement = item.valueSpan;
+                        if (!targetElement) return;
+                        
+                        // 移除之前可能存在的任何四分位数类和高亮类
+                        targetElement.classList.remove(
+                            'value-ratio-q0', 'value-ratio-q1', 'value-ratio-q2', 'value-ratio-q3', 'value-ratio-q4', 
+                            'highlight-high', 'highlight-medium', 'highlight-low'
+                        );
+                        
+                        // 决定颜色
+                        let color, colorClass;
+                        if (item.value === 0) {
+                            color = '#64748b'; // 灰色，用于0值
+                            colorClass = 'value-ratio-q0';
+                        } else if (item.value >= q3) {
+                            color = '#dc2626';
+                            colorClass = 'value-ratio-q4';
+                        } else if (item.value >= q2) {
+                            color = '#ea580c';
+                            colorClass = 'value-ratio-q3';
+                        } else if (item.value >= q1) {
+                            color = '#0369a1';
+                            colorClass = 'value-ratio-q2';
+                        } else {
+                            color = '#16a34a';
+                            colorClass = 'value-ratio-q1';
+                        }
+                        
+                        // 应用内联样式，并确保最高优先级
+                        targetElement.style.setProperty('color', color, 'important');
+                        targetElement.style.setProperty('font-weight', '600', 'important');
+                        
+                        // 同时添加类
+                        targetElement.classList.add(colorClass);
+                        
+                        // 添加data属性，用于调试
+                        targetElement.setAttribute('data-quartile', colorClass);
+                        targetElement.setAttribute('data-value', item.value);
+                        
+                        // 强制重新计算样式
+                        void targetElement.offsetWidth;
+                        
+                        console.log(`内联脚本: 应用商务品持仓价值占比颜色 ${color} 到元素 #${item.index}, 值: ${item.value}`);
+                    } catch (error) {
+                        console.error('内联脚本: 应用商务品持仓价值占比颜色时出错', error);
+                    }
+                });
+                
+                console.log('内联脚本: 商务品持仓价值占比四分位数着色完成');
+            }
+        }
+    }
+    
+    // 立即执行一次
+    (function() {
+        console.log('立即执行内联脚本');
+        try {
+            // 如果DOM已准备好，立即执行
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                setTimeout(function() {
+                    applyFundSizeQuartileColorsInline();
+                    applyBusinessRatioQuartileColorsInline();
+                    applyHolderRatioQuartileColorsInline();
+                    applyValueRatioQuartileColorsInline();
+                }, 0);
+            } else {
+                // 否则等待DOM加载完成
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(function() {
+                        applyFundSizeQuartileColorsInline();
+                        applyBusinessRatioQuartileColorsInline();
+                        applyHolderRatioQuartileColorsInline();
+                        applyValueRatioQuartileColorsInline();
+                    }, 0);
+                });
+            }
+            
+            // 再次尝试，间隔500ms
+            setTimeout(function() {
+                applyFundSizeQuartileColorsInline();
+                applyBusinessRatioQuartileColorsInline();
+                applyHolderRatioQuartileColorsInline();
+                applyValueRatioQuartileColorsInline();
+            }, 500);
+            
+            setTimeout(function() {
+                applyFundSizeQuartileColorsInline();
+                applyBusinessRatioQuartileColorsInline();
+                applyHolderRatioQuartileColorsInline();
+                applyValueRatioQuartileColorsInline();
+            }, 1000);
+            
+            setTimeout(function() {
+                applyFundSizeQuartileColorsInline();
+                applyBusinessRatioQuartileColorsInline();
+                applyHolderRatioQuartileColorsInline();
+                applyValueRatioQuartileColorsInline();
+            }, 2000);
+        } catch (e) {
+            console.error('执行内联脚本时出错:', e);
+        }
+    })();
+    
+    // 页面加载完成立即执行
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            applyFundSizeQuartileColorsInline();
+            applyBusinessRatioQuartileColorsInline();
+            applyHolderRatioQuartileColorsInline();
+            applyValueRatioQuartileColorsInline();
+        }, 300);
+        
+        // 当表格可见时再次执行
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.target.style.display !== 'none' && mutation.attributeName === 'style') {
+                    console.log('内联脚本: 检测到表格可见性变化，重新应用颜色');
+                    setTimeout(function() {
+                        applyFundSizeQuartileColorsInline();
+                        applyBusinessRatioQuartileColorsInline();
+                        applyHolderRatioQuartileColorsInline();
+                        applyValueRatioQuartileColorsInline();
+                    }, 100);
+                }
+            });
+        });
+        
+        const section = document.getElementById('company-analytics-section');
+        if (section) {
+            observer.observe(section, { attributes: true });
+        }
+    });
+</script>
+
+<!-- 原有脚本 -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // 初始化排序指示器
@@ -121,6 +1289,25 @@
                         filterCountBadge.className = 'status-badge status-badge-success';
                     }
                 }
+                
+                // 筛选操作完成后重新应用四分位数着色
+                if (typeof applyFundSizeQuartileColors === 'function') {
+                    setTimeout(applyFundSizeQuartileColors, 100);
+                } else {
+                    setTimeout(function() {
+                        applyFundSizeQuartileColorsInline();
+                        applyBusinessRatioQuartileColorsInline();
+                        applyHolderRatioQuartileColorsInline();
+                        applyValueRatioQuartileColorsInline();
+                    }, 100);
+                }
+                
+                // 筛选操作完成后重新应用总成交额四分位数着色
+                if (typeof applyAmountQuartileColors === 'function') {
+                    setTimeout(applyAmountQuartileColors, 100);
+                } else {
+                    setTimeout(applyAmountQuartileColorsInline, 100);
+                }
             });
         }
         
@@ -134,6 +1321,25 @@
             // 监听窗口大小变化，重新调整列宽
             window.addEventListener('resize', function() {
                 setTimeout(adjustCompanyColumnWidth, 100);
+                
+                // 窗口大小变化时重新应用四分位数着色
+                if (typeof applyFundSizeQuartileColors === 'function') {
+                    setTimeout(applyFundSizeQuartileColors, 150);
+                } else {
+                    setTimeout(function() {
+                        applyFundSizeQuartileColorsInline();
+                        applyBusinessRatioQuartileColorsInline();
+                        applyHolderRatioQuartileColorsInline();
+                        applyValueRatioQuartileColorsInline();
+                    }, 150);
+                }
+                
+                // 窗口大小变化时重新应用总成交额四分位数着色
+                if (typeof applyAmountQuartileColors === 'function') {
+                    setTimeout(applyAmountQuartileColors, 150);
+                } else {
+                    setTimeout(applyAmountQuartileColorsInline, 150);
+                }
             });
         }
         
@@ -147,6 +1353,55 @@
         // 初始化商务品持仓价值相关交互
         if (typeof initBusinessValueInteractions === 'function') {
             initBusinessValueInteractions();
+        }
+        
+        // 应用总管理规模四分位数颜色
+        if (typeof applyFundSizeQuartileColors === 'function') {
+            setTimeout(applyFundSizeQuartileColors, 600);
+        } else {
+            setTimeout(applyFundSizeQuartileColorsInline, 600);
+        }
+        
+        // 应用总成交额四分位数颜色
+        if (typeof applyAmountQuartileColors === 'function') {
+            setTimeout(applyAmountQuartileColors, 600);
+        } else {
+            setTimeout(applyAmountQuartileColorsInline, 600);
+        }
+        
+        // 创建Mutation Observer监听表格内容变化
+        if (typeof MutationObserver !== 'undefined') {
+            const observer = new MutationObserver(function(mutations) {
+                // 当表格内容变化时重新应用四分位数着色
+                if (typeof applyFundSizeQuartileColors === 'function') {
+                    setTimeout(applyFundSizeQuartileColors, 100);
+                } else {
+                    setTimeout(function() {
+                        applyFundSizeQuartileColorsInline();
+                        applyBusinessRatioQuartileColorsInline();
+                        applyHolderRatioQuartileColorsInline();
+                        applyValueRatioQuartileColorsInline();
+                    }, 100);
+                }
+                
+                // 当表格内容变化时重新应用总成交额四分位数着色
+                if (typeof applyAmountQuartileColors === 'function') {
+                    setTimeout(applyAmountQuartileColors, 100);
+                } else {
+                    setTimeout(applyAmountQuartileColorsInline, 100);
+                }
+            });
+            
+            // 监听表格内容变化
+            const tbody = document.getElementById('company-analytics-tbody');
+            if (tbody) {
+                observer.observe(tbody, { 
+                    childList: true, 
+                    subtree: true,
+                    characterData: true
+                });
+                console.log('已设置表格内容变化监听器');
+            }
         }
         
         console.log('[dashboard.html] 页面初始化完成，已应用交互效果和动画');

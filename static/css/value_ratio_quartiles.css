@@ -1,0 +1,46 @@
+/* 商务品持仓价值占比四分位数颜色 */
+.value-ratio-q4,
+span.value-ratio-q4,
+td span.value-ratio-q4,
+table td span.value-ratio-q4,
+.company-analytics-table tbody tr td span.value-ratio-q4,
+.company-analytics-table tbody tr td.business-ratio-column:nth-child(13) span.ratio-value.value-ratio-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+
+.value-ratio-q3,
+span.value-ratio-q3,
+td span.value-ratio-q3,
+table td span.value-ratio-q3,
+.company-analytics-table tbody tr td span.value-ratio-q3,
+.company-analytics-table tbody tr td.business-ratio-column:nth-child(13) span.ratio-value.value-ratio-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+
+.value-ratio-q2,
+span.value-ratio-q2,
+td span.value-ratio-q2,
+table td span.value-ratio-q2,
+.company-analytics-table tbody tr td span.value-ratio-q2,
+.company-analytics-table tbody tr td.business-ratio-column:nth-child(13) span.ratio-value.value-ratio-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+
+.value-ratio-q1,
+span.value-ratio-q1,
+td span.value-ratio-q1,
+table td span.value-ratio-q1,
+.company-analytics-table tbody tr td span.value-ratio-q1,
+.company-analytics-table tbody tr td.business-ratio-column:nth-child(13) span.ratio-value.value-ratio-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 确保内联样式可以正确应用 */
+.company-analytics-table tbody td.business-ratio-column:nth-child(13) span.ratio-value[style*="color"] {
+  /* 保留内联样式的颜色，增加优先级 */
+  color: inherit !important;
+} 

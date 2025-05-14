@@ -1,0 +1,42 @@
+/* 总持仓价值四分位数颜色 */
+.holding-value-q4,
+span.holding-value-q4,
+td span.holding-value-q4,
+table td span.holding-value-q4,
+.company-analytics-table tbody tr td span.holding-value-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+
+.holding-value-q3,
+span.holding-value-q3,
+td span.holding-value-q3,
+table td span.holding-value-q3,
+.company-analytics-table tbody tr td span.holding-value-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+
+.holding-value-q2,
+span.holding-value-q2,
+td span.holding-value-q2,
+table td span.holding-value-q2,
+.company-analytics-table tbody tr td span.holding-value-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+
+.holding-value-q1,
+span.holding-value-q1,
+td span.holding-value-q1,
+table td span.holding-value-q1,
+.company-analytics-table tbody tr td span.holding-value-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 确保内联样式可以正确应用 */
+.company-analytics-table tbody td.holding-value-cell span.holding-value-value[style*="color"] {
+  /* 保留内联样式的颜色，增加优先级 */
+  color: inherit !important;
+} 

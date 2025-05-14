@@ -4,42 +4,433 @@
     <td class="company-name-cell">
         <span class="company-name-text">{{ item.company_short_name if item.company_short_name is not none else '-' }}</span>
     </td>
-    <td class="text-right">{{ '{:,}'.format(item.product_count) if item.product_count is not none else '0' }}</td>
-    <td class="text-right">{{ '{:,}'.format(item.business_agreement_count) if item.business_agreement_count is not none else '0' }}</td>
+    
+    <!-- 产品数量 -->
+    {% set product_count = item.product_count if item.product_count is not none else 0 %}
+    {% set all_product_counts = [] %}
+    {% for company in company_analytics %}
+        {% if company.product_count is not none and company.product_count > 0 %}
+            {% set _ = all_product_counts.append(company.product_count) %}
+        {% endif %}
+    {% endfor %}
+    {% set sorted_product_counts = all_product_counts|sort %}
+    {% set pc_q1_idx = (sorted_product_counts|length * 0.25)|int %}
+    {% set pc_q2_idx = (sorted_product_counts|length * 0.5)|int %}
+    {% set pc_q3_idx = (sorted_product_counts|length * 0.75)|int %}
+    {% set pc_q1 = sorted_product_counts[pc_q1_idx] if pc_q1_idx < sorted_product_counts|length else 0 %}
+    {% set pc_q2 = sorted_product_counts[pc_q2_idx] if pc_q2_idx < sorted_product_counts|length else 0 %}
+    {% set pc_q3 = sorted_product_counts[pc_q3_idx] if pc_q3_idx < sorted_product_counts|length else 0 %}
+    
+    {% if product_count >= pc_q3 %}
+        {% set pc_color = "#dc2626" %}
+        {% set pc_quartile_class = "product-count-q4" %}
+    {% elif product_count >= pc_q2 %}
+        {% set pc_color = "#ea580c" %}
+        {% set pc_quartile_class = "product-count-q3" %}
+    {% elif product_count >= pc_q1 %}
+        {% set pc_color = "#0369a1" %}
+        {% set pc_quartile_class = "product-count-q2" %}
+    {% else %}
+        {% set pc_color = "#16a34a" %}
+        {% set pc_quartile_class = "product-count-q1" %}
+    {% endif %}
+    
+    {% set pc_max = sorted_product_counts[-1] if sorted_product_counts else 1 %}
+    {% set pc_percent = (product_count / pc_max) * 100 if pc_max > 0 else 0 %}
+    
+    <td class="text-right product-count-cell" data-value="{{ product_count }}" data-quartile="{{ pc_quartile_class }}">
+        <div class="value-container">
+            <span class="product-count-value {{ pc_quartile_class }}" data-value="{{ product_count }}" style="color: {{ pc_color }} !important; font-weight: 600 !important;">{{ '{:,}'.format(product_count) }}</span>
+            <div class="percent-bar-container">
+                <div class="percent-bar {% if product_count >= pc_q3 %}percent-high{% elif product_count >= pc_q2 %}percent-medium{% elif product_count >= pc_q1 %}percent-q2{% else %}percent-low{% endif %}">
+                    <div class="percent-bar-fill" style="width: {{ pc_percent }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </td>
+    
+    <!-- 商务品数量 -->
+    {% set business_count = item.business_agreement_count if item.business_agreement_count is not none else 0 %}
+    {% set all_business_counts = [] %}
+    {% for company in company_analytics %}
+        {% if company.business_agreement_count is not none and company.business_agreement_count > 0 %}
+            {% set _ = all_business_counts.append(company.business_agreement_count) %}
+        {% endif %}
+    {% endfor %}
+    {% set sorted_business_counts = all_business_counts|sort %}
+    {% set bc_q1_idx = (sorted_business_counts|length * 0.25)|int %}
+    {% set bc_q2_idx = (sorted_business_counts|length * 0.5)|int %}
+    {% set bc_q3_idx = (sorted_business_counts|length * 0.75)|int %}
+    {% set bc_q1 = sorted_business_counts[bc_q1_idx] if bc_q1_idx < sorted_business_counts|length else 0 %}
+    {% set bc_q2 = sorted_business_counts[bc_q2_idx] if bc_q2_idx < sorted_business_counts|length else 0 %}
+    {% set bc_q3 = sorted_business_counts[bc_q3_idx] if bc_q3_idx < sorted_business_counts|length else 0 %}
+    
+    {% if business_count >= bc_q3 %}
+        {% set bc_color = "#dc2626" %}
+        {% set bc_quartile_class = "business-count-q4" %}
+    {% elif business_count >= bc_q2 %}
+        {% set bc_color = "#ea580c" %}
+        {% set bc_quartile_class = "business-count-q3" %}
+    {% elif business_count >= bc_q1 %}
+        {% set bc_color = "#0369a1" %}
+        {% set bc_quartile_class = "business-count-q2" %}
+    {% else %}
+        {% set bc_color = "#16a34a" %}
+        {% set bc_quartile_class = "business-count-q1" %}
+    {% endif %}
+    
+    {% set bc_max = sorted_business_counts[-1] if sorted_business_counts else 1 %}
+    {% set bc_percent = (business_count / bc_max) * 100 if bc_max > 0 else 0 %}
+    
+    <td class="text-right business-count-cell" data-value="{{ business_count }}" data-quartile="{{ bc_quartile_class }}">
+        <div class="value-container">
+            <span class="business-count-value {{ bc_quartile_class }}" data-value="{{ business_count }}" style="color: {{ bc_color }} !important; font-weight: 600 !important;">{{ '{:,}'.format(business_count) }}</span>
+            <div class="percent-bar-container">
+                <div class="percent-bar {% if business_count >= bc_q3 %}percent-high{% elif business_count >= bc_q2 %}percent-medium{% elif business_count >= bc_q1 %}percent-q2{% else %}percent-low{% endif %}">
+                    <div class="percent-bar-fill" style="width: {{ bc_percent }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </td>
+
+    <!-- 原有的商务品持仓价值占比列 -->
     <td class="business-ratio-column">
         {% set ratio = item.business_agreement_ratio if item.business_agreement_ratio is not none else 0.0 %}
+        {% set all_ratios = [] %}
+        {% for company in company_analytics %}
+            {% if company.business_agreement_ratio is not none and company.business_agreement_ratio > 0 %}
+                {% set _ = all_ratios.append(company.business_agreement_ratio) %}
+            {% endif %}
+        {% endfor %}
+        {% set sorted_ratios = all_ratios|sort %}
+        {% set br_q1_idx = (sorted_ratios|length * 0.25)|int %}
+        {% set br_q2_idx = (sorted_ratios|length * 0.5)|int %}
+        {% set br_q3_idx = (sorted_ratios|length * 0.75)|int %}
+        {% set br_q1 = sorted_ratios[br_q1_idx] if br_q1_idx < sorted_ratios|length else 0 %}
+        {% set br_q2 = sorted_ratios[br_q2_idx] if br_q2_idx < sorted_ratios|length else 0 %}
+        {% set br_q3 = sorted_ratios[br_q3_idx] if br_q3_idx < sorted_ratios|length else 0 %}
+        
+        {% if ratio >= br_q3 %}
+            {% set br_color = "#dc2626" %}
+            {% set br_quartile_class = "business-ratio-q4" %}
+        {% elif ratio >= br_q2 %}
+            {% set br_color = "#ea580c" %}
+            {% set br_quartile_class = "business-ratio-q3" %}
+        {% elif ratio >= br_q1 %}
+            {% set br_color = "#0369a1" %}
+            {% set br_quartile_class = "business-ratio-q2" %}
+        {% else %}
+            {% set br_color = "#16a34a" %}
+            {% set br_quartile_class = "business-ratio-q1" %}
+        {% endif %}
         <div class="ratio-container">
-            <span class="ratio-value {% if ratio > 70 %}highlight-high{% elif ratio > 30 %}highlight-medium{% else %}highlight-low{% endif %}">{{ "%.1f" % ratio }}%</span>
+            <span class="ratio-value {{ br_quartile_class }}" data-value="{{ ratio }}" style="color: {{ br_color }} !important; font-weight: 600 !important;">{{ "%.1f" % ratio }}%</span>
             <div class="ratio-bar-container">
-                <div class="ratio-bar {% if ratio > 70 %}ratio-high{% elif ratio > 30 %}ratio-medium{% else %}ratio-low{% endif %}">
+                <div class="ratio-bar {% if ratio >= br_q3 %}ratio-high{% elif ratio >= br_q2 %}ratio-medium{% elif ratio >= br_q1 %}ratio-q2{% else %}ratio-low{% endif %}">
                     <div class="ratio-bar-fill" style="width: {{ ratio }}%;"></div>
                 </div>
             </div>
         </div>
     </td>
-    <td class="text-right">{{ "%.2f" % item.total_fund_size if item.total_fund_size is not none and item.total_fund_size != 0 else '0.00' }}</td>
-    <td class="text-right">{{ "%.2f" % item.total_amount if item.total_amount is not none and item.total_amount != 0 else '0.00' }}</td>
-    <td class="text-right">{{ '{:,}'.format(item.total_attention_count) if item.total_attention_count is not none else '0' }}</td>
-    <td class="text-right">{{ '{:,}'.format(item.total_holder_count_holders) if item.total_holder_count_holders is not none else '0' }}</td>
+    
+    {% set fund_size = item.total_fund_size if item.total_fund_size is not none else 0.0 %}
+    {% set all_sizes = [] %}
+    {% for company in company_analytics %}
+        {% if company.total_fund_size is not none and company.total_fund_size > 0 %}
+            {% set _ = all_sizes.append(company.total_fund_size) %}
+        {% endif %}
+    {% endfor %}
+    {% set sorted_sizes = all_sizes|sort %}
+    {% set q1_idx = (sorted_sizes|length * 0.25)|int %}
+    {% set q2_idx = (sorted_sizes|length * 0.5)|int %}
+    {% set q3_idx = (sorted_sizes|length * 0.75)|int %}
+    {% set q1 = sorted_sizes[q1_idx] if q1_idx < sorted_sizes|length else 0 %}
+    {% set q2 = sorted_sizes[q2_idx] if q2_idx < sorted_sizes|length else 0 %}
+    {% set q3 = sorted_sizes[q3_idx] if q3_idx < sorted_sizes|length else 0 %}
+    
+    {% if fund_size >= q3 %}
+        {% set color = "#dc2626" %}
+        {% set quartile_class = "fund-size-q4" %}
+    {% elif fund_size >= q2 %}
+        {% set color = "#ea580c" %}
+        {% set quartile_class = "fund-size-q3" %}
+    {% elif fund_size >= q1 %}
+        {% set color = "#0369a1" %}
+        {% set quartile_class = "fund-size-q2" %}
+    {% else %}
+        {% set color = "#16a34a" %}
+        {% set quartile_class = "fund-size-q1" %}
+    {% endif %}
+    
+    {% set fs_max = sorted_sizes[-1] if sorted_sizes else 1 %}
+    {% set fs_percent = (fund_size / fs_max) * 100 if fs_max > 0 else 0 %}
+    
+    <td class="text-right fund-size-cell" data-fund-size="{{ fund_size }}" data-quartile="{{ quartile_class }}">
+        <div class="value-container">
+            <span class="fund-size-value {{ quartile_class }}" data-value="{{ fund_size }}" style="color: {{ color }} !important; font-weight: 600 !important;">{{ "%.2f" % fund_size if fund_size != 0 else '0.00' }}</span>
+            <div class="percent-bar-container">
+                <div class="percent-bar {% if fund_size >= q3 %}percent-high{% elif fund_size >= q2 %}percent-medium{% elif fund_size >= q1 %}percent-q2{% else %}percent-low{% endif %}">
+                    <div class="percent-bar-fill" style="width: {{ fs_percent }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </td>
+    
+    {% set total_amount = item.total_amount if item.total_amount is not none else 0.0 %}
+    {% set all_amounts = [] %}
+    {% for company in company_analytics %}
+        {% if company.total_amount is not none and company.total_amount > 0 %}
+            {% set _ = all_amounts.append(company.total_amount) %}
+        {% endif %}
+    {% endfor %}
+    {% set sorted_amounts = all_amounts|sort %}
+    {% set a_q1_idx = (sorted_amounts|length * 0.25)|int %}
+    {% set a_q2_idx = (sorted_amounts|length * 0.5)|int %}
+    {% set a_q3_idx = (sorted_amounts|length * 0.75)|int %}
+    {% set a_q1 = sorted_amounts[a_q1_idx] if a_q1_idx < sorted_amounts|length else 0 %}
+    {% set a_q2 = sorted_amounts[a_q2_idx] if a_q2_idx < sorted_amounts|length else 0 %}
+    {% set a_q3 = sorted_amounts[a_q3_idx] if a_q3_idx < sorted_amounts|length else 0 %}
+    
+    {% if total_amount >= a_q3 %}
+        {% set amount_color = "#dc2626" %}
+        {% set amount_quartile_class = "amount-q4" %}
+    {% elif total_amount >= a_q2 %}
+        {% set amount_color = "#ea580c" %}
+        {% set amount_quartile_class = "amount-q3" %}
+    {% elif total_amount >= a_q1 %}
+        {% set amount_color = "#0369a1" %}
+        {% set amount_quartile_class = "amount-q2" %}
+    {% else %}
+        {% set amount_color = "#16a34a" %}
+        {% set amount_quartile_class = "amount-q1" %}
+    {% endif %}
+    
+    {% set amount_max = sorted_amounts[-1] if sorted_amounts else 1 %}
+    {% set amount_percent = (total_amount / amount_max) * 100 if amount_max > 0 else 0 %}
+    
+    <td class="text-right amount-cell" data-amount="{{ total_amount }}" data-quartile="{{ amount_quartile_class }}">
+        <div class="value-container">
+            <span class="amount-value {{ amount_quartile_class }}" data-value="{{ total_amount }}" style="color: {{ amount_color }} !important; font-weight: 600 !important;">{{ "%.2f" % total_amount if total_amount != 0 else '0.00' }}</span>
+            <div class="percent-bar-container">
+                <div class="percent-bar {% if total_amount >= a_q3 %}percent-high{% elif total_amount >= a_q2 %}percent-medium{% elif total_amount >= a_q1 %}percent-q2{% else %}percent-low{% endif %}">
+                    <div class="percent-bar-fill" style="width: {{ amount_percent }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </td>
+    
+    <!-- 总自选热度 -->
+    {% set attention_count = item.total_attention_count if item.total_attention_count is not none else 0 %}
+    {% set all_attention_counts = [] %}
+    {% for company in company_analytics %}
+        {% if company.total_attention_count is not none and company.total_attention_count > 0 %}
+            {% set _ = all_attention_counts.append(company.total_attention_count) %}
+        {% endif %}
+    {% endfor %}
+    {% set sorted_attention_counts = all_attention_counts|sort %}
+    {% set ac_q1_idx = (sorted_attention_counts|length * 0.25)|int %}
+    {% set ac_q2_idx = (sorted_attention_counts|length * 0.5)|int %}
+    {% set ac_q3_idx = (sorted_attention_counts|length * 0.75)|int %}
+    {% set ac_q1 = sorted_attention_counts[ac_q1_idx] if ac_q1_idx < sorted_attention_counts|length else 0 %}
+    {% set ac_q2 = sorted_attention_counts[ac_q2_idx] if ac_q2_idx < sorted_attention_counts|length else 0 %}
+    {% set ac_q3 = sorted_attention_counts[ac_q3_idx] if ac_q3_idx < sorted_attention_counts|length else 0 %}
+    
+    {% if attention_count >= ac_q3 %}
+        {% set ac_color = "#dc2626" %}
+        {% set ac_quartile_class = "attention-count-q4" %}
+    {% elif attention_count >= ac_q2 %}
+        {% set ac_color = "#ea580c" %}
+        {% set ac_quartile_class = "attention-count-q3" %}
+    {% elif attention_count >= ac_q1 %}
+        {% set ac_color = "#0369a1" %}
+        {% set ac_quartile_class = "attention-count-q2" %}
+    {% else %}
+        {% set ac_color = "#16a34a" %}
+        {% set ac_quartile_class = "attention-count-q1" %}
+    {% endif %}
+    
+    {% set ac_max = sorted_attention_counts[-1] if sorted_attention_counts else 1 %}
+    {% set ac_percent = (attention_count / ac_max) * 100 if ac_max > 0 else 0 %}
+    
+    <td class="text-right attention-count-cell" data-value="{{ attention_count }}" data-quartile="{{ ac_quartile_class }}">
+        <div class="value-container">
+            <span class="attention-count-value {{ ac_quartile_class }}" data-value="{{ attention_count }}" style="color: {{ ac_color }} !important; font-weight: 600 !important;">{{ '{:,}'.format(attention_count) }}</span>
+            <div class="percent-bar-container">
+                <div class="percent-bar {% if attention_count >= ac_q3 %}percent-high{% elif attention_count >= ac_q2 %}percent-medium{% elif attention_count >= ac_q1 %}percent-q2{% else %}percent-low{% endif %}">
+                    <div class="percent-bar-fill" style="width: {{ ac_percent }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </td>
+    
+    <!-- 总持仓人数 -->
+    {% set holder_count = item.total_holder_count_holders if item.total_holder_count_holders is not none else 0 %}
+    {% set all_holder_counts = [] %}
+    {% for company in company_analytics %}
+        {% if company.total_holder_count_holders is not none and company.total_holder_count_holders > 0 %}
+            {% set _ = all_holder_counts.append(company.total_holder_count_holders) %}
+        {% endif %}
+    {% endfor %}
+    {% set sorted_holder_counts = all_holder_counts|sort %}
+    {% set hc_q1_idx = (sorted_holder_counts|length * 0.25)|int %}
+    {% set hc_q2_idx = (sorted_holder_counts|length * 0.5)|int %}
+    {% set hc_q3_idx = (sorted_holder_counts|length * 0.75)|int %}
+    {% set hc_q1 = sorted_holder_counts[hc_q1_idx] if hc_q1_idx < sorted_holder_counts|length else 0 %}
+    {% set hc_q2 = sorted_holder_counts[hc_q2_idx] if hc_q2_idx < sorted_holder_counts|length else 0 %}
+    {% set hc_q3 = sorted_holder_counts[hc_q3_idx] if hc_q3_idx < sorted_holder_counts|length else 0 %}
+    
+    {% if holder_count >= hc_q3 %}
+        {% set hc_color = "#dc2626" %}
+        {% set hc_quartile_class = "holder-count-q4" %}
+    {% elif holder_count >= hc_q2 %}
+        {% set hc_color = "#ea580c" %}
+        {% set hc_quartile_class = "holder-count-q3" %}
+    {% elif holder_count >= hc_q1 %}
+        {% set hc_color = "#0369a1" %}
+        {% set hc_quartile_class = "holder-count-q2" %}
+    {% else %}
+        {% set hc_color = "#16a34a" %}
+        {% set hc_quartile_class = "holder-count-q1" %}
+    {% endif %}
+    
+    {% set hc_max = sorted_holder_counts[-1] if sorted_holder_counts else 1 %}
+    {% set hc_percent = (holder_count / hc_max) * 100 if hc_max > 0 else 0 %}
+    
+    <td class="text-right holder-count-cell" data-value="{{ holder_count }}" data-quartile="{{ hc_quartile_class }}">
+        <div class="value-container">
+            <span class="holder-count-value {{ hc_quartile_class }}" data-value="{{ holder_count }}" style="color: {{ hc_color }} !important; font-weight: 600 !important;">{{ '{:,}'.format(holder_count) }}</span>
+            <div class="percent-bar-container">
+                <div class="percent-bar {% if holder_count >= hc_q3 %}percent-high{% elif holder_count >= hc_q2 %}percent-medium{% elif holder_count >= hc_q1 %}percent-q2{% else %}percent-low{% endif %}">
+                    <div class="percent-bar-fill" style="width: {{ hc_percent }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </td>
+    
     <td class="business-ratio-column">
         {% set holder_ratio = item.holder_attention_ratio if item.holder_attention_ratio is not none else 0.0 %}
+        {% set all_holder_ratios = [] %}
+        {% for company in company_analytics %}
+            {% if company.holder_attention_ratio is not none and company.holder_attention_ratio > 0 %}
+                {% set _ = all_holder_ratios.append(company.holder_attention_ratio) %}
+            {% endif %}
+        {% endfor %}
+        {% set sorted_holder_ratios = all_holder_ratios|sort %}
+        {% set hr_q1_idx = (sorted_holder_ratios|length * 0.25)|int %}
+        {% set hr_q2_idx = (sorted_holder_ratios|length * 0.5)|int %}
+        {% set hr_q3_idx = (sorted_holder_ratios|length * 0.75)|int %}
+        {% set hr_q1 = sorted_holder_ratios[hr_q1_idx] if hr_q1_idx < sorted_holder_ratios|length else 0 %}
+        {% set hr_q2 = sorted_holder_ratios[hr_q2_idx] if hr_q2_idx < sorted_holder_ratios|length else 0 %}
+        {% set hr_q3 = sorted_holder_ratios[hr_q3_idx] if hr_q3_idx < sorted_holder_ratios|length else 0 %}
+        
+        {% if holder_ratio >= hr_q3 %}
+            {% set hr_color = "#dc2626" %}
+            {% set hr_quartile_class = "holder-ratio-q4" %}
+        {% elif holder_ratio >= hr_q2 %}
+            {% set hr_color = "#ea580c" %}
+            {% set hr_quartile_class = "holder-ratio-q3" %}
+        {% elif holder_ratio >= hr_q1 %}
+            {% set hr_color = "#0369a1" %}
+            {% set hr_quartile_class = "holder-ratio-q2" %}
+        {% else %}
+            {% set hr_color = "#16a34a" %}
+            {% set hr_quartile_class = "holder-ratio-q1" %}
+        {% endif %}
         <div class="ratio-container">
-            <span class="ratio-value {% if holder_ratio > 40 %}highlight-high{% elif holder_ratio > 20 %}highlight-medium{% else %}highlight-low{% endif %}">{{ "%.1f" % holder_ratio }}%</span>
+            <span class="ratio-value {{ hr_quartile_class }}" data-value="{{ holder_ratio }}" style="color: {{ hr_color }} !important; font-weight: 600 !important;">{{ "%.1f" % holder_ratio }}%</span>
             <div class="ratio-bar-container">
-                <div class="ratio-bar {% if holder_ratio > 40 %}ratio-high{% elif holder_ratio > 20 %}ratio-medium{% else %}ratio-low{% endif %}">
+                <div class="ratio-bar {% if holder_ratio >= hr_q3 %}ratio-high{% elif holder_ratio >= hr_q2 %}ratio-medium{% elif holder_ratio >= hr_q1 %}ratio-q2{% else %}ratio-low{% endif %}">
                     <div class="ratio-bar-fill" style="width: {{ holder_ratio }}%;"></div>
                 </div>
             </div>
         </div>
     </td>
-    <td class="text-right {% if item.total_holding_value is not none and item.total_holding_value/100000000 >= 20 %}highlight-high{% elif item.total_holding_value is not none and item.total_holding_value/100000000 >= 10 %}highlight-medium{% endif %}">
-        {{ "%.2f" % (item.total_holding_value / 100000000) if item.total_holding_value is not none and item.total_holding_value != 0 else '0.00' }}
+    
+    {% set holding_value = item.total_holding_value/100000000 if item.total_holding_value is not none else 0.0 %}
+    {% set all_holding_values = [] %}
+    {% for company in company_analytics %}
+        {% if company.total_holding_value is not none and company.total_holding_value > 0 %}
+            {% set _ = all_holding_values.append(company.total_holding_value/100000000) %}
+        {% endif %}
+    {% endfor %}
+    {% set sorted_holding_values = all_holding_values|sort %}
+    {% set hv_q1_idx = (sorted_holding_values|length * 0.25)|int %}
+    {% set hv_q2_idx = (sorted_holding_values|length * 0.5)|int %}
+    {% set hv_q3_idx = (sorted_holding_values|length * 0.75)|int %}
+    {% set hv_q1 = sorted_holding_values[hv_q1_idx] if hv_q1_idx < sorted_holding_values|length else 0 %}
+    {% set hv_q2 = sorted_holding_values[hv_q2_idx] if hv_q2_idx < sorted_holding_values|length else 0 %}
+    {% set hv_q3 = sorted_holding_values[hv_q3_idx] if hv_q3_idx < sorted_holding_values|length else 0 %}
+    
+    {% if holding_value >= hv_q3 %}
+        {% set hv_color = "#dc2626" %}
+        {% set hv_quartile_class = "holding-value-q4" %}
+    {% elif holding_value >= hv_q2 %}
+        {% set hv_color = "#ea580c" %}
+        {% set hv_quartile_class = "holding-value-q3" %}
+    {% elif holding_value >= hv_q1 %}
+        {% set hv_color = "#0369a1" %}
+        {% set hv_quartile_class = "holding-value-q2" %}
+    {% else %}
+        {% set hv_color = "#16a34a" %}
+        {% set hv_quartile_class = "holding-value-q1" %}
+    {% endif %}
+    
+    {% set hv_max = sorted_holding_values[-1] if sorted_holding_values else 1 %}
+    {% set hv_percent = (holding_value / hv_max) * 100 if hv_max > 0 else 0 %}
+    
+    <td class="text-right holding-value-cell" data-value="{{ holding_value }}" data-quartile="{{ hv_quartile_class }}">
+        <div class="value-container">
+            <span class="holding-value-value {{ hv_quartile_class }}" data-value="{{ holding_value }}" style="color: {{ hv_color }} !important; font-weight: 600 !important;">{{ "%.2f" % holding_value if holding_value != 0 else '0.00' }}</span>
+            <div class="percent-bar-container">
+                <div class="percent-bar {% if holding_value >= hv_q3 %}percent-high{% elif holding_value >= hv_q2 %}percent-medium{% elif holding_value >= hv_q1 %}percent-q2{% else %}percent-low{% endif %}">
+                    <div class="percent-bar-fill" style="width: {{ hv_percent }}%;"></div>
+                </div>
+            </div>
+        </div>
     </td>
+    
+    {% set business_value = item.business_total_holding_value/100000000 if item.business_total_holding_value is not none else 0.0 %}
+    {% set all_business_values = [] %}
+    {% for company in company_analytics %}
+        {% if company.business_total_holding_value is not none and company.business_total_holding_value > 0 %}
+            {% set _ = all_business_values.append(company.business_total_holding_value/100000000) %}
+        {% endif %}
+    {% endfor %}
+    {% set sorted_business_values = all_business_values|sort %}
+    {% set bv_q1_idx = (sorted_business_values|length * 0.25)|int %}
+    {% set bv_q2_idx = (sorted_business_values|length * 0.5)|int %}
+    {% set bv_q3_idx = (sorted_business_values|length * 0.75)|int %}
+    {% set bv_q1 = sorted_business_values[bv_q1_idx] if bv_q1_idx < sorted_business_values|length else 0 %}
+    {% set bv_q2 = sorted_business_values[bv_q2_idx] if bv_q2_idx < sorted_business_values|length else 0 %}
+    {% set bv_q3 = sorted_business_values[bv_q3_idx] if bv_q3_idx < sorted_business_values|length else 0 %}
+    
+    {% if business_value >= bv_q3 %}
+        {% set bv_color = "#dc2626" %}
+        {% set bv_quartile_class = "business-value-q4" %}
+    {% elif business_value >= bv_q2 %}
+        {% set bv_color = "#ea580c" %}
+        {% set bv_quartile_class = "business-value-q3" %}
+    {% elif business_value >= bv_q1 %}
+        {% set bv_color = "#0369a1" %}
+        {% set bv_quartile_class = "business-value-q2" %}
+    {% else %}
+        {% set bv_color = "#16a34a" %}
+        {% set bv_quartile_class = "business-value-q1" %}
+    {% endif %}
+    
+    {% set bv_max = sorted_business_values[-1] if sorted_business_values else 1 %}
+    {% set bv_percent = (business_value / bv_max) * 100 if bv_max > 0 else 0 %}
+
     <td class="business-value-column">
         <div class="value-container">
-            <span class="mono-value {% if item.business_total_holding_value is not none and item.business_total_holding_value/100000000 >= 10 %}highlight-high{% elif item.business_total_holding_value is not none and item.business_total_holding_value/100000000 >= 5 %}highlight-medium{% else %}highlight-low{% endif %}">
-                {{ "%.2f" % (item.business_total_holding_value / 100000000) if item.business_total_holding_value is not none and item.business_total_holding_value != 0 else '0.00' }}
+            <span class="mono-value {{ bv_quartile_class }}" data-value="{{ business_value }}" style="color: {{ bv_color }} !important; font-weight: 600 !important;">
+                {{ "%.2f" % business_value if business_value != 0 else '0.00' }}
             </span>
+            <div class="percent-bar-container">
+                <div class="percent-bar {% if business_value >= bv_q3 %}percent-high{% elif business_value >= bv_q2 %}percent-medium{% elif business_value >= bv_q1 %}percent-q2{% else %}percent-low{% endif %}">
+                    <div class="percent-bar-fill" style="width: {{ bv_percent }}%;"></div>
+                </div>
+            </div>
             {% if item.business_value_change is defined and item.business_value_change is not none %}
                 <span class="trend-badge {% if item.business_value_change > 0 %}trend-up{% elif item.business_value_change < 0 %}trend-down{% endif %}">
                     {% if item.business_value_change > 0 %}<i class="bi bi-arrow-up-short"></i>{% elif item.business_value_change < 0 %}<i class="bi bi-arrow-down-short"></i>{% endif %}
@@ -48,12 +439,40 @@
             {% endif %}
         </div>
     </td>
+    
     <td class="business-ratio-column">
         {% set value_ratio = item.business_holding_value_ratio if item.business_holding_value_ratio is not none else 0.0 %}
+        {% set all_value_ratios = [] %}
+        {% for company in company_analytics %}
+            {% if company.business_holding_value_ratio is not none and company.business_holding_value_ratio > 0 %}
+                {% set _ = all_value_ratios.append(company.business_holding_value_ratio) %}
+            {% endif %}
+        {% endfor %}
+        {% set sorted_value_ratios = all_value_ratios|sort %}
+        {% set vr_q1_idx = (sorted_value_ratios|length * 0.25)|int %}
+        {% set vr_q2_idx = (sorted_value_ratios|length * 0.5)|int %}
+        {% set vr_q3_idx = (sorted_value_ratios|length * 0.75)|int %}
+        {% set vr_q1 = sorted_value_ratios[vr_q1_idx] if vr_q1_idx < sorted_value_ratios|length else 0 %}
+        {% set vr_q2 = sorted_value_ratios[vr_q2_idx] if vr_q2_idx < sorted_value_ratios|length else 0 %}
+        {% set vr_q3 = sorted_value_ratios[vr_q3_idx] if vr_q3_idx < sorted_value_ratios|length else 0 %}
+        
+        {% if value_ratio >= vr_q3 %}
+            {% set vr_color = "#dc2626" %}
+            {% set vr_quartile_class = "value-ratio-q4" %}
+        {% elif value_ratio >= vr_q2 %}
+            {% set vr_color = "#ea580c" %}
+            {% set vr_quartile_class = "value-ratio-q3" %}
+        {% elif value_ratio >= vr_q1 %}
+            {% set vr_color = "#0369a1" %}
+            {% set vr_quartile_class = "value-ratio-q2" %}
+        {% else %}
+            {% set vr_color = "#16a34a" %}
+            {% set vr_quartile_class = "value-ratio-q1" %}
+        {% endif %}
         <div class="ratio-container">
-            <span class="ratio-value {% if value_ratio > 70 %}highlight-high{% elif value_ratio > 30 %}highlight-medium{% else %}highlight-low{% endif %}">{{ "%.1f" % value_ratio }}%</span>
+            <span class="ratio-value {{ vr_quartile_class }}" data-value="{{ value_ratio }}" style="color: {{ vr_color }} !important; font-weight: 600 !important;">{{ "%.1f" % value_ratio }}%</span>
             <div class="ratio-bar-container">
-                <div class="ratio-bar {% if value_ratio > 70 %}ratio-high{% elif value_ratio > 30 %}ratio-medium{% else %}ratio-low{% endif %}">
+                <div class="ratio-bar {% if value_ratio >= vr_q3 %}ratio-high{% elif value_ratio >= vr_q2 %}ratio-medium{% elif value_ratio >= vr_q1 %}ratio-q2{% else %}ratio-low{% endif %}">
                     <div class="ratio-bar-fill" style="width: {{ value_ratio }}%;"></div>
                 </div>
             </div>

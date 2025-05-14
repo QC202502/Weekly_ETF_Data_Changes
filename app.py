@@ -33,6 +33,14 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 限制上传文件大小为50MB
 app.logger.setLevel(logging.DEBUG)
 
+# 添加全局Jinja2变量
+@app.context_processor
+def inject_globals():
+    return {
+        'now': int(time.time()),  # 添加当前时间戳作为全局变量
+        'version': __version__
+    }
+
 # 禁用静态文件缓存
 @app.after_request
 def add_cache_control(response):

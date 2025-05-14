@@ -125,14 +125,14 @@ function sortCompanyTable(sortBy) {
             // 更新表格内容 - 使用返回的HTML片段
             document.getElementById('company-analytics-tbody').innerHTML = data.html_fragment;
             
-            // 更新全局变量以便其他函数使用
-            window.currentSortBy = data.sort_by;
-            window.currentOrder = data.order;
+            // 更新当前排序状态
+            window.currentSortBy = sortBy;
+            window.currentOrder = order;
             
             // 更新排序指示器
             updateSortIndicators();
             
-            // 重新应用动画效果
+            // 重新应用动画和交互效果
             if (typeof reapplyProgressBars === 'function') {
                 setTimeout(reapplyProgressBars, 100);
             }
@@ -142,10 +142,24 @@ function sortCompanyTable(sortBy) {
                 setTimeout(adjustCompanyColumnWidth, 150);
             }
             
-            console.log(`表格已按 ${data.sort_by} ${data.order === 'asc' ? '升序' : '降序'} 排序`);
+            if (typeof emergencyFixRatioBars === 'function') {
+                setTimeout(emergencyFixRatioBars, 300);
+            }
+            
+            // 应用总管理规模四分位数着色
+            if (typeof applyFundSizeQuartileColors === 'function') {
+                setTimeout(applyFundSizeQuartileColors, 400);
+            }
+            
+            // 应用总成交额四分位数着色
+            if (typeof applyAmountQuartileColors === 'function') {
+                setTimeout(applyAmountQuartileColors, 400);
+            }
+            
+            console.log(`表格已按 ${sortBy} ${order === 'asc' ? '升序' : '降序'} 排序`);
         })
         .catch(error => {
-            console.error('排序请求失败:', error);
+            console.error('AJAX请求失败:', error);
         });
 }
 
@@ -633,6 +647,348 @@ function emergencyFixRatioBars() {
 // 将紧急修复函数添加到window对象
 window.emergencyFixRatioBars = emergencyFixRatioBars;
 
+// 计算和应用总管理规模的四分位数着色
+function applyFundSizeQuartileColors() {
+    console.log('应用总管理规模四分位数着色 - 开始');
+    console.log(`页面URL: ${window.location.href}`);
+    console.log(`文档状态: ${document.readyState}`);
+    
+    try {
+        // 获取所有总管理规模单元格 - 使用多种选择器提高查找可靠性
+        let cells = document.querySelectorAll('#company-analytics-tbody tr td.fund-size-cell');
+        console.log(`使用class选择器找到 ${cells.length} 个总管理规模单元格`);
+        
+        if (cells.length === 0) {
+            console.log('使用class选择器未找到总管理规模单元格，尝试使用位置选择器');
+            // 尝试使用位置选择器（第6列）作为备选
+            cells = document.querySelectorAll('#company-analytics-tbody tr td:nth-child(6)');
+            console.log(`使用位置选择器找到 ${cells.length} 个总管理规模单元格`);
+        }
+        
+        // 如果仍未找到，尝试最后一种选择器
+        if (cells.length === 0) {
+            console.log('使用位置选择器仍未找到总管理规模单元格，尝试使用包含"总管理规模"的表头查找');
+            // 查找包含"总管理规模"的表头
+            const headers = Array.from(document.querySelectorAll('th'));
+            const fundSizeHeader = headers.find(th => th.textContent.includes('总管理规模'));
+            if (fundSizeHeader) {
+                // 找到表头后，获取其索引
+                const headerIndex = Array.prototype.indexOf.call(fundSizeHeader.parentNode.children, fundSizeHeader);
+                if (headerIndex > 0) {
+                    // 根据表头索引获取相应列的单元格
+                    cells = document.querySelectorAll(`#company-analytics-tbody tr td:nth-child(${headerIndex + 1})`);
+                    console.log(`使用表头查找找到 ${cells.length} 个总管理规模单元格，位于第 ${headerIndex + 1} 列`);
+                }
+            }
+        }
+        
+        console.log(`找到 ${cells.length} 个总管理规模单元格`);
+        
+        if (cells.length === 0) {
+            console.error('未找到总管理规模单元格，无法应用四分位数着色');
+            return;
+        }
+        
+        // 收集所有有效的规模值
+        const values = [];
+        cells.forEach((cell, index) => {
+            try {
+                // 尝试从span元素中获取值
+                const valueSpan = cell.querySelector('span.fund-size-value');
+                let text;
+                
+                if (valueSpan) {
+                    text = valueSpan.textContent.trim();
+                    console.log(`单元格 #${index} 中找到span.fund-size-value元素，文本为：${text}`);
+                } else {
+                    // 如果没有span元素，直接从单元格获取文本
+                    text = cell.textContent.trim();
+                    console.log(`单元格 #${index} 中未找到span.fund-size-value元素，直接使用单元格文本：${text}`);
+                }
+                
+                const value = parseFloat(text);
+                if (!isNaN(value)) {
+                    values.push({ cell, value, index, valueSpan });
+                    console.log(`单元格 #${index}: ${text} => ${value}亿元`);
+                } else {
+                    console.log(`单元格 #${index}: 无法解析数值 "${text}"`);
+                }
+            } catch (error) {
+                console.error(`处理单元格 #${index} 时出错:`, error);
+            }
+        });
+        
+        // 如果没有有效值，直接返回
+        if (values.length === 0) {
+            console.error('未找到有效的总管理规模值，无法应用四分位数着色');
+            return;
+        }
+        
+        // 排序值以计算四分位数
+        values.sort((a, b) => a.value - b.value);
+        
+        // 打印排序后的值，便于调试
+        console.log('排序后的总管理规模值:');
+        values.forEach((item, i) => {
+            console.log(`#${i} (原始索引: ${item.index}): ${item.value.toFixed(2)}亿元`);
+        });
+        
+        // 计算四分位数
+        const q1Index = Math.floor(values.length * 0.25);
+        const q2Index = Math.floor(values.length * 0.5);
+        const q3Index = Math.floor(values.length * 0.75);
+        
+        const q1 = values[q1Index].value;
+        const q2 = values[q2Index].value;
+        const q3 = values[q3Index].value;
+        
+        console.log(`总管理规模四分位数: Q1=${q1.toFixed(2)}亿, Q2=${q2.toFixed(2)}亿, Q3=${q3.toFixed(2)}亿`);
+        console.log(`四分位数阈值: 0-${q1.toFixed(2)}(绿色), ${q1.toFixed(2)}-${q2.toFixed(2)}(蓝色), ${q2.toFixed(2)}-${q3.toFixed(2)}(橙色), ${q3.toFixed(2)}+(红色)`);
+        
+        // 应用四分位数颜色类
+        values.forEach(item => {
+            try {
+                // 清除单元格上可能存在的任何颜色样式
+                if (item.cell) {
+                    item.cell.style.removeProperty('color');
+                    item.cell.classList.remove('fund-size-q1', 'fund-size-q2', 'fund-size-q3', 'fund-size-q4');
+                }
+                
+                // 选择要应用样式的元素（优先使用span元素）
+                const targetElement = item.valueSpan || item.cell;
+                
+                // 记录元素信息，用于调试
+                console.log(`应用颜色到元素:`, targetElement);
+                
+                // 移除之前可能存在的颜色类
+                targetElement.classList.remove('fund-size-q1', 'fund-size-q2', 'fund-size-q3', 'fund-size-q4');
+                
+                // 根据值添加适当的颜色类
+                let colorClass = '';
+                let colorValue = '';
+                
+                if (item.value >= q3) {
+                    colorClass = 'fund-size-q4'; // 红色，最高的25%
+                    colorValue = '#dc2626';
+                } else if (item.value >= q2) {
+                    colorClass = 'fund-size-q3'; // 橙色，50%-75%
+                    colorValue = '#ea580c';
+                } else if (item.value >= q1) {
+                    colorClass = 'fund-size-q2'; // 蓝色，25%-50%
+                    colorValue = '#0369a1';
+                } else {
+                    colorClass = 'fund-size-q1'; // 绿色，最低的25%
+                    colorValue = '#16a34a';
+                }
+                
+                // 直接添加内联样式，确保颜色应用（最高优先级）
+                targetElement.style.setProperty('color', colorValue, 'important');
+                targetElement.style.setProperty('font-weight', '600', 'important');
+                
+                // 同时添加类，以便CSS样式也能应用
+                targetElement.classList.add(colorClass);
+                
+                // 添加data属性，便于调试
+                targetElement.setAttribute('data-quartile', colorClass);
+                
+                console.log(`应用颜色 ${colorClass} (${colorValue}) 到${item.valueSpan ? 'span元素' : '单元格'} #${item.index}，值 ${item.value.toFixed(2)}亿元`);
+                
+                // 强制触发重排，确保样式应用
+                void targetElement.offsetWidth;
+            } catch (error) {
+                console.error(`为单元格 #${item.index} 应用颜色时出错:`, error);
+            }
+        });
+        
+        console.log('总管理规模四分位数着色完成');
+    } catch (e) {
+        console.error('应用总管理规模四分位数着色函数发生错误:', e);
+    }
+}
+
+// 确保函数在DOMContentLoaded后执行，直接添加一个事件监听器
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded事件触发，准备应用四分位数着色');
+    // 延迟一段时间确保DOM完全加载
+    setTimeout(function() {
+        applyFundSizeQuartileColors();
+    }, 1000);
+});
+
+// 添加到window对象以便全局访问
+window.applyFundSizeQuartileColors = applyFundSizeQuartileColors;
+
+// 计算和应用总成交额的四分位数着色
+function applyAmountQuartileColors() {
+    console.log('应用总成交额四分位数着色 - 开始');
+    
+    try {
+        // 获取所有总成交额单元格
+        let cells = document.querySelectorAll('#company-analytics-tbody tr td.amount-cell');
+        console.log(`使用class选择器找到 ${cells.length} 个总成交额单元格`);
+        
+        if (cells.length === 0) {
+            console.log('使用class选择器未找到总成交额单元格，尝试使用位置选择器');
+            // 尝试使用位置选择器（第7列）作为备选
+            cells = document.querySelectorAll('#company-analytics-tbody tr td:nth-child(7)');
+            console.log(`使用位置选择器找到 ${cells.length} 个总成交额单元格`);
+        }
+        
+        // 如果仍未找到，尝试最后一种选择器
+        if (cells.length === 0) {
+            console.log('使用位置选择器仍未找到总成交额单元格，尝试使用包含"总成交额"的表头查找');
+            // 查找包含"总成交额"的表头
+            const headers = Array.from(document.querySelectorAll('th'));
+            const amountHeader = headers.find(th => th.textContent.includes('总成交额'));
+            if (amountHeader) {
+                // 找到表头后，获取其索引
+                const headerIndex = Array.prototype.indexOf.call(amountHeader.parentNode.children, amountHeader);
+                if (headerIndex > 0) {
+                    // 根据表头索引获取相应列的单元格
+                    cells = document.querySelectorAll(`#company-analytics-tbody tr td:nth-child(${headerIndex + 1})`);
+                    console.log(`使用表头查找找到 ${cells.length} 个总成交额单元格，位于第 ${headerIndex + 1} 列`);
+                }
+            }
+        }
+        
+        console.log(`找到 ${cells.length} 个总成交额单元格`);
+        
+        if (cells.length === 0) {
+            console.error('未找到总成交额单元格，无法应用四分位数着色');
+            return;
+        }
+        
+        // 收集所有有效的成交额值
+        const values = [];
+        cells.forEach((cell, index) => {
+            try {
+                // 尝试从span元素中获取值
+                const valueSpan = cell.querySelector('span.amount-value');
+                let text;
+                
+                if (valueSpan) {
+                    text = valueSpan.textContent.trim();
+                    console.log(`单元格 #${index} 中找到span.amount-value元素，文本为：${text}`);
+                } else {
+                    // 如果没有span元素，直接从单元格获取文本
+                    text = cell.textContent.trim();
+                    console.log(`单元格 #${index} 中未找到span.amount-value元素，直接使用单元格文本：${text}`);
+                }
+                
+                const value = parseFloat(text);
+                if (!isNaN(value)) {
+                    values.push({ cell, value, index, valueSpan });
+                    console.log(`单元格 #${index}: ${text} => ${value}亿元`);
+                } else {
+                    console.log(`单元格 #${index}: 无法解析数值 "${text}"`);
+                }
+            } catch (error) {
+                console.error(`处理单元格 #${index} 时出错:`, error);
+            }
+        });
+        
+        // 如果没有有效值，直接返回
+        if (values.length === 0) {
+            console.error('未找到有效的总成交额值，无法应用四分位数着色');
+            return;
+        }
+        
+        // 排序值以计算四分位数
+        values.sort((a, b) => a.value - b.value);
+        
+        // 打印排序后的值，便于调试
+        console.log('排序后的总成交额值:');
+        values.forEach((item, i) => {
+            console.log(`#${i} (原始索引: ${item.index}): ${item.value.toFixed(2)}亿元`);
+        });
+        
+        // 计算四分位数
+        const q1Index = Math.floor(values.length * 0.25);
+        const q2Index = Math.floor(values.length * 0.5);
+        const q3Index = Math.floor(values.length * 0.75);
+        
+        const q1 = values[q1Index].value;
+        const q2 = values[q2Index].value;
+        const q3 = values[q3Index].value;
+        
+        console.log(`总成交额四分位数: Q1=${q1.toFixed(2)}亿, Q2=${q2.toFixed(2)}亿, Q3=${q3.toFixed(2)}亿`);
+        console.log(`四分位数阈值: 0-${q1.toFixed(2)}(绿色), ${q1.toFixed(2)}-${q2.toFixed(2)}(蓝色), ${q2.toFixed(2)}-${q3.toFixed(2)}(橙色), ${q3.toFixed(2)}+(红色)`);
+        
+        // 应用四分位数颜色类
+        values.forEach(item => {
+            try {
+                // 清除单元格上可能存在的任何颜色样式
+                if (item.cell) {
+                    item.cell.style.removeProperty('color');
+                    item.cell.classList.remove('amount-q1', 'amount-q2', 'amount-q3', 'amount-q4');
+                }
+                
+                // 选择要应用样式的元素（优先使用span元素）
+                const targetElement = item.valueSpan || item.cell;
+                
+                // 记录元素信息，用于调试
+                console.log(`应用颜色到元素:`, targetElement);
+                
+                // 移除之前可能存在的颜色类
+                targetElement.classList.remove('amount-q1', 'amount-q2', 'amount-q3', 'amount-q4');
+                
+                // 根据值添加适当的颜色类
+                let colorClass = '';
+                let colorValue = '';
+                
+                if (item.value >= q3) {
+                    colorClass = 'amount-q4'; // 红色，最高的25%
+                    colorValue = '#dc2626';
+                } else if (item.value >= q2) {
+                    colorClass = 'amount-q3'; // 橙色，50%-75%
+                    colorValue = '#ea580c';
+                } else if (item.value >= q1) {
+                    colorClass = 'amount-q2'; // 蓝色，25%-50%
+                    colorValue = '#0369a1';
+                } else {
+                    colorClass = 'amount-q1'; // 绿色，最低的25%
+                    colorValue = '#16a34a';
+                }
+                
+                // 直接添加内联样式，确保颜色应用（最高优先级）
+                targetElement.style.setProperty('color', colorValue, 'important');
+                targetElement.style.setProperty('font-weight', '600', 'important');
+                
+                // 同时添加类，以便CSS样式也能应用
+                targetElement.classList.add(colorClass);
+                
+                // 添加data属性，便于调试
+                targetElement.setAttribute('data-quartile', colorClass);
+                targetElement.setAttribute('data-value', item.value);
+                
+                console.log(`应用颜色 ${colorClass} (${colorValue}) 到${item.valueSpan ? 'span元素' : '单元格'} #${item.index}，值 ${item.value.toFixed(2)}亿元`);
+                
+                // 强制触发重排，确保样式应用
+                void targetElement.offsetWidth;
+            } catch (error) {
+                console.error(`为单元格 #${item.index} 应用颜色时出错:`, error);
+            }
+        });
+        
+        console.log('总成交额四分位数着色完成');
+    } catch (e) {
+        console.error('应用总成交额四分位数着色函数发生错误:', e);
+    }
+}
+
+// 确保函数在DOMContentLoaded后执行，直接添加一个事件监听器
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded事件触发，准备应用四分位数着色');
+    // 延迟一段时间确保DOM完全加载
+    setTimeout(function() {
+        applyFundSizeQuartileColors();
+        applyAmountQuartileColors();
+    }, 1000);
+});
+
+// 添加到window对象以便全局访问
+window.applyAmountQuartileColors = applyAmountQuartileColors;
+
 // 在页面加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
     console.log('页面加载完成，初始化事件监听器');
@@ -800,7 +1156,32 @@ document.addEventListener('DOMContentLoaded', function() {
         errorBanner.style.display = 'none';
         showMessage('info', '系统已就绪，请输入搜索关键词');
     }
-
+    
+    // 总管理规模和总成交额四分位数分区着色
+    console.log('准备应用四分位数分区着色...');
+    
+    // 在公司分析表格加载后应用四分位数着色
+    const companyTableTbody = document.getElementById('company-analytics-tbody');
+    if (companyTableTbody) {
+        console.log('找到公司分析表格，准备应用四分位数着色');
+        // 检查总管理规模单元格是否存在
+        const fundSizeCells = document.querySelectorAll('#company-analytics-tbody tr td.fund-size-cell');
+        console.log(`发现 ${fundSizeCells.length} 个总管理规模单元格`);
+        
+        // 检查总成交额单元格是否存在
+        const amountCells = document.querySelectorAll('#company-analytics-tbody tr td.amount-cell');
+        console.log(`发现 ${amountCells.length} 个总成交额单元格`);
+        
+        // 应用四分位数着色
+        setTimeout(function() {
+            applyFundSizeQuartileColors();
+            applyAmountQuartileColors();
+            console.log('已调用四分位数着色函数');
+        }, 500);
+    } else {
+        console.log('未找到公司分析表格，无法应用四分位数着色');
+    }
+    
     // Initialize sort state from the hidden inputs or default from Python
     // Assuming Python passes initial sort state to the template which sets these global JS vars or data attributes
     // For now, we'll use the globally defined currentSortBy and currentOrder from above which should match python's default
@@ -857,6 +1238,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化时运行一次紧急修复确保进度条显示正确
     setTimeout(emergencyFixRatioBars, 800);
+    
+    // 应用总管理规模四分位数着色
+    setTimeout(applyFundSizeQuartileColors, 1000);
+    
+    // 应用总成交额四分位数着色
+    setTimeout(applyAmountQuartileColors, 1000);
     
     console.log('页面初始化完成，交互功能已加载');
 });

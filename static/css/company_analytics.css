@@ -325,8 +325,8 @@ th[onclick] .sort-indicator[data-active="true"] {
   height: 6px;
   background-color: #e2e8f0;
   border-radius: 6px;
-  width: 65px;
-  margin-right: 8px;
+  width: 100%;
+  margin-right: 0;
   vertical-align: middle;
   position: relative;
   overflow: hidden;
@@ -351,6 +351,12 @@ th[onclick] .sort-indicator[data-active="true"] {
 .percent-medium .percent-bar-fill {
   background: linear-gradient(90deg, #ff9f5a 0%, #ea580c 100%);
   box-shadow: 0 0 4px rgba(234, 88, 12, 0.5);
+}
+
+/* 添加q2蓝色样式 */
+.percent-q2 .percent-bar-fill {
+  background: linear-gradient(90deg, #60a5fa 0%, #0369a1 100%);
+  box-shadow: 0 0 4px rgba(3, 105, 161, 0.5);
 }
 
 .percent-low .percent-bar-fill {
@@ -389,10 +395,54 @@ th[onclick] .sort-indicator[data-active="true"] {
   white-space: nowrap;
   font-size: 13px;
   letter-spacing: -0.3px;
-  color: #334155;
 }
 
-/* 商务品总持仓价值列样式 */
+/* 总管理规模单元格特殊样式 - 添加高优先级样式 */
+.company-analytics-table tbody td.fund-size-cell span.fund-size-value {
+  font-weight: 600 !important;
+  text-align: right !important;
+}
+
+/* 总管理规模四分位数颜色 - 提高优先级和特异性 */
+.company-analytics-table tbody tr td.fund-size-cell span.fund-size-value.fund-size-q4,
+.company-analytics-table tbody tr td.fund-size-cell span.fund-size-q4,
+span.fund-size-value.fund-size-q4,
+.fund-size-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.fund-size-cell span.fund-size-value.fund-size-q3,
+.company-analytics-table tbody tr td.fund-size-cell span.fund-size-q3,
+span.fund-size-value.fund-size-q3,
+.fund-size-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.fund-size-cell span.fund-size-value.fund-size-q2,
+.company-analytics-table tbody tr td.fund-size-cell span.fund-size-q2,
+span.fund-size-value.fund-size-q2,
+.fund-size-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.fund-size-cell span.fund-size-value.fund-size-q1,
+.company-analytics-table tbody tr td.fund-size-cell span.fund-size-q1, 
+span.fund-size-value.fund-size-q1,
+.fund-size-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 确保内联样式可以正确应用 */
+.company-analytics-table tbody td.fund-size-cell span.fund-size-value[style*="color"] {
+  /* 保留内联样式的颜色，增加优先级 */
+  color: inherit !important;
+}
+
+/* 商务品总持仓价值列样式增强 */
 .business-value-column {
   font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
   font-weight: 600;
@@ -456,6 +506,7 @@ th[onclick] .sort-indicator[data-active="true"] {
   justify-content: flex-end;
   align-items: center;
   gap: 4px;
+  width: 100%;
 }
 
 .business-value-column .mono-value {
@@ -475,6 +526,8 @@ th[onclick] .sort-indicator[data-active="true"] {
   font-weight: 600;
   min-width: 36px;
   height: 18px;
+  margin-left: 4px;
+  flex-shrink: 0;
 }
 
 .business-value-column .trend-up {
@@ -551,6 +604,12 @@ th[onclick] .sort-indicator[data-active="true"] {
 .ratio-medium .ratio-bar-fill {
   background: linear-gradient(90deg, #ff9f5a 0%, #ea580c 100%);
   box-shadow: 0 0 4px rgba(234, 88, 12, 0.5);
+}
+
+/* 添加q2蓝色样式 */
+.ratio-q2 .ratio-bar-fill {
+  background: linear-gradient(90deg, #60a5fa 0%, #0369a1 100%);
+  box-shadow: 0 0 4px rgba(3, 105, 161, 0.5);
 }
 
 .ratio-low .ratio-bar-fill {
@@ -632,7 +691,15 @@ th[onclick] .sort-indicator[data-active="true"] {
   .business-value-column .trend-badge {
     font-size: 10px;
     padding: 1px 3px;
-    margin-left: 4px;
+    min-width: 30px;
+  }
+  
+  .business-value-column .value-container {
+    gap: 2px;
+  }
+  
+  .business-value-column {
+    padding-right: 4px !important;
   }
 }
 
@@ -756,4 +823,296 @@ th[onclick] .sort-indicator[data-active="true"] {
   color: #64748b;
   font-size: 14px;
   margin-bottom: 20px;
+}
+
+/* 总成交额单元格特殊样式 - 添加高优先级样式 */
+.company-analytics-table tbody td.amount-cell span.amount-value {
+  font-weight: 600 !important;
+  text-align: right !important;
+}
+
+/* 总成交额四分位数颜色 - 提高优先级和特异性 */
+.company-analytics-table tbody tr td.amount-cell span.amount-value.amount-q4,
+.company-analytics-table tbody tr td.amount-cell span.amount-q4,
+span.amount-value.amount-q4,
+.amount-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.amount-cell span.amount-value.amount-q3,
+.company-analytics-table tbody tr td.amount-cell span.amount-q3,
+span.amount-value.amount-q3,
+.amount-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.amount-cell span.amount-value.amount-q2,
+.company-analytics-table tbody tr td.amount-cell span.amount-q2,
+span.amount-value.amount-q2,
+.amount-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.amount-cell span.amount-value.amount-q1,
+.company-analytics-table tbody tr td.amount-cell span.amount-q1, 
+span.amount-value.amount-q1,
+.amount-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 确保内联样式可以正确应用 */
+.company-analytics-table tbody td.amount-cell span.amount-value[style*="color"] {
+  /* 保留内联样式的颜色，增加优先级 */
+  color: inherit !important;
+}
+
+/* 总持仓价值单元格特殊样式 - 添加高优先级样式 */
+.company-analytics-table tbody td.holding-value-cell span.holding-value-value {
+  font-weight: 600 !important;
+  text-align: right !important;
+}
+
+/* 总持仓价值四分位数颜色 - 提高优先级和特异性 */
+.company-analytics-table tbody tr td.holding-value-cell span.holding-value-value.holding-value-q4,
+.company-analytics-table tbody tr td.holding-value-cell span.holding-value-q4,
+span.holding-value-value.holding-value-q4,
+.holding-value-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.holding-value-cell span.holding-value-value.holding-value-q3,
+.company-analytics-table tbody tr td.holding-value-cell span.holding-value-q3,
+span.holding-value-value.holding-value-q3,
+.holding-value-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.holding-value-cell span.holding-value-value.holding-value-q2,
+.company-analytics-table tbody tr td.holding-value-cell span.holding-value-q2,
+span.holding-value-value.holding-value-q2,
+.holding-value-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.holding-value-cell span.holding-value-value.holding-value-q1,
+.company-analytics-table tbody tr td.holding-value-cell span.holding-value-q1, 
+span.holding-value-value.holding-value-q1,
+.holding-value-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 确保内联样式可以正确应用 */
+.company-analytics-table tbody td.holding-value-cell span.holding-value-value[style*="color"] {
+  /* 保留内联样式的颜色，增加优先级 */
+  color: inherit !important;
+}
+
+/* 商务品总持仓价值四分位数颜色 - 提高优先级和特异性 */
+.company-analytics-table tbody tr td.business-value-column span.mono-value.business-value-q4,
+.company-analytics-table tbody tr td.business-value-column span.business-value-q4,
+span.mono-value.business-value-q4,
+.business-value-q4 {
+  color: #dc2626 !important; /* 红色，最高的25% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.business-value-column span.mono-value.business-value-q3,
+.company-analytics-table tbody tr td.business-value-column span.business-value-q3,
+span.mono-value.business-value-q3,
+.business-value-q3 {
+  color: #ea580c !important; /* 橙色，50%-75% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.business-value-column span.mono-value.business-value-q2,
+.company-analytics-table tbody tr td.business-value-column span.business-value-q2,
+span.mono-value.business-value-q2,
+.business-value-q2 {
+  color: #0369a1 !important; /* 蓝色，25%-50% */
+  font-weight: 600 !important;
+}
+
+.company-analytics-table tbody tr td.business-value-column span.mono-value.business-value-q1,
+.company-analytics-table tbody tr td.business-value-column span.business-value-q1, 
+span.mono-value.business-value-q1,
+.business-value-q1 {
+  color: #16a34a !important; /* 绿色，最低的25% */
+  font-weight: 600 !important;
+}
+
+/* 确保内联样式可以正确应用 */
+.company-analytics-table tbody td.business-value-column span.mono-value[style*="color"] {
+  /* 保留内联样式的颜色，增加优先级 */
+  color: inherit !important;
+}
+
+/* 优化value-container布局 */
+.value-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+/* 数值单元格内的percent-bar-container样式优化 */
+.percent-bar-container {
+  min-width: 60px;
+  width: 60px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* 调整数值span样式，防止被截断 */
+.product-count-value,
+.business-count-value,
+.attention-count-value,
+.holder-count-value,
+.ratio-value,
+.fund-size-value,
+.amount-value,
+.holding-value-value,
+.mono-value {
+  white-space: nowrap;
+  font-size: 12px;
+  display: inline-block;
+  text-align: right;
+  min-width: 50px;
+}
+
+/* 确保进度条比例正确显示 */
+.percent-bar {
+  display: inline-block;
+  height: 6px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  width: 100%;
+  margin-right: 0;
+  vertical-align: middle;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* 优化单元格样式 */
+.product-count-cell,
+.business-count-cell,
+.attention-count-cell,
+.holder-count-cell,
+.business-ratio-column,
+.fund-size-cell,
+.amount-cell,
+.holding-value-cell,
+.business-value-column {
+  padding: 6px 8px !important;
+  min-width: 120px;
+  max-width: 180px;
+}
+
+/* 优化数值比例单元格 */
+.business-ratio-column .ratio-container,
+.ratio-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+/* 调整比例进度条容器宽度 */
+.ratio-bar-container {
+  width: 60px;
+  min-width: 60px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* 响应式布局优化 */
+@media (max-width: 1200px) {
+  .percent-bar-container,
+  .ratio-bar-container {
+    width: 50px;
+    min-width: 50px;
+  }
+  
+  .product-count-cell,
+  .business-count-cell,
+  .attention-count-cell,
+  .holder-count-cell,
+  .business-ratio-column,
+  .fund-size-cell,
+  .amount-cell,
+  .holding-value-cell,
+  .business-value-column {
+    min-width: 110px;
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 992px) {
+  .percent-bar-container,
+  .ratio-bar-container {
+    width: 40px;
+    min-width: 40px;
+  }
+  
+  .product-count-value,
+  .business-count-value,
+  .attention-count-value,
+  .holder-count-value,
+  .ratio-value,
+  .fund-size-value,
+  .amount-value,
+  .holding-value-value,
+  .mono-value {
+    font-size: 11px;
+    min-width: 40px;
+  }
+  
+  .product-count-cell,
+  .business-count-cell,
+  .attention-count-cell,
+  .holder-count-cell,
+  .business-ratio-column,
+  .fund-size-cell,
+  .amount-cell,
+  .holding-value-cell,
+  .business-value-column {
+    min-width: 100px;
+    max-width: 140px;
+    padding: 6px 4px !important;
+  }
+}
+
+/* 确保表格不会过于挤压 */
+.company-analytics-table {
+  table-layout: auto;
+  width: 100%;
+}
+
+/* 优化基金总管理规模和总成交额单元格样式 */
+.fund-size-cell,
+.amount-cell {
+  position: relative;
+}
+
+.fund-size-cell .value-container,
+.amount-cell .value-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 增加特定单元格的最小宽度，确保内容完整显示 */
+.company-analytics-table td.text-right {
+  min-width: 80px;
 } 

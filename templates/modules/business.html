@@ -1,58 +1,373 @@
+<!-- 商务品分析已被删除 --> 
+
 <!-- 商务品分析 -->
 <div class="content-section" id="section-business" style="display: none;">
-    <div class="card">
-        <div class="card-header">
-            <h5><i class="bi bi-star"></i> 商务品分析</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card mb-3">
-                        <div class="card-header">基本统计</div>
-                        <div class="card-body">
-                            <table class="table table-striped">
-                                <tbody>
-                                    <tr>
-                                        <th>商务品总数</th>
-                                        <td id="total-business">-</td>
-                                    </tr>
-                                    <tr>
-                                        <th>基金公司数量</th>
-                                        <td id="business-companies">-</td>
-                                    </tr>
-                                    <tr>
-                                        <th>商务品总规模(亿元)</th>
-                                        <td id="business-scale">-</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+    <!-- 使用更紧凑的布局 -->
+    <div class="row mb-3">
+        <!-- 统计信息 -->
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body p-2">
+                    <h6 class="card-title border-bottom pb-1 mb-2">基本统计</h6>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted small">商务品总数：</span>
+                        <span id="total-business" class="fw-bold">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted small">基金公司数量：</span>
+                        <span id="business-companies" class="fw-bold">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted small">商务品总规模：</span>
+                        <span id="business-scale" class="fw-bold">-</span>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">商务品基金公司分布</div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>基金公司</th>
-                                            <th>商务品数量</th>
-                                            <th>商务品规模(亿元)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="business-table">
-                                        <!-- 数据将通过JavaScript填充 -->
-                                    </tbody>
-                                </table>
-                            </div>
+        </div>
+        
+        <!-- 图表 -->
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-1 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold small">基金公司持仓规模与商务品持仓规模分析</span>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-primary btn-sm active" id="chart-view-all">全部</button>
+                        <button class="btn btn-outline-primary btn-sm" id="chart-view-top20">TOP 20</button>
+                    </div>
+                </div>
+                <div class="card-body p-1" style="position: relative;">
+                    <div class="square-chart-container" style="position: relative; width: 55%; aspect-ratio: 1/1; margin: 0 auto;">
+                        <canvas id="company-business-chart"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer bg-white py-1">
+                    <div class="d-flex justify-content-between flex-wrap">
+                        <div class="small text-muted">
+                            <span>图例：</span>
+                            <span class="badge bg-danger mx-1">≥75%</span>
+                            <span class="badge bg-warning mx-1">≥50%</span>
+                            <span class="badge bg-info mx-1">≥25%</span>
+                            <span class="badge bg-success mx-1"><25%</span>
+                            <i class="bi bi-info-circle-fill ms-2"></i>点大小表示产品数量
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- 删除下方的大段说明，合并到页脚中 -->
 </div>
+
+<!-- 添加Chart.js库 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<!-- 商务品分析图表脚本 -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let businessChart = null;
+    let allCompanyData = [];
+    
+    // 初始化图表
+    function initializeBusinessChart() {
+        const ctx = document.getElementById('company-business-chart').getContext('2d');
+        
+        if (businessChart) {
+            businessChart.destroy();
+        }
+        
+        businessChart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: '基金公司',
+                    data: [],
+                    backgroundColor: function(context) {
+                        const value = context.raw ? context.raw.ratio : 0;
+                        if (value >= 75) return 'rgba(220, 38, 38, 0.7)';
+                        if (value >= 50) return 'rgba(234, 88, 12, 0.7)';
+                        if (value >= 25) return 'rgba(3, 105, 161, 0.7)';
+                        return 'rgba(22, 163, 74, 0.7)';
+                    },
+                    borderColor: function(context) {
+                        const value = context.raw ? context.raw.ratio : 0;
+                        if (value >= 75) return 'rgb(220, 38, 38)';
+                        if (value >= 50) return 'rgb(234, 88, 12)';
+                        if (value >= 25) return 'rgb(3, 105, 161)';
+                        return 'rgb(22, 163, 74)';
+                    },
+                    borderWidth: 1,
+                    pointRadius: function(context) {
+                        const productCount = context.raw ? context.raw.productCount : 0;
+                        // 计算半径，最小4，最大12，使点更小
+                        return 4 + Math.min(8, Math.sqrt(productCount) / 2);
+                    },
+                    pointHoverRadius: function(context) {
+                        const productCount = context.raw ? context.raw.productCount : 0;
+                        // 悬停时稍微变大
+                        return 6 + Math.min(8, Math.sqrt(productCount) / 2);
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 1,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const point = context.raw;
+                                return [
+                                    `公司: ${point.company}`,
+                                    `持仓规模: ${point.x.toFixed(2)}亿元`,
+                                    `商务品规模: ${point.y.toFixed(2)}亿元`,
+                                    `商务品占比: ${point.ratio.toFixed(2)}%`,
+                                    `产品数量: ${point.productCount}`
+                                ];
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '总持仓规模 (亿元)',
+                            font: {
+                                size: 10
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 9
+                            },
+                            callback: function(value) {
+                                if (value >= 1000) {
+                                    return (value / 1000).toFixed(1) + 'k';
+                                }
+                                return value;
+                            }
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: '商务品持仓规模 (亿元)',
+                            font: {
+                                size: 10
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 9
+                            },
+                            callback: function(value) {
+                                if (value >= 1000) {
+                                    return (value / 1000).toFixed(1) + 'k';
+                                }
+                                return value;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 800,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+        
+        // 添加参考线（对角线，表示100%商务品）
+        const originalDraw = businessChart.draw;
+        businessChart.draw = function() {
+            originalDraw.apply(this, arguments);
+            
+            const chart = this;
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+            
+            if (!xAxis || !yAxis) return;
+            
+            const xMin = xAxis.min;
+            const xMax = xAxis.max;
+            const yMin = yAxis.min;
+            const yMax = yAxis.max;
+            
+            // 计算0-100%的参考线
+            const maxVal = Math.min(xMax, yMax);
+            
+            ctx.save();
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 0.8; // 更细的线
+            
+            // 绘制100%参考线
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(107, 114, 128, 0.6)';
+            ctx.moveTo(xAxis.getPixelForValue(xMin), yAxis.getPixelForValue(xMin));
+            ctx.lineTo(xAxis.getPixelForValue(maxVal), yAxis.getPixelForValue(maxVal));
+            ctx.stroke();
+            
+            // 绘制75%参考线
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(107, 114, 128, 0.4)';
+            ctx.moveTo(xAxis.getPixelForValue(xMin), yAxis.getPixelForValue(xMin * 0.75));
+            ctx.lineTo(xAxis.getPixelForValue(maxVal / 0.75), yAxis.getPixelForValue(maxVal));
+            ctx.stroke();
+            
+            // 绘制50%参考线
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(107, 114, 128, 0.3)';
+            ctx.moveTo(xAxis.getPixelForValue(xMin), yAxis.getPixelForValue(xMin * 0.5));
+            ctx.lineTo(xAxis.getPixelForValue(maxVal / 0.5), yAxis.getPixelForValue(maxVal));
+            ctx.stroke();
+            
+            // 绘制25%参考线
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(107, 114, 128, 0.2)';
+            ctx.moveTo(xAxis.getPixelForValue(xMin), yAxis.getPixelForValue(xMin * 0.25));
+            ctx.lineTo(xAxis.getPixelForValue(maxVal / 0.25), yAxis.getPixelForValue(maxVal));
+            ctx.stroke();
+            
+            ctx.restore();
+            
+            // 在图表角落添加说明，使用更小的字体
+            ctx.save();
+            ctx.fillStyle = 'rgba(107, 114, 128, 0.7)';
+            ctx.font = '8px Arial';
+            ctx.fillText('100%', xAxis.getPixelForValue(xMax * 0.98), yAxis.getPixelForValue(xMax * 0.98));
+            ctx.fillText('75%', xAxis.getPixelForValue(xMax * 0.98), yAxis.getPixelForValue(xMax * 0.98 * 0.75));
+            ctx.fillText('50%', xAxis.getPixelForValue(xMax * 0.98), yAxis.getPixelForValue(xMax * 0.98 * 0.5));
+            ctx.fillText('25%', xAxis.getPixelForValue(xMax * 0.98), yAxis.getPixelForValue(xMax * 0.98 * 0.25));
+            ctx.restore();
+        };
+    }
+    
+    // 从表格数据中提取公司数据以便绘制图表
+    function extractCompanyData() {
+        const rows = document.querySelectorAll('#company-analytics-tbody tr');
+        const data = [];
+        
+        rows.forEach(row => {
+            try {
+                const companyName = row.querySelector('td:nth-child(2)').textContent.trim();
+                const productCount = parseInt(row.querySelector('td:nth-child(3)').textContent.replace(/,/g, ''));
+                
+                // 提取总持仓价值 (亿元)
+                const totalHoldingText = row.querySelector('td:nth-child(11)').textContent.trim();
+                const totalHolding = parseFloat(totalHoldingText.replace(/,/g, ''));
+                
+                // 提取商务品总持仓价值 (亿元)
+                const businessHoldingText = row.querySelector('td:nth-child(12)').textContent.trim();
+                const businessHolding = parseFloat(businessHoldingText.replace(/,/g, ''));
+                
+                // 提取商务品持仓价值占比 (%)
+                const ratioText = row.querySelector('td:nth-child(13)').textContent.trim();
+                const ratio = parseFloat(ratioText.replace('%', ''));
+                
+                if (!isNaN(totalHolding) && !isNaN(businessHolding) && !isNaN(ratio)) {
+                    data.push({
+                        x: totalHolding,
+                        y: businessHolding,
+                        company: companyName,
+                        ratio: ratio,
+                        productCount: productCount
+                    });
+                }
+            } catch (e) {
+                console.error('提取公司数据错误:', e);
+            }
+        });
+        
+        // 按总持仓价值排序
+        data.sort((a, b) => b.x - a.x);
+        
+        return data;
+    }
+    
+    // 更新图表数据
+    function updateChartData(data) {
+        if (!businessChart) {
+            initializeBusinessChart();
+        }
+        
+        businessChart.data.datasets[0].data = data;
+        businessChart.update();
+    }
+    
+    // 显示商务品分析部分
+    function showBusinessSection() {
+        const businessSection = document.getElementById('section-business');
+        if (businessSection) {
+            businessSection.style.display = 'block';
+        }
+    }
+    
+    // 初始化视图切换按钮
+    function initViewButtons() {
+        document.getElementById('chart-view-all').addEventListener('click', function() {
+            this.classList.add('active');
+            this.classList.remove('btn-outline-primary');
+            this.classList.add('btn-primary');
+            const top20Button = document.getElementById('chart-view-top20');
+            top20Button.classList.remove('active');
+            top20Button.classList.remove('btn-primary');
+            top20Button.classList.add('btn-outline-primary');
+            updateChartData(allCompanyData);
+        });
+        
+        document.getElementById('chart-view-top20').addEventListener('click', function() {
+            this.classList.add('active');
+            this.classList.remove('btn-outline-primary');
+            this.classList.add('btn-primary');
+            const allButton = document.getElementById('chart-view-all');
+            allButton.classList.remove('active');
+            allButton.classList.remove('btn-primary');
+            allButton.classList.add('btn-outline-primary');
+            updateChartData(allCompanyData.slice(0, 20));
+        });
+    }
+    
+    // 初始化商务品分析
+    function initBusinessAnalysis() {
+        showBusinessSection();
+        initializeBusinessChart();
+        initViewButtons();
+        
+        // 当表格加载完成后提取数据
+        if (document.getElementById('company-analytics-tbody')) {
+            allCompanyData = extractCompanyData();
+            updateChartData(allCompanyData);
+        } else {
+            // 监听表格内容变化
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList' && document.getElementById('company-analytics-tbody')) {
+                        allCompanyData = extractCompanyData();
+                        updateChartData(allCompanyData);
+                    }
+                });
+            });
+            
+            const companySection = document.getElementById('company-analytics-section');
+            if (companySection) {
+                observer.observe(companySection, { childList: true, subtree: true });
+            }
+        }
+    }
+    
+    // 在页面完全加载后初始化商务品分析
+    setTimeout(initBusinessAnalysis, 1000);
+    
+    // 当窗口大小改变时，重新渲染图表
+    window.addEventListener('resize', function() {
+        if (businessChart) {
+            businessChart.resize();
+        }
+    });
+});
+</script> 

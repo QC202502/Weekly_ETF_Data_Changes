@@ -30,4 +30,22 @@
     {{ super() }} 
     {# _feishu_promo_table.html 内部已经包含了其自身的JS逻辑来获取和渲染数据 #}
     {# 如果 modules/business.html 需要特定的JS，可以在这里引入或编写 #}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 处理锚点跳转
+            if (window.location.hash) {
+                const targetElement = document.querySelector(window.location.hash);
+                if (targetElement) {
+                    // 延迟一下滚动，确保页面内容已加载
+                    setTimeout(function() {
+                        targetElement.scrollIntoView({behavior: 'smooth'});
+                        console.log('滚动到锚点:', window.location.hash);
+                    }, 500);
+                } else {
+                    console.warn('未找到锚点元素:', window.location.hash);
+                }
+            }
+        });
+    </script>
 {% endblock %} 

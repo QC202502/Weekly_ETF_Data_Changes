@@ -8,7 +8,7 @@
 import os
 import sqlite3
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from utils.etf_code import normalize_etf_code
 from typing import List, Dict
 from services.index_service import get_index_intro  # 导入get_index_intro函数
@@ -231,136 +231,151 @@ class Database:
             conn = self.connect()
             cursor = conn.cursor()
             
-            # 删除已存在的表
-            cursor.execute("DROP TABLE IF EXISTS etf_info")
-            cursor.execute("DROP TABLE IF EXISTS etf_business")
-            cursor.execute("DROP TABLE IF EXISTS etf_holders")
-            cursor.execute("DROP TABLE IF EXISTS etf_attention")
-            cursor.execute("DROP TABLE IF EXISTS etf_price") # 假设etf_price表也在这里管理
-            cursor.execute("DROP TABLE IF EXISTS etf_index_classification") # 假设etf_index_classification表也在这里管理
-            cursor.execute("DROP TABLE IF EXISTS etf_company_analytics") # 新增：删除旧的基金公司分析表
-            
             # 创建ETF基本信息表
-            cursor.execute("""
-                CREATE TABLE etf_info (
-                    code TEXT PRIMARY KEY,
-                    name TEXT,
-                    fund_manager TEXT,
-                    fund_size REAL,
-                    exchange TEXT,
-                    tracking_index_code TEXT,
-                    tracking_index_name TEXT,
-                    tracking_error REAL,
-                    information_ratio REAL,
-                    total_holder_count INTEGER,
-                    management_fee_rate REAL,
-                    custody_fee_rate REAL,
-                    index_usage_fee REAL,
-                    total_annual_fee_rate REAL,
-                    monthly_volume REAL,
-                    daily_avg_volume REAL,
-                    turnover_rate REAL,
-                    daily_volume REAL,
-                    transaction_count INTEGER,
-                    total_market_value REAL,
-                    benchmark TEXT,
-                    years_since_establishment REAL,
-                    establishment_date TEXT,
-                    fund_exchange_abbr TEXT,
-                    date TEXT,
-                    update_time TIMESTAMP
-                )
-            """)
-            
-            # 创建ETF商务协议表
-            cursor.execute("""
-                CREATE TABLE etf_business (
-                    code TEXT PRIMARY KEY,
-                    product_name TEXT,
-                    fund_company_short TEXT,
-                    start_date TEXT,
-                    end_date TEXT,
-                    management_fee_rate REAL,
-                    custody_fee_rate REAL,
-                    index_usage_fee REAL,
-                    total_annual_fee_rate REAL,
-                    fund_size REAL,
-                    update_time TIMESTAMP,
-                    FOREIGN KEY (code) REFERENCES etf_info(code)
-                )
-            """)
-            
-            # 创建ETF持有人表
-            cursor.execute("""
-                CREATE TABLE etf_holders (
-                    code TEXT PRIMARY KEY,
-                    holder_count INTEGER,
-                    holding_amount REAL,
-                    holding_value REAL,
-                    update_time TIMESTAMP,
-                    date TEXT,
-                    FOREIGN KEY (code) REFERENCES etf_info(code)
-                )
-            """)
-            
-            # 创建ETF自选表
-            cursor.execute("""
-                CREATE TABLE etf_attention (
-                    code TEXT PRIMARY KEY,
-                    attention_count INTEGER,
-                    update_time TIMESTAMP,
-                    FOREIGN KEY (code) REFERENCES etf_info(code)
-                )
-            """)
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS etf_info (
+                code TEXT PRIMARY KEY,
+                name TEXT,
+                fund_type TEXT,
+                fund_size REAL,
+                fund_manager TEXT,
+                fund_manager_short TEXT,
+                company TEXT,
+                listing_date TEXT,
+                exchange TEXT,
+                fee_rate REAL,
+                tracking_index_code TEXT,
+                tracking_index_name TEXT,
+                tracking_error REAL,
+                information_ratio REAL,
+                total_holder_count INTEGER,
+                creation_redemption_status TEXT,
+                notes TEXT
+            )
+            ''')
             
             # 创建ETF价格表
-            cursor.execute("""
-                CREATE TABLE etf_price (
-                    code TEXT,
-                    date TEXT,
-                    price_change_rate REAL,
-                    turnover_rate REAL,
-                    amount REAL,
-                    transaction_count INTEGER,
-                    total_market_value REAL,
-                    close_price REAL,
-                    open_price REAL,
-                    high_price REAL,
-                    low_price REAL,
-                    amplitude REAL,
-                    premium_discount REAL,
-                    premium_discount_rate REAL,
-                    update_time TIMESTAMP,
-                    PRIMARY KEY (code, date)
-                )
-            """)
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS etf_price (
+                code TEXT,
+                date TEXT,
+                open_price REAL,
+                close_price REAL,
+                high_price REAL,
+                low_price REAL,
+                volume REAL,
+                amount REAL,
+                net_value REAL,
+                price_change REAL,
+                price_change_rate REAL,
+                turnover_rate REAL,
+                PRIMARY KEY (code, date)
+            )
+            ''')
+            
+            # 创建ETF自选表
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS etf_attention (
+                code TEXT PRIMARY KEY,
+                attention_count INTEGER,
+                attention_ranking INTEGER,
+                date TEXT
+            )
+            ''')
+            
+            # 创建ETF自选历史表
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS etf_attention_history (
+                code TEXT,
+                date TEXT,
+                attention_count INTEGER,
+                attention_ranking INTEGER,
+                PRIMARY KEY (code, date)
+            )
+            ''')
+            
+            # 创建ETF持有人表
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS etf_holders (
+                code TEXT PRIMARY KEY,
+                holder_count INTEGER,
+                household_count INTEGER,
+                holding_amount REAL,
+                holding_value REAL,
+                date TEXT
+            )
+            ''')
+            
+            # 创建ETF持有人历史表
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS etf_holders_history (
+                code TEXT,
+                date TEXT,
+                holder_count INTEGER,
+                household_count INTEGER,
+                holding_amount REAL,
+                holding_value REAL,
+                PRIMARY KEY (code, date)
+            )
+            ''')
             
             # 创建ETF指数分类表
-            cursor.execute("""
-                CREATE TABLE etf_index_classification (
-                    index_code TEXT PRIMARY KEY,
-                    level1 TEXT,
-                    level2 TEXT,
-                    level3 TEXT,
-                    index_name TEXT,
-                    fund_count INTEGER
-                )
-            """)
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS etf_index_classification (
+                index_code TEXT PRIMARY KEY,
+                index_name TEXT,
+                index_short_name TEXT,
+                category TEXT,
+                subcategory TEXT,
+                description TEXT
+            )
+            ''')
             
-            # 创建基金公司分析表
-            self.create_company_analytics_table(conn)
+            # 创建商务品ETF表
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS business_etf (
+                code TEXT PRIMARY KEY,
+                name TEXT,
+                fund_type TEXT,
+                fund_size REAL,
+                company TEXT,
+                agreement_date TEXT,
+                agreement_expiry_date TEXT,
+                agreement_status TEXT,
+                notes TEXT
+            )
+            ''')
+            
+            # 创建飞书推广数据表
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS feishu_promo_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                code TEXT,
+                name TEXT,
+                publish_date TEXT,
+                offline_date TEXT,
+                publish_channel TEXT,
+                remarks TEXT,
+                banner_url TEXT,
+                long_image_url TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (code) REFERENCES etf_info(code)
+            )
+            ''')
             
             conn.commit()
-            cursor.close() # 关闭游标，但不关闭连接
             print("数据库表创建成功")
             
-            # 创建基金公司分析表
+            # 创建公司分析表
             self.create_company_analytics_table(conn)
             
+            return True
         except Exception as e:
+            if conn:
+                conn.rollback()
             print(f"创建数据库表失败: {str(e)}")
-            if self.conn:
-                self.conn.rollback()
+            import traceback
+            traceback.print_exc()
             return False
     
     def create_company_analytics_table(self, conn):
@@ -623,152 +638,6 @@ class Database:
             # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
             # company_id 列暂时没有来源，会填充为None
             # 我们新增了 company_short_name，也加入 expected_cols
-            expected_cols = [
-                'company_name', 'company_short_name', # company_id 已删除
-                'product_count', 'total_fund_size', 'avg_fund_size',
-                'total_holder_count_info', 'latest_date', 
-                # avg_price_change_rate 已删除
-                'total_amount', 'avg_turnover_rate', 
-                # total_net_inflow 已删除
-                'total_attention_count', 'total_shares_holders',
-                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
-                'total_holding_value', 
-                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
-                'business_agreement_total_size',
-                'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
-                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
-            ]
-            for col in expected_cols:
-                if col not in all_company_data.columns:
-                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
-            
-            # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
-            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
-
-            # 插入数据到 etf_company_analytics
-            # 调整列顺序以匹配表定义
-            all_company_data = all_company_data[expected_cols]
-
-            # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
-            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
-            
-            print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
-
-            # 计算商务品占比 (需求6)
-            print("DEBUG: Before calculating business_agreement_ratio:")
-            if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
-                 # If company_short_name is not there yet (it's the index before reset_index)
-                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
-            elif 'company_short_name' in all_company_data.columns:
-                 temp_company_col = 'company_short_name'
-            else: # Fallback if no suitable company name column is found before reset_index
-                 temp_company_col = None
-
-            if 'product_count' in all_company_data.columns:
-                if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
-                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
-                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
-                else:
-                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
-                print("product_count dtypes:", all_company_data['product_count'].dtype)
-                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
-                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
-            else:
-                print("product_count column MISSING")
-
-            if 'business_agreement_count' in all_company_data.columns:
-                if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
-                elif temp_company_col and all_company_data.index.name == temp_company_col:
-                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
-                else:
-                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
-                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
-                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
-                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
-            else:
-                print("business_agreement_count column MISSING")
-
-            if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
-                #确保 product_count 和 business_agreement_count 是数值类型
-                # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
-                # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
-                
-                # 计算占比，处理分母为0的情况
-                # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
-                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
-                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
-
-                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
-                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
-
-                all_company_data['business_agreement_ratio'] = \
-                    (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
-
-                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
-
-                # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
-                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
-            else:
-                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
-                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
-
-            # 计算持仓自选比 (需求2 新)
-            print("DEBUG: Before calculating holder_attention_ratio:")
-            if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
-                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
-                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
-                
-                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
-                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
-
-                all_company_data['holder_attention_ratio'] = \
-                    (h_col * 100.0 / a_col).where(a_col != 0, 0)
-                
-                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
-            else:
-                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
-                all_company_data['holder_attention_ratio'] = 0.0
-
-            # 重置索引，使 company_name 成为一列
-            all_company_data = all_company_data.reset_index()
-            
-            # 在写入数据库前，对关键数值列进行最终的类型确认和 NaN 处理
-            numeric_int_cols = ['product_count', 'total_holder_count_info', 'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
-            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
-                                  'total_shares_holders', 'total_holding_value', 
-                                  'business_agreement_ratio', 'business_agreement_total_size',
-                                  'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
-                                  'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
-
-            for col in numeric_int_cols:
-                if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0).astype(int)
-                else:
-                    all_company_data[col] = 0 # 如果列在聚合过程中未创建，则添加并设为0
-
-            for col in numeric_float_cols:
-                if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0.0).astype(float)
-                else:
-                    all_company_data[col] = 0.0 # 如果列在聚合过程中未创建，则添加并设为0.0
-
-            print("DEBUG: Final dtypes before to_sql for key columns:")
-            if 'business_agreement_ratio' in all_company_data.columns:
-                print(f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
-            if 'holder_attention_ratio' in all_company_data.columns:
-                print(f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
-            if 'product_count' in all_company_data.columns:
-                print(f"  product_count dtype: {all_company_data['product_count'].dtype}")
-            if 'business_agreement_count' in all_company_data.columns:
-                print(f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
-
-            # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
             expected_cols = [
                 'company_name', 'company_short_name', # company_id 已删除
                 'product_count', 'total_fund_size', 'avg_fund_size',
@@ -3616,25 +3485,289 @@ class Database:
             return False
 
     def get_feishu_data_template(self):
-        """
-        获取飞书数据模板
-        :return: 飞书数据模板json结构
-        """
-        template = {
-            "token": "your_secret_token", # 替换为实际使用的安全令牌
-            "company_data": [
-                {
-                    "company_name": "示例基金",
-                    "total_fund_size": 100.5,  # 总规模（亿元）
-                    "product_count": 10,  # 产品数量
-                    "business_agreement_count": 5,  # 商务品数量
-                    "total_holding_value": 50.2,  # 总持仓价值（亿元）
-                    "business_total_holding_value": 25.1,  # 商务品总持仓价值（亿元）
-                    "total_amount": 200.3,  # 总成交额（亿元）
-                    "total_attention_count": 10000,  # 总自选热度
-                    "total_holder_count_holders": 5000  # 总持仓人数
-                }
-                # 可以添加更多公司数据
-            ]
+        """获取飞书数据模板"""
+        return {
+            'template_url': 'https://example.com/template',
+            'fields': ['company_name', 'total_fund_size', 'product_count', 'business_agreement_count']
         }
-        return template
+        
+    def get_promotion_effect_stats(self, code=None):
+        """获取ETF推广效果统计数据
+        
+        参数:
+            code: ETF代码，如果为None则返回所有ETF的统计数据
+            
+        返回:
+            包含推广效果统计的字典列表
+        """
+        try:
+            # 直接从API获取飞书推广记录数据
+            from blueprints.feishu_routes import get_feishu_poster_data
+            poster_data = get_feishu_poster_data()
+            
+            if not poster_data:
+                print("无法从飞书API获取推广数据")
+                return []
+            
+            # 过滤指定代码的数据（如果提供了code参数）
+            if code:
+                normalized_code = normalize_etf_code(code)
+                poster_data = [item for item in poster_data if normalize_etf_code(item.get('code', '')) == normalized_code]
+            
+            # 转换为标准格式
+            promo_records = [
+                (
+                    item.get('code', ''),
+                    item.get('name', ''),
+                    item.get('publish_date', ''),
+                    item.get('offline_date', ''),
+                    item.get('publish_channel', ''),
+                    item.get('remarks', '')
+                )
+                for item in poster_data
+            ]
+            
+            result = []
+            
+            # 获取今天的日期作为默认的下线日期
+            today_str = datetime.now().strftime('%Y-%m-%d')
+            
+            for record in promo_records:
+                etf_code, etf_name, publish_date, offline_date, publish_channel, remarks = record
+                
+                # 跳过没有代码或没有推广日期的记录
+                if not etf_code or not publish_date:
+                    continue
+                
+                # 当下线日期为空时，使用当前日期
+                if not offline_date:
+                    offline_date = today_str
+                
+                # 计算推广天数
+                promo_days = 0
+                try:
+                    # 转换日期格式，确保一致性
+                    if '/' in publish_date:
+                        pub_date = datetime.strptime(publish_date, '%Y/%m/%d')
+                        pub_date_str = pub_date.strftime('%Y-%m-%d')
+                    else:
+                        pub_date = datetime.strptime(publish_date, '%Y-%m-%d')
+                        pub_date_str = publish_date
+                    
+                    if '/' in offline_date:
+                        off_date = datetime.strptime(offline_date, '%Y/%m/%d')
+                        off_date_str = off_date.strftime('%Y-%m-%d')
+                    else:
+                        off_date = datetime.strptime(offline_date, '%Y-%m-%d')
+                        off_date_str = offline_date
+                    
+                    promo_days = (off_date - pub_date).days + 1  # 包括开始和结束日
+                except ValueError as e:
+                    print(f"日期格式错误: {publish_date}, {offline_date}, 错误: {str(e)}")
+                    pub_date_str = publish_date
+                    off_date_str = offline_date
+                
+                # 获取推广日当天的数据
+                pub_attention = self.get_attention_on_date(etf_code, pub_date_str)
+                pub_holders = self.get_holders_on_date(etf_code, pub_date_str)
+                pub_value = self.get_value_on_date(etf_code, pub_date_str)
+                
+                # 获取下线日当天的数据
+                off_attention = self.get_attention_on_date(etf_code, off_date_str)
+                off_holders = self.get_holders_on_date(etf_code, off_date_str)
+                off_value = self.get_value_on_date(etf_code, off_date_str)
+                
+                # 如果历史表中没有数据，不再使用模拟数据，只显示实际值
+                # 计算变化值
+                attention_change = off_attention - pub_attention
+                holders_change = off_holders - pub_holders
+                value_change = off_value - pub_value
+                
+                # 计算百分比变化
+                attention_pct_change = (attention_change / pub_attention * 100) if pub_attention > 0 else 0
+                holders_pct_change = (holders_change / pub_holders * 100) if pub_holders > 0 else 0
+                value_pct_change = (value_change / pub_value * 100) if pub_value > 0 else 0
+                
+                result.append({
+                    'code': etf_code,
+                    'name': etf_name,
+                    'publish_date': publish_date,
+                    'offline_date': offline_date,
+                    'publish_channel': publish_channel,
+                    'promo_days': promo_days,
+                    'theme': remarks,
+                    'pub_attention': pub_attention,
+                    'pub_holders': pub_holders,
+                    'pub_value': pub_value,
+                    'off_attention': off_attention,
+                    'off_holders': off_holders,
+                    'off_value': off_value,
+                    'attention_change': attention_change,
+                    'holders_change': holders_change,
+                    'value_change': value_change,
+                    'attention_pct_change': round(attention_pct_change, 2),
+                    'holders_pct_change': round(holders_pct_change, 2),
+                    'value_pct_change': round(value_pct_change, 2)
+                })
+            
+            return result
+        except Exception as e:
+            print(f"获取ETF推广效果统计数据出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return []
+    
+    def get_attention_on_date(self, code, date_str):
+        """获取指定日期的ETF自选人数"""
+        try:
+            if not date_str:
+                return 0
+                
+            # 标准化ETF代码
+            normalized_code = normalize_etf_code(code)
+            
+            # 尝试解析日期
+            try:
+                if '/' in date_str:
+                    date_obj = datetime.strptime(date_str, '%Y/%m/%d')
+                else:
+                    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                date_str = date_obj.strftime('%Y-%m-%d')
+            except ValueError:
+                # 日期格式不正确，返回默认值
+                return 0
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询指定日期的自选人数，如果没有精确匹配，则查找最接近的日期
+            cursor.execute("""
+                SELECT attention_count FROM etf_attention_history
+                WHERE code = ? AND date <= ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (normalized_code, date_str))
+            
+            result = cursor.fetchone()
+            
+            if result:
+                return result[0]
+            else:
+                # 如果没有找到数据，尝试查找之后的数据
+                cursor.execute("""
+                    SELECT attention_count FROM etf_attention_history
+                    WHERE code = ? AND date > ?
+                    ORDER BY date ASC
+                    LIMIT 1
+                """, (normalized_code, date_str))
+                
+                result = cursor.fetchone()
+                return result[0] if result else 0
+        except Exception as e:
+            print(f"获取指定日期的ETF自选人数出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return 0
+    
+    def get_holders_on_date(self, code, date_str):
+        """获取指定日期的ETF持有人数"""
+        try:
+            if not date_str:
+                return 0
+                
+            # 标准化ETF代码
+            normalized_code = normalize_etf_code(code)
+            
+            # 尝试解析日期
+            try:
+                if '/' in date_str:
+                    date_obj = datetime.strptime(date_str, '%Y/%m/%d')
+                else:
+                    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                date_str = date_obj.strftime('%Y-%m-%d')
+            except ValueError:
+                # 日期格式不正确，返回默认值
+                return 0
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询指定日期的持有人数，如果没有精确匹配，则查找最接近的日期
+            cursor.execute("""
+                SELECT holder_count FROM etf_holders_history
+                WHERE code = ? AND date <= ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (normalized_code, date_str))
+            
+            result = cursor.fetchone()
+            
+            if result:
+                return result[0]
+            else:
+                # 如果没有找到数据，尝试查找之后的数据
+                cursor.execute("""
+                    SELECT holder_count FROM etf_holders_history
+                    WHERE code = ? AND date > ?
+                    ORDER BY date ASC
+                    LIMIT 1
+                """, (normalized_code, date_str))
+                
+                result = cursor.fetchone()
+                return result[0] if result else 0
+        except Exception as e:
+            print(f"获取指定日期的ETF持有人数出错: {str(e)}")
+            return 0
+    
+    def get_value_on_date(self, code, date_str):
+        """获取指定日期的ETF持仓价值"""
+        try:
+            if not date_str:
+                return 0
+                
+            # 标准化ETF代码
+            normalized_code = normalize_etf_code(code)
+            
+            # 尝试解析日期
+            try:
+                if '/' in date_str:
+                    date_obj = datetime.strptime(date_str, '%Y/%m/%d')
+                else:
+                    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                date_str = date_obj.strftime('%Y-%m-%d')
+            except ValueError:
+                # 日期格式不正确，返回默认值
+                return 0
+            
+            # 连接数据库
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 查询指定日期的持仓价值，如果没有精确匹配，则查找最接近的日期
+            cursor.execute("""
+                SELECT holding_value FROM etf_holders_history
+                WHERE code = ? AND date <= ?
+                ORDER BY date DESC
+                LIMIT 1
+            """, (normalized_code, date_str))
+            
+            result = cursor.fetchone()
+            
+            if result:
+                return result[0]
+            else:
+                # 如果没有找到数据，尝试查找之后的数据
+                cursor.execute("""
+                    SELECT holding_value FROM etf_holders_history
+                    WHERE code = ? AND date > ?
+                    ORDER BY date ASC
+                    LIMIT 1
+                """, (normalized_code, date_str))
+                
+                result = cursor.fetchone()
+                return result[0] if result else 0
+        except Exception as e:
+            print(f"获取指定日期的ETF持仓价值出错: {str(e)}")
+            return 0

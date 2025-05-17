@@ -238,4 +238,150 @@ def show_feishu_posters():
     except Exception as e:
         logger.error(f"获取飞书海报数据时出错: {str(e)}")
         # 同样返回空数据而不是错误状态码
-        return jsonify({"success": True, "data": [], "message": f"获取数据时发生错误: {str(e)}"}) 
+        return jsonify({"success": True, "data": [], "message": f"获取数据时发生错误: {str(e)}"})
+
+@feishu_bp.route('/api/feishu/promotion-stats', methods=['GET'])
+def get_promotion_stats():
+    """获取推广效果统计数据"""
+    try:
+        # 获取查询参数
+        code = request.args.get('code')
+        logger.info(f"获取推广效果统计数据: code={code}")
+        
+        # 创建数据库连接
+        db = Database()
+        
+        # 获取推广效果统计数据
+        stats_data = db.get_promotion_effect_stats(code)
+        logger.info(f"获取到推广效果统计数据: {len(stats_data)} 条记录")
+        
+        # 记录一些数据示例以便调试
+        if stats_data and len(stats_data) > 0:
+            sample = stats_data[0]
+            logger.info(f"数据示例: code={sample.get('code')}, 自选变化={sample.get('attention_change')}, 持有人变化={sample.get('holders_change')}")
+        else:
+            logger.warning("未获取到任何推广效果统计数据")
+            
+            # 检查飞书API是否可以获取原始数据
+            poster_data = get_feishu_poster_data()
+            if poster_data:
+                logger.info(f"API能获取到 {len(poster_data)} 条推广数据，但无法生成统计")
+                if len(poster_data) > 0:
+                    sample = poster_data[0]
+                    logger.info(f"API原始数据示例: code={sample.get('code')}, 推广时间={sample.get('publish_date')}, 推广渠道={sample.get('publish_channel')}")
+            else:
+                logger.warning("API无法获取任何推广数据")
+        
+        return jsonify({
+            "success": True, 
+            "data": stats_data,
+            "total": len(stats_data)
+        })
+    except Exception as e:
+        logger.error(f"获取推广效果统计数据时出错: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False, 
+            "message": f"获取推广效果统计数据时出错: {str(e)}",
+            "data": []
+        })
+
+@feishu_bp.route('/api/feishu/save-promo-data', methods=['POST'])
+def save_promo_data():
+    """将飞书推广数据保存到数据库"""
+    try:
+        # 获取请求数据
+        if request.is_json:
+            data = request.json
+        else:
+            # 如果不是JSON，可能是表单数据
+            data = request.form.to_dict()
+        
+        if not data:
+            # 如果没有数据，尝试获取当前API数据
+            poster_data = get_feishu_poster_data()
+            if not poster_data:
+                return jsonify({
+                    "success": False, 
+                    "message": "未提供数据且无法从API获取数据"
+                }), 400
+            data = {"posters": poster_data}
+        
+        # 创建数据库连接
+        db = Database()
+        conn = db.connect()
+        cursor = conn.cursor()
+        
+        # 保存数据
+        if "posters" in data and isinstance(data["posters"], list):
+            posters = data["posters"]
+            saved_count = 0
+            
+            for poster in posters:
+                try:
+                    # 检查是否已经存在相同代码和推广时间的记录
+                    cursor.execute("""
+                        SELECT id FROM feishu_promo_data
+                        WHERE code = ? AND publish_date = ?
+                    """, (poster.get('code', ''), poster.get('publish_date', '')))
+                    
+                    existing_record = cursor.fetchone()
+                    
+                    if existing_record:
+                        # 更新现有记录
+                        cursor.execute("""
+                            UPDATE feishu_promo_data
+                            SET name = ?, offline_date = ?, publish_channel = ?, remarks = ?,
+                                banner_url = ?, long_image_url = ?
+                            WHERE id = ?
+                        """, (
+                            poster.get('name', ''),
+                            poster.get('offline_date', ''),
+                            poster.get('publish_channel', ''),
+                            poster.get('remarks', ''),
+                            poster.get('banner_url', ''),
+                            poster.get('long_image_url', ''),
+                            existing_record[0]
+                        ))
+                    else:
+                        # 插入新记录
+                        cursor.execute("""
+                            INSERT INTO feishu_promo_data
+                            (code, name, publish_date, offline_date, publish_channel, remarks, banner_url, long_image_url)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (
+                            poster.get('code', ''),
+                            poster.get('name', ''),
+                            poster.get('publish_date', ''),
+                            poster.get('offline_date', ''),
+                            poster.get('publish_channel', ''),
+                            poster.get('remarks', ''),
+                            poster.get('banner_url', ''),
+                            poster.get('long_image_url', '')
+                        ))
+                    
+                    saved_count += 1
+                except Exception as e:
+                    logger.error(f"保存推广记录时出错: {str(e)}")
+            
+            conn.commit()
+            
+            return jsonify({
+                "success": True, 
+                "message": f"成功保存 {saved_count}/{len(posters)} 条推广记录",
+                "saved_count": saved_count
+            })
+        else:
+            return jsonify({
+                "success": False, 
+                "message": "数据格式错误，无法保存推广记录"
+            }), 400
+    except Exception as e:
+        logger.error(f"保存推广数据时出错: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False, 
+            "message": f"保存推广数据时出错: {str(e)}"
+        }), 500 

@@ -22,17 +22,17 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#" id="nav-search">
+                        <a class="nav-link" href="{{ url_for('index') }}" id="nav-search">
                             <i class="bi bi-search"></i> ETF竞品查询
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="nav-overview">
+                        <a class="nav-link" href="{{ url_for('market_overview_page_route') }}" id="nav-overview">
                             <i class="bi bi-bar-chart"></i> 市场概览
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="nav-business">
+                        <a class="nav-link" href="{{ url_for('business_products_page_route') }}" id="nav-business">
                             <i class="bi bi-star"></i> 商务品分析
                         </a>
                     </li>

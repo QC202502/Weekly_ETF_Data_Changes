@@ -3482,3 +3482,159 @@ class Database:
             return []
         # finally:
             # self.close() # 保持连接由调用者管理
+
+    def update_company_analytics(self, company_name, total_fund_size=None, product_count=None, 
+                                business_agreement_count=None, total_holding_value=None, 
+                                business_total_holding_value=None, total_amount=None,
+                                total_attention_count=None, total_holder_count_holders=None):
+        """
+        更新或创建基金公司分析数据
+        :param company_name: 基金公司名称
+        :param total_fund_size: 总规模（亿元）
+        :param product_count: 产品数量
+        :param business_agreement_count: 商务品数量
+        :param total_holding_value: 总持仓价值（亿元）
+        :param business_total_holding_value: 商务品总持仓价值（亿元）
+        :param total_amount: 总成交额（亿元）
+        :param total_attention_count: 总自选热度
+        :param total_holder_count_holders: 总持仓人数
+        :return: 成功返回True，失败返回False
+        """
+        try:
+            # 确保数据库连接是打开的
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # 检查表是否存在，如果不存在则创建
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS etf_company_analytics (
+                    company_short_name TEXT PRIMARY KEY,
+                    total_fund_size REAL,
+                    product_count INTEGER,
+                    business_agreement_count INTEGER,
+                    business_agreement_ratio REAL,
+                    total_holding_value REAL,
+                    business_total_holding_value REAL,
+                    business_holding_value_ratio REAL,
+                    total_amount REAL,
+                    total_attention_count INTEGER,
+                    total_holder_count_holders INTEGER,
+                    holder_attention_ratio REAL,
+                    latest_date TEXT,
+                    update_time TIMESTAMP
+                )
+            """)
+            
+            # 准备当前时间
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            # 检查是否已存在该公司记录
+            cursor.execute("SELECT * FROM etf_company_analytics WHERE company_short_name=?", (company_name,))
+            existing_record = cursor.fetchone()
+            
+            if existing_record:
+                # 获取现有记录的字段名
+                column_names = [description[0] for description in cursor.description]
+                existing_data = dict(zip(column_names, existing_record))
+                
+                # 使用现有数据作为默认值
+                total_fund_size = total_fund_size if total_fund_size is not None else existing_data.get('total_fund_size')
+                product_count = product_count if product_count is not None else existing_data.get('product_count')
+                business_agreement_count = business_agreement_count if business_agreement_count is not None else existing_data.get('business_agreement_count')
+                total_holding_value = total_holding_value if total_holding_value is not None else existing_data.get('total_holding_value')
+                business_total_holding_value = business_total_holding_value if business_total_holding_value is not None else existing_data.get('business_total_holding_value')
+                total_amount = total_amount if total_amount is not None else existing_data.get('total_amount')
+                total_attention_count = total_attention_count if total_attention_count is not None else existing_data.get('total_attention_count')
+                total_holder_count_holders = total_holder_count_holders if total_holder_count_holders is not None else existing_data.get('total_holder_count_holders')
+            
+            # 计算比率字段
+            business_agreement_ratio = 0
+            if product_count and product_count > 0 and business_agreement_count:
+                business_agreement_ratio = (business_agreement_count / product_count) * 100
+                
+            business_holding_value_ratio = 0
+            if total_holding_value and total_holding_value > 0 and business_total_holding_value:
+                business_holding_value_ratio = (business_total_holding_value / total_holding_value) * 100
+                
+            holder_attention_ratio = 0
+            if total_holder_count_holders and total_holder_count_holders > 0 and total_attention_count:
+                holder_attention_ratio = (total_attention_count / total_holder_count_holders) * 100
+            
+            # 获取最新日期
+            latest_date = datetime.now().strftime('%Y-%m-%d')
+            
+            if existing_record:
+                # 更新现有记录
+                cursor.execute("""
+                    UPDATE etf_company_analytics SET
+                        total_fund_size=?,
+                        product_count=?,
+                        business_agreement_count=?,
+                        business_agreement_ratio=?,
+                        total_holding_value=?,
+                        business_total_holding_value=?,
+                        business_holding_value_ratio=?,
+                        total_amount=?,
+                        total_attention_count=?,
+                        total_holder_count_holders=?,
+                        holder_attention_ratio=?,
+                        latest_date=?,
+                        update_time=?
+                    WHERE company_short_name=?
+                """, (
+                    total_fund_size, product_count, business_agreement_count, business_agreement_ratio,
+                    total_holding_value, business_total_holding_value, business_holding_value_ratio,
+                    total_amount, total_attention_count, total_holder_count_holders, holder_attention_ratio,
+                    latest_date, current_time, company_name
+                ))
+            else:
+                # 插入新记录
+                cursor.execute("""
+                    INSERT INTO etf_company_analytics (
+                        company_short_name, total_fund_size, product_count, business_agreement_count,
+                        business_agreement_ratio, total_holding_value, business_total_holding_value,
+                        business_holding_value_ratio, total_amount, total_attention_count,
+                        total_holder_count_holders, holder_attention_ratio, latest_date, update_time
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    company_name, total_fund_size, product_count, business_agreement_count,
+                    business_agreement_ratio, total_holding_value, business_total_holding_value,
+                    business_holding_value_ratio, total_amount, total_attention_count,
+                    total_holder_count_holders, holder_attention_ratio, latest_date, current_time
+                ))
+            
+            # 提交更改
+            conn.commit()
+            return True
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"更新基金公司分析数据时出错: {str(e)}")
+            if conn:
+                conn.rollback()
+            return False
+
+    def get_feishu_data_template(self):
+        """
+        获取飞书数据模板
+        :return: 飞书数据模板json结构
+        """
+        template = {
+            "token": "your_secret_token", # 替换为实际使用的安全令牌
+            "company_data": [
+                {
+                    "company_name": "示例基金",
+                    "total_fund_size": 100.5,  # 总规模（亿元）
+                    "product_count": 10,  # 产品数量
+                    "business_agreement_count": 5,  # 商务品数量
+                    "total_holding_value": 50.2,  # 总持仓价值（亿元）
+                    "business_total_holding_value": 25.1,  # 商务品总持仓价值（亿元）
+                    "total_amount": 200.3,  # 总成交额（亿元）
+                    "total_attention_count": 10000,  # 总自选热度
+                    "total_holder_count_holders": 5000  # 总持仓人数
+                }
+                # 可以添加更多公司数据
+            ]
+        }
+        return template

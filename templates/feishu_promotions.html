@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APP海报推广效果</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        th {
+            white-space: nowrap;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>APP海报推广效果</h1>
+        <div id="loading" class="alert alert-info">正在加载数据...</div>
+        <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>产品代码</th>
+                        <th>产品名称</th>
+                        <th>推广时间</th>
+                        <th>下线时间</th>
+                        <th>推广渠道</th>
+                        <th>主题</th>
+                        <th>Banner图</th>
+                        <th>长图</th>
+                    </tr>
+                </thead>
+                <tbody id="posters-table-body">
+                    <!-- 数据将通过JavaScript动态插入 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableBody = document.getElementById('posters-table-body');
+            const loadingDiv = document.getElementById('loading');
+            const errorMessageDiv = document.getElementById('error-message');
+
+            fetch('/api/feishu/posters')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    loadingDiv.style.display = 'none';
+                    if (data.success && data.data && data.data.length > 0) {
+                        populateTable(data.data);
+                    } else if (data.success && data.data && data.data.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">没有可显示的推广数据。</td></tr>';
+                    } 
+                    else {
+                        showError(data.message || '未能成功加载数据，或数据格式不正确。');
+                    }
+                })
+                .catch(error => {
+                    loadingDiv.style.display = 'none';
+                    showError(`获取数据失败: ${error.message}`);
+                    console.error('Error fetching poster data:', error);
+                });
+
+            function populateTable(posters) {
+                tableBody.innerHTML = ''; // 清空现有行
+                posters.forEach(poster => {
+                    const row = tableBody.insertRow();
+                    row.insertCell().textContent = poster.code || '-';
+                    row.insertCell().textContent = poster.name || '-';
+                    row.insertCell().textContent = poster.publish_date || '-';
+                    row.insertCell().textContent = poster.offline_date || '-';
+                    row.insertCell().textContent = poster.publish_channel || '-';
+                    row.insertCell().textContent = poster.remarks || '-';
+                    
+                    const bannerCell = row.insertCell();
+                    if (poster.banner_url) {
+                        const bannerLink = document.createElement('a');
+                        bannerLink.href = poster.banner_url;
+                        bannerLink.textContent = '查看Banner';
+                        bannerLink.target = '_blank';
+                        bannerCell.appendChild(bannerLink);
+                    } else {
+                        bannerCell.textContent = '-';
+                    }
+
+                    const longImageCell = row.insertCell();
+                    if (poster.long_image_url) {
+                        const longImageLink = document.createElement('a');
+                        longImageLink.href = poster.long_image_url;
+                        longImageLink.textContent = '查看长图';
+                        longImageLink.target = '_blank';
+                        longImageCell.appendChild(longImageLink);
+                    } else {
+                        longImageCell.textContent = '-';
+                    }
+                });
+            }
+
+            function showError(message) {
+                errorMessageDiv.textContent = message;
+                errorMessageDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html> 

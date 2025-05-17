@@ -11,6 +11,7 @@ import sys
 from datetime import datetime
 import time
 import json
+import requests
 
 # 配置全局日志
 logging.basicConfig(
@@ -24,8 +25,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息持仓自选比 (%)	
-__version__ = "3.6.8"   
-RELEASE_DATE = "2025-05-15"
+__version__ = "3.7.0"   
+RELEASE_DATE = "2025-05-17"
 
 # 创建Flask应用
 app = Flask(__name__)
@@ -59,11 +60,88 @@ os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'reports'), exist_ok=True)
 from blueprints.data_routes import data_bp
 from blueprints.analysis_routes import analysis_bp
 from blueprints.search_routes import search_bp
+from blueprints.feishu_routes import feishu_bp
 
 # 修改注册方式，去掉URL前缀
 app.register_blueprint(data_bp)
 app.register_blueprint(analysis_bp)
 app.register_blueprint(search_bp)
+app.register_blueprint(feishu_bp)
+
+# 飞书API配置
+# FEISHU_APP_ID = "cli_a8af2342507bd00b"  # 替换为您的APP ID
+# FEISHU_APP_SECRET = "gEVOCnDI5h5auLCGF8UrJepPsVWzwZ1V"  # 替换为您的APP Secret
+# FEISHU_SHEET_TOKEN = "LCg4bOezDayVWbs3XZoctg7PnYc"  # 替换为海报库表格的token
+
+# 直接使用requests库调用飞书API
+# def get_tenant_token():
+#     url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+#     payload = {"app_id": FEISHU_APP_ID, "app_secret": FEISHU_APP_SECRET}
+#     response = requests.post(url, json=payload)
+#     return response.json().get("tenant_access_token")
+
+# 创建一个函数用于获取飞书表格数据
+# def get_feishu_poster_data():
+#     \"\"\"从飞书获取海报库数据\"\"\"
+#     try:
+#         # 获取访问令牌
+#         token = get_tenant_token()
+#         
+#         # 直接使用requests调用飞书表格API
+#         headers = {"Authorization": f"Bearer {token}"}
+#         url = f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{FEISHU_SHEET_TOKEN}/values"
+#         response = requests.get(url, headers=headers)
+#         sheet_data = response.json()
+#         
+#         if 'data' in sheet_data and 'valueRange' in sheet_data['data']:
+#             values = sheet_data['data']['valueRange']['values']
+#             
+#             # 获取表头
+#             headers = values[0] if values else []
+#             
+#             # 转换为字典列表
+#             data = []
+#             for i in range(1, len(values)):
+#                 row = values[i]
+#                 if row:  # 确保行不为空
+#                     item = {}
+#                     for j in range(min(len(headers), len(row))):
+#                         if headers[j]:  # 确保列名不为空
+#                             item[headers[j]] = row[j] if j < len(row) else ""
+#                     if item:  # 确保项目不为空
+#                         data.append(item)
+#             
+#             # 处理数据为标准格式
+#             processed_data = []
+#             for item in data:
+#                 if '证券代码' in item and '基金公司简称' in item:
+#                     processed_item = {
+#                         "code": str(item.get('证券代码', '')),
+#                         "company_name": item.get('基金公司简称', ''),
+#                         "name": item.get('证券简称', ''),
+#                         "banner_url": item.get('BANNER', ''),
+#                         "banner_compliance": item.get('BANNER 是否过合规', ''),
+#                         "long_image_url": item.get('长图', ''),
+#                         "long_image_compliance": item.get('长图是否过合规', ''),
+#                         "cut_image_url": item.get('切图', ''),
+#                         "compliance_date": item.get('合规通过日期', ''),
+#                         "is_available": item.get('是否可用') == "可用",
+#                         "expiry_period": item.get('海报时效性', ''),
+#                         "expiry_date": item.get('有效性过期预估', ''),
+#                         "publish_date": item.get('推送时间', ''),
+#                         "publish_channel": item.get('推送渠道', ''),
+#                         "offline_date": item.get('下线时间', ''),
+#                         "remarks": item.get('主题', '')
+#                     }
+#                     processed_data.append(processed_item)
+#             
+#             return processed_data
+#         
+#         return None
+#     
+#     except Exception as e:
+#         logger.error(f"获取飞书海报数据出错: {str(e)}")
+#         return None
 
 # 主页路由
 @app.route('/')
@@ -158,6 +236,30 @@ def index():
                            current_sort_by=sort_by,
                            current_order=order)
 
+@app.route('/market-overview')
+def market_overview_page_route():
+    """新的市场概览页面，包含基金公司分析。"""
+    # 获取排序参数，与主页类似，用于基金公司分析表格的初始加载
+    sort_by = request.args.get('sort_by', 'total_holding_value') 
+    order = request.args.get('order', 'desc')
+    company_analytics_data = []
+    try:
+        db = Database()
+        initial_ascending = True if order == 'asc' else False
+        company_analytics_data = db.get_company_analytics_for_dashboard(sort_by=sort_by, ascending=initial_ascending)
+    except Exception as e:
+        logger.error(f"加载基金公司分析数据出错 (market_overview_page): {str(e)}")
+
+    return render_template('market_overview_page.html', 
+                           company_analytics=company_analytics_data,
+                           current_sort_by=sort_by,
+                           current_order=order)
+
+@app.route('/feishu-promotions')
+def feishu_promotions_page():
+    """显示APP海报推广效果的页面"""
+    return render_template('feishu_promotions.html')
+
 # 新的AJAX端点用于基金公司分析表格排序
 @app.route('/ajax_sort_company_analytics')
 def ajax_sort_company_analytics():
@@ -183,6 +285,14 @@ def ajax_sort_company_analytics():
                                   current_sort_by=sort_by, 
                                   current_order=order)
     return jsonify({"html_fragment": html_fragment, "sort_by": sort_by, "order": order})
+
+@app.route('/business-products')
+def business_products_page_route():
+    """新的商务品分析页面，包含飞书推广数据。"""
+    # 此页面目前可能不需要从后端传递特定数据给 business.html 或 _feishu_promo_table.html
+    # _feishu_promo_table.html 会通过AJAX加载其数据
+    # business.html 如果需要数据，则其自身的AJAX或初始加载逻辑需要处理
+    return render_template('business_products_page.html')
 
 # 检查端口是否可用
 def is_port_available(port):

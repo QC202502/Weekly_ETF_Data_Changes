@@ -806,18 +806,6 @@ function applyFundSizeQuartileColors() {
     }
 }
 
-// 确保函数在DOMContentLoaded后执行，直接添加一个事件监听器
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded事件触发，准备应用四分位数着色');
-    // 延迟一段时间确保DOM完全加载
-    setTimeout(function() {
-        applyFundSizeQuartileColors();
-    }, 1000);
-});
-
-// 添加到window对象以便全局访问
-window.applyFundSizeQuartileColors = applyFundSizeQuartileColors;
-
 // 计算和应用总成交额的四分位数着色
 function applyAmountQuartileColors() {
     console.log('应用总成交额四分位数着色 - 开始');
@@ -976,59 +964,46 @@ function applyAmountQuartileColors() {
     }
 }
 
-// 确保函数在DOMContentLoaded后执行，直接添加一个事件监听器
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded事件触发，准备应用四分位数着色');
-    // 延迟一段时间确保DOM完全加载
-    setTimeout(function() {
-        applyFundSizeQuartileColors();
-        applyAmountQuartileColors();
-    }, 1000);
-});
-
-// 添加到window对象以便全局访问
-window.applyAmountQuartileColors = applyAmountQuartileColors;
-
-// 在页面加载完成后执行
+// DOMContentLoaded 事件监听器
 document.addEventListener('DOMContentLoaded', function() {
     console.log('页面加载完成，初始化事件监听器');
-    
-    // 初始排序指示器
-    updateSortIndicators();
-    
-    // 初始化商务品持仓价值列动画效果
-    initBusinessValueAnimations();
-    
-    // 初始化公司筛选功能
-    const filterInput = document.getElementById('company-filter');
-    if (filterInput) {
-        filterInput.addEventListener('input', applyCompanyFilter);
-    }
-    
-    // 检查页面元素，输出调试信息
+
+    // 页面元素检查 (在此处进行，以便后续逻辑使用)
     const elements = {
         'search-button': document.getElementById('search-button'),
         'search-input': document.getElementById('search-input'),
-        'searchButton': document.querySelector('#searchButton'),
-        'searchInput': document.getElementById('searchInput'),
+        'searchButton': document.querySelector('#searchButton'), // 兼容旧ID
+        'searchInput': document.getElementById('searchInput'), // 兼容旧ID
         'search-results': document.getElementById('search-results'),
-        'searchResults': document.getElementById('searchResults'),
+        'searchResults': document.getElementById('searchResults'), // 兼容旧ID
         'export-markdown-button': document.getElementById('export-markdown-button'),
+        'company-analytics-tbody': document.getElementById('company-analytics-tbody'),
+        'recommendation-container': document.getElementById('recommendation-container'),
+        'company-filter': document.getElementById('company-filter'),
+        'copy-markdown-button': document.getElementById('copy-markdown-button'),
+        'load-data-btn': document.getElementById('load-data-btn'),
+        'generate-report-btn': document.getElementById('generate-report-btn'),
+        'nav-search': document.getElementById('nav-search'),
+        'nav-overview': document.getElementById('nav-overview'),
+        'nav-business': document.getElementById('nav-business'),
+        'nav-report': document.getElementById('nav-report'),
+        'markdown-modal': document.getElementById('markdown-modal'), // Markdown模态框本身
+        'markdown-content': document.getElementById('markdown-content') // Markdown内容文本域
     };
-    
-    console.log('页面元素检查:');
+
+    console.log('页面元素检查 (main.js DOMContentLoaded):');
     for (const [id, element] of Object.entries(elements)) {
         console.log(`${id}: ${element ? '存在' : '不存在'}`);
     }
-    
-    // 确保导出Markdown按钮在页面加载后立即可见
+
+    // 确保导出Markdown按钮在页面加载后立即可见 (如果存在)
     if (elements['export-markdown-button']) {
         console.log('初始化Markdown导出按钮，设为可见');
         elements['export-markdown-button'].style.display = 'block';
     }
-    
-    // 绑定搜索按钮点击事件 - 兼容两种可能的ID
-    const searchButton = document.querySelector('#search-button') || document.querySelector('#searchButton');
+
+    // 绑定搜索按钮点击事件
+    const searchButton = elements['search-button'] || elements['searchButton'];
     if (searchButton) {
         console.log('找到搜索按钮，绑定点击事件');
         searchButton.addEventListener('click', function() {
@@ -1036,14 +1011,13 @@ document.addEventListener('DOMContentLoaded', function() {
             searchETF();
         });
     } else {
-        console.error('未找到搜索按钮，无法绑定点击事件');
+        // console.error('未找到搜索按钮，无法绑定点击事件'); // 在非搜索页面，这是正常的
     }
-    
-    // 绑定搜索输入框事件 - 兼容两种可能的ID
-    const searchInput = document.getElementById('search-input') || document.getElementById('searchInput');
+
+    // 绑定搜索输入框事件
+    const searchInput = elements['search-input'] || elements['searchInput'];
     if (searchInput) {
         console.log('找到搜索输入框，绑定事件');
-        // 回车事件
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 console.log('搜索输入框回车按下');
@@ -1051,216 +1025,236 @@ document.addEventListener('DOMContentLoaded', function() {
                 searchETF();
             }
         });
+        // 如果搜索框有预填充的值，自动触发搜索
+        if (searchInput.value.trim()) {
+            console.log("检测到预填充的搜索关键词，自动搜索:", searchInput.value);
+            setTimeout(function() {
+                searchETF(); // 确保 searchETF 已定义
+            }, 1000);
+        }
     } else {
-        console.error('未找到搜索输入框，无法绑定事件');
+        // console.error('未找到搜索输入框，无法绑定事件'); // 在非搜索页面，这是正常的
     }
-    
+
     // 绑定导出Markdown按钮点击事件
     if (elements['export-markdown-button']) {
         console.log('找到导出Markdown按钮，绑定点击事件');
         elements['export-markdown-button'].addEventListener('click', function() {
-            // 获取当前搜索结果数据
             const searchResultsData = window.currentSearchResults;
             if (!searchResultsData) {
                 showMessage('warning', '没有可导出的搜索结果');
                 return;
             }
-            
-            // 生成Markdown内容
             const markdownContent = generateMarkdown(searchResultsData);
-            
-            // 显示Markdown模态框
-            try {
-                const markdownModal = new bootstrap.Modal(document.getElementById('markdown-modal'));
-                document.getElementById('markdown-content').value = markdownContent;
-                markdownModal.show();
-                console.log('显示Markdown导出模态框');
-            } catch (error) {
-                console.error('打开Markdown模态框失败:', error);
-                showMessage('danger', '打开Markdown导出窗口失败，请检查控制台错误');
+            if (elements['markdown-modal'] && elements['markdown-content']) {
+                try {
+                    const markdownModal = new bootstrap.Modal(elements['markdown-modal']);
+                    elements['markdown-content'].value = markdownContent;
+                    markdownModal.show();
+                    console.log('显示Markdown导出模态框');
+                } catch (error) {
+                    console.error('打开Markdown模态框失败:', error);
+                    showMessage('danger', '打开Markdown导出窗口失败，请检查控制台错误');
+                }
+            } else {
+                console.error('Markdown模态框或内容区域未找到!');
             }
         });
     } else {
-        console.error('未找到导出Markdown按钮');
+        // console.error('未找到导出Markdown按钮'); // 在非相关页面，这是正常的
     }
-    
+
     // 绑定复制Markdown按钮点击事件
-    const copyMarkdownButton = document.getElementById('copy-markdown-button');
-    if (copyMarkdownButton) {
-        copyMarkdownButton.addEventListener('click', function() {
-            const markdownContent = document.getElementById('markdown-content');
-            markdownContent.select();
-            document.execCommand('copy');
-            showMessage('success', 'Markdown内容已复制到剪贴板');
+    if (elements['copy-markdown-button']) {
+        elements['copy-markdown-button'].addEventListener('click', function() {
+            if (elements['markdown-content']) {
+                elements['markdown-content'].select();
+                document.execCommand('copy');
+                showMessage('success', 'Markdown内容已复制到剪贴板');
+            }
         });
     }
+
+    // 推荐模块初始化 (特定于首页或包含推荐模块的页面)
+    if (elements['recommendation-container']) {
+        console.log('main.js: Recommendation container element FOUND. Making it visible, then initializing and loading recommendations.');
+        console.log('[main.js] recommendationContainer.innerHTML BEFORE initRecommendations (first 700 chars):', elements['recommendation-container'].innerHTML.substring(0, 700));
+        elements['recommendation-container'].style.display = 'block'; // 确保容器可见
+        initRecommendations(elements['recommendation-container']); // Pass the container
+        console.log('[main.js] recommendationContainer.innerHTML AFTER initRecommendations, BEFORE loadRecommendations (first 700 chars):', elements['recommendation-container'].innerHTML.substring(0, 700));
+        loadRecommendations(elements['recommendation-container']); // Pass the container
+    } else {
+        console.log('main.js: Recommendation container element NOT found. Skipping recommendation load.');
+    }
     
-    // 初始化推荐栏
-    initRecommendations();
-    
-    // 加载推荐数据
-    loadRecommendations();
-    
+    // 基金公司分析表格相关功能初始化
+    if (elements['company-analytics-tbody']) {
+        console.log('找到公司分析表格 (company-analytics-tbody)，初始化相关功能。');
+
+        // 初始排序指示器
+        updateSortIndicators();
+        
+        // 初始化商务品持仓价值列动画效果
+        initBusinessValueAnimations();
+        
+        // 初始化公司筛选功能
+        if (elements['company-filter']) {
+            elements['company-filter'].addEventListener('input', applyCompanyFilter);
+        }
+
+        // 初始化排序状态 (从HTML或默认值)
+        const companyAnalyticsSection = document.getElementById('company-analytics-section');
+        if (companyAnalyticsSection) {
+            const sortInfoText = companyAnalyticsSection.querySelector('.card-header .text-muted');
+            if (sortInfoText && sortInfoText.textContent) {
+                const match = sortInfoText.textContent.match(/当前按 (.*?) (升序|降序)排序/);
+                if (match && match[1] && match[2]) {
+                    const columnDisplayNamesReverse = {
+                        '基金公司': 'company_short_name', '产品数量': 'product_count',
+                        '商务品数量': 'business_agreement_count', '商务品占比 (%)': 'business_agreement_ratio',
+                        '总管理规模 (亿元)': 'total_fund_size', '总成交额 (亿元)': 'total_amount',
+                        '总自选热度': 'total_attention_count', '总持仓人数': 'total_holder_count_holders',
+                        '持仓自选比 (%)': 'holder_attention_ratio', '总持仓价值 (亿元)': 'total_holding_value'
+                    };
+                    const matchedSortByDisplay = match[1].trim();
+                    window.currentSortBy = columnDisplayNamesReverse[matchedSortByDisplay] || matchedSortByDisplay;
+                    window.currentOrder = match[2] === '升序' ? 'asc' : 'desc';
+                    console.log(`Initial sort state from HTML: ${window.currentSortBy} ${window.currentOrder}`);
+                } else {
+                     console.log('Could not parse initial sort state from HTML, using defaults.');
+                }
+            }
+            updateSortIndicators(); // 再次调用以确保基于解析或默认状态更新
+        }
+
+        // 初始化商务品持仓价值相关的交互
+        initBusinessValueInteractions();
+        
+        // 添加高亮样式到当前排序列
+        highlightSortColumn();
+        
+        // 初始化进度条动画
+        reapplyProgressBars(); // 初始调用
+        
+        // 给window对象添加相关函数 (仅当表格存在时才有意义)
+        window.reapplyProgressBars = reapplyProgressBars;
+        window.fullResetProgressBars = fullResetProgressBars;
+        window.fixBusinessRatioProgressBars = fixBusinessRatioProgressBars;
+        window.emergencyFixRatioBars = emergencyFixRatioBars;
+        window.applyFundSizeQuartileColors = applyFundSizeQuartileColors;
+        window.applyAmountQuartileColors = applyAmountQuartileColors;
+        window.sortCompanyTable = sortCompanyTable; // 表格排序函数
+        window.applyCompanyFilter = applyCompanyFilter; // 公司筛选函数
+        window.highlightSortColumn = highlightSortColumn; // 高亮排序列函数
+
+        // 初始化时运行一次紧急修复确保进度条显示正确
+        setTimeout(emergencyFixRatioBars, 800);
+        
+        // 应用总管理规模和总成交额四分位数着色 (这些调用现在是条件性的，很好！)
+        console.log('准备应用四分位数分区着色 (表格存在)...');
+        setTimeout(function() {
+            if (typeof applyFundSizeQuartileColors === 'function') applyFundSizeQuartileColors();
+            if (typeof applyAmountQuartileColors === 'function') applyAmountQuartileColors();
+            console.log('已调用四分位数着色函数 (表格存在)');
+        }, 500); // 调整延迟以确保DOM和数据渲染完成
+
+    } else {
+        console.log('未找到公司分析表格 (company-analytics-tbody)，跳过相关功能初始化。');
+        // 在没有表格的页面，这些函数不应该被全局调用
+        // 可以考虑定义一个空的占位函数或者完全不定义，取决于其他模块是否会尝试调用它们
+    }
+
     // 绑定导航事件
-    document.getElementById('nav-search').addEventListener('click', function(e) {
-        e.preventDefault();
-        showSection('section-search');
-    });
-    
-    document.getElementById('nav-overview').addEventListener('click', function(e) {
-        e.preventDefault();
-        showSection('section-overview');
-        loadOverview();
-    });
-    
-    document.getElementById('nav-business').addEventListener('click', function(e) {
-        e.preventDefault();
-        showSection('section-business');
-        loadBusinessAnalysis();
-    });
-    
-    document.getElementById('nav-report').addEventListener('click', function(e) {
-        e.preventDefault();
-        showSection('section-report');
-    });
-    
-    // 绑定加载数据按钮
-    document.getElementById('load-data-btn').addEventListener('click', function(e) {
-        e.preventDefault();
-        loadData();
-    });
+    if (elements['nav-search']) {
+        elements['nav-search'].addEventListener('click', (e) => {
+            // e.preventDefault(); // Removed for MPA navigation
+            console.log('[main.js] ETF竞品查询 link clicked. Allowing href navigation.');
+            // showSection('section-search'); // Removed for MPA navigation
+            // setActiveNav(elements['nav-search']); // Active state will be set on new page load
+        });
+    }
+    if (elements['nav-overview']) {
+        elements['nav-overview'].addEventListener('click', (e) => {
+            // e.preventDefault(); // Removed for MPA navigation
+            console.log('[main.js] 市场概览 link clicked. Allowing href navigation.');
+            // showSection('section-overview'); // Removed for MPA navigation
+            // setActiveNav(elements['nav-overview']); // Active state will be set on new page load
+        });
+    }
+    if (elements['nav-business']) {
+        elements['nav-business'].addEventListener('click', (e) => {
+            // e.preventDefault(); // Removed for MPA navigation
+            console.log('[main.js] 商务品分析 link clicked. Allowing href navigation.');
+            // showSection('section-business'); // Removed for MPA navigation
+            // setActiveNav(elements['nav-business']); // Active state will be set on new page load
+        });
+    }
+
+    // Properly initialize active navigation link based on current URL
+    function initializeActiveNavLink() {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
+            link.classList.remove('active'); // Remove from all
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active'); // Add to matching
+            }
+        });
+    }
+    initializeActiveNavLink(); // Call on page load and after any AJAX navigation if implemented
+
+    // Example: Re-call initializeActiveNavLink if you implement AJAX content loading that changes "page"
+    // window.addEventListener('popstate', initializeActiveNavLink); // For browser back/forward with SPA history
+
+    if (elements['load-data-btn']) {
+        elements['load-data-btn'].addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof loadData === 'function') loadData();
+        });
+    } else {
+        // 自动加载数据（如果按钮不存在，也执行一次）
+        if (typeof loadData === 'function') {
+            console.log('Load data button not found, calling loadData() automatically.');
+            loadData();
+        }
+    }
     
     // 绑定生成报告按钮
-    const generateReportBtn = document.getElementById('generate-report-btn');
-    if (generateReportBtn) {
-        generateReportBtn.addEventListener('click', function(e) {
+    if (elements['generate-report-btn']) {
+        elements['generate-report-btn'].addEventListener('click', function(e) {
             e.preventDefault();
-            generateReport();
+            if (typeof generateReport === 'function') generateReport();
         });
     }
-    
-    // 如果搜索框有预填充的值，自动触发搜索
-    if (searchInput && searchInput.value.trim()) {
-        console.log("检测到预填充的搜索关键词，自动搜索:", searchInput.value);
-        setTimeout(function() {
-            searchETF();
-        }, 1000);
-    }
-    
-    // 页面加载完成后自动加载数据
-    loadData();
-    
-    // 隐藏可能存在的错误信息
+
+    // 隐藏可能存在的解析错误信息
     const errorBanner = document.querySelector('.alert-danger');
     if (errorBanner && errorBanner.textContent.indexOf('SyntaxError') !== -1) {
         errorBanner.style.display = 'none';
         showMessage('info', '系统已就绪，请输入搜索关键词');
     }
     
-    // 总管理规模和总成交额四分位数分区着色
-    console.log('准备应用四分位数分区着色...');
-    
-    // 在公司分析表格加载后应用四分位数着色
-    const companyTableTbody = document.getElementById('company-analytics-tbody');
-    if (companyTableTbody) {
-        console.log('找到公司分析表格，准备应用四分位数着色');
-        // 检查总管理规模单元格是否存在
-        const fundSizeCells = document.querySelectorAll('#company-analytics-tbody tr td.fund-size-cell');
-        console.log(`发现 ${fundSizeCells.length} 个总管理规模单元格`);
-        
-        // 检查总成交额单元格是否存在
-        const amountCells = document.querySelectorAll('#company-analytics-tbody tr td.amount-cell');
-        console.log(`发现 ${amountCells.length} 个总成交额单元格`);
-        
-        // 应用四分位数着色
-        setTimeout(function() {
-            applyFundSizeQuartileColors();
-            applyAmountQuartileColors();
-            console.log('已调用四分位数着色函数');
-        }, 500);
-    } else {
-        console.log('未找到公司分析表格，无法应用四分位数着色');
-    }
-    
-    // Initialize sort state from the hidden inputs or default from Python
-    // Assuming Python passes initial sort state to the template which sets these global JS vars or data attributes
-    // For now, we'll use the globally defined currentSortBy and currentOrder from above which should match python's default
-    // Or, if you have these values in the HTML (e.g. from current_sort_by, current_order):
-    const companyAnalyticsSection = document.getElementById('company-analytics-section');
-    if (companyAnalyticsSection) { // Only run if the section is on the page
-        const sortInfoText = companyAnalyticsSection.querySelector('.card-header .text-muted');
-        if (sortInfoText && sortInfoText.textContent) {
-            const match = sortInfoText.textContent.match(/当前按 (.*?) (升序|降序)排序/);
-            if (match && match[1] && match[2]) {
-                const columnDisplayNamesReverse = {
-                    '基金公司': 'company_short_name',
-                    '产品数量': 'product_count',
-                    '商务品数量': 'business_agreement_count',
-                    '商务品占比 (%)': 'business_agreement_ratio',
-                    '总管理规模 (亿元)': 'total_fund_size',
-                    '总成交额 (亿元)': 'total_amount',
-                    '总自选热度': 'total_attention_count',
-                    '总持仓人数': 'total_holder_count_holders',
-                    '持仓自选比 (%)': 'holder_attention_ratio',
-                    '总持仓价值 (亿元)': 'total_holding_value'
-                };
-                const matchedSortByDisplay = match[1].trim();
-                window.currentSortBy = columnDisplayNamesReverse[matchedSortByDisplay] || matchedSortByDisplay; // Fallback if name not in map
-                window.currentOrder = match[2] === '升序' ? 'asc' : 'desc';
-                console.log(`Initial sort state from HTML: ${window.currentSortBy} ${window.currentOrder}`);
-            } else {
-                 console.log('Could not parse initial sort state from HTML, using defaults.');
-            }
-        }
-         updateSortIndicators(); // Initial call to set indicators based on currentSortBy and currentOrder
+    // 调整列宽函数，这个可以更通用，但其内部逻辑也应检查元素是否存在
+    if (typeof adjustCompanyColumnWidth === 'function') {
+        adjustCompanyColumnWidth(); 
     }
 
-    // 初始化商务品持仓价值相关的交互
-    initBusinessValueInteractions();
-    
-    // 添加高亮样式到当前排序列
-    highlightSortColumn();
-    
-    // 初始化进度条动画
-    reapplyProgressBars();
-    
-    // 给window对象添加重新应用进度条动画的方法
-    window.reapplyProgressBars = reapplyProgressBars;
-    
-    // 添加完全重置进度条方法以便从控制台调用
-    window.fullResetProgressBars = fullResetProgressBars;
-    
-    // 添加专用修复商务品持仓价值占比进度条函数
-    window.fixBusinessRatioProgressBars = fixBusinessRatioProgressBars;
-    
-    // 添加紧急修复进度条函数
-    window.emergencyFixRatioBars = emergencyFixRatioBars;
-    
-    // 初始化时运行一次紧急修复确保进度条显示正确
-    setTimeout(emergencyFixRatioBars, 800);
-    
-    // 应用总管理规模四分位数着色
-    setTimeout(applyFundSizeQuartileColors, 1000);
-    
-    // 应用总成交额四分位数着色
-    setTimeout(applyAmountQuartileColors, 1000);
-    
     console.log('页面初始化完成，交互功能已加载');
 });
 
 // 根据基金公司名称长度动态调整列宽度
 function adjustCompanyColumnWidth() {
-    // 获取表格的实际宽度
     const table = document.querySelector('.company-analytics-table');
-    if (!table) return;
-    
+    if (!table) {
+        // console.log('adjustCompanyColumnWidth: .company-analytics-table not found, skipping.');
+        return;
+    }
+
     // 使用MutationObserver监听表格DOM变化
     if (typeof MutationObserver !== 'undefined') {
         const observer = new MutationObserver(function(mutations) {
             optimizeColumnWidths();
         });
         
-        // 监听表格内容变化
         observer.observe(table, { 
             childList: true, 
             subtree: true,
@@ -1269,50 +1263,42 @@ function adjustCompanyColumnWidth() {
         });
     }
     
-    // 调用一次以进行初始优化
     optimizeColumnWidths();
     
-    // 优化列宽的函数
     function optimizeColumnWidths() {
-        // 检测表格总宽度
         const tableWidth = table.offsetWidth;
-        
-        // 检测当前所有列宽度总和
         const thElements = table.querySelectorAll('thead th');
+        if (thElements.length === 0) return;
+
         let totalWidth = 0;
         thElements.forEach(th => {
             totalWidth += th.offsetWidth;
         });
         
-        // 如果总宽度超过表格宽度，进一步优化缩短不必要的列
         if (totalWidth > tableWidth) {
             console.log(`表格列总宽度(${totalWidth}px)超过表格容器宽度(${tableWidth}px)，尝试优化...`);
-            
-            // 减少非重要列的宽度
-            const lessImportantColumns = [2, 3, 4, 7, 8]; // 索引从0开始，这些列可以适当缩小
+            const lessImportantColumns = [2, 3, 4, 7, 8]; 
             lessImportantColumns.forEach(index => {
                 if (thElements[index]) {
                     const currentWidth = thElements[index].offsetWidth;
-                    // 宽度超过100px的列可以适当缩小10%
                     if (currentWidth > 100) {
                         const newWidth = Math.floor(currentWidth * 0.9);
                         thElements[index].style.width = `${newWidth}px`;
-                        console.log(`优化第${index+1}列宽度: ${currentWidth}px -> ${newWidth}px`);
                     }
                 }
             });
         }
         
-        // 为公司名称设置适当的宽度
         const companyColumn = table.querySelector('th:nth-child(2)');
         if (companyColumn) {
-            // 设置适当的固定宽度，不再需要太宽
             companyColumn.style.width = '80px'; 
         }
     }
     
-    // 添加窗口大小变化监听器
     window.addEventListener('resize', function() {
-        setTimeout(optimizeColumnWidths, 100);
+        // Check if table still exists before optimizing
+        if (document.querySelector('.company-analytics-table')) {
+             setTimeout(optimizeColumnWidths, 100);
+        }
     });
 }

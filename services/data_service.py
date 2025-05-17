@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 import traceback
 from database.models import Database
+import numpy as np
 
 # 全局变量
 etf_data = None
@@ -34,34 +35,41 @@ def load_latest_data():
         print("开始从数据库加载ETF数据...")
         db = Database()
         
-        # 获取ETF基本信息
-        etf_data = db.get_all_etf_info()
-        if not etf_data:
+        etf_data_from_db = db.get_all_etf_info()
+        if not etf_data_from_db:
             return {'status': 'error', 'message': '加载ETF数据失败'}
             
-        # 获取商务品ETF列表
-        business_etfs = db.get_all_business_etf()
-        if business_etfs is None:
-            return {'status': 'error', 'message': '加载商务品数据失败'}
-            
-        # 转换为DataFrame
-        etf_df = pd.DataFrame(etf_data)
+        business_etfs_set = db.get_all_business_etf()
+        if business_etfs_set is None:
+            business_etfs_set = set()
+            print("警告: 加载商务品数据失败，将使用空列表。")
+
+        etf_df = pd.DataFrame(etf_data_from_db)
         
-        # 添加是否商务品标记
-        etf_df['is_business'] = etf_df['code'].apply(lambda x: '商务' if x in business_etfs else '非商务')
+        if etf_df.empty:
+            print("警告: 从数据库获取的ETF数据为空DataFrame。")
+
+        # 清理NaN值：遍历所有列，如果是数值类型，则用0填充NaN
+        for col in etf_df.columns:
+            if pd.api.types.is_numeric_dtype(etf_df[col]):
+                etf_df[col].fillna(0, inplace=True)
+
+        # 添加是否商务品标记 (确保 business_etfs_set 是最新的)
+        etf_df['is_business'] = etf_df['code'].apply(lambda x: '商务' if x in business_etfs_set else '非商务')
         
         print(f"成功从数据库加载ETF数据，共 {len(etf_df)} 条记录")
-        print(f"成功从数据库加载商务品数据，共 {len(business_etfs)} 个商务品")
+        print(f"成功从数据库加载商务品数据，共 {len(business_etfs_set)} 个商务品")
         
         return {
             'status': 'success',
             'message': {
                 'etf_data': etf_df.to_dict('records'),
-                'business_etfs': business_etfs
+                'business_etfs': list(business_etfs_set)
             }
         }
     except Exception as e:
         print(f"加载数据时出错: {str(e)}")
+        traceback.print_exc()
         return {'status': 'error', 'message': f'加载数据时出错: {str(e)}'}
 
 def format_etf_result(row):

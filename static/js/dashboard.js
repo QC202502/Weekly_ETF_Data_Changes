@@ -1138,20 +1138,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const navOverview = document.getElementById('nav-overview');
     if (navOverview) {
         navOverview.addEventListener('click', function(e) {
-        e.preventDefault();
-        showSection('section-overview');
-            if (typeof loadOverview === 'function') loadOverview();
-            else console.warn('loadOverview function not found');
+        console.log('nav-overview clicked, allowing default redirect.');
     });
     } else { console.error('nav-overview not found');}
     
     const navBusiness = document.getElementById('nav-business');
     if (navBusiness) {
         navBusiness.addEventListener('click', function(e) {
-        e.preventDefault();
-        showSection('section-business');
-            if (typeof loadBusinessAnalysis === 'function') loadBusinessAnalysis();
-            else console.warn('loadBusinessAnalysis function not found');
+        console.log('nav-business clicked, allowing default redirect.');
     });
     } else { console.error('nav-business not found');}
     

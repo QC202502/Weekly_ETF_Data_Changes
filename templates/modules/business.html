@@ -1,7 +1,7 @@
 <!-- 商务品分析已被删除 --> 
 
 <!-- 商务品分析 - 全新简化版 -->
-<div class="content-section" id="section-business" style="display: none;">
+<div class="content-section" id="section-business">
     <!-- 单行布局 -->
     <div class="row">
         <!-- 图表占满整行 -->
@@ -468,48 +468,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return businessChart;
     }
     
-    // 从表格数据中提取公司数据以便绘制图表
-    function extractCompanyData() {
-        const rows = document.querySelectorAll('#company-analytics-tbody tr');
-        const data = [];
-        
-        rows.forEach(row => {
-            try {
-                const companyName = row.querySelector('td:nth-child(2)').textContent.trim();
-                const productCount = parseInt(row.querySelector('td:nth-child(3)').textContent.replace(/,/g, ''));
-                
-                // 提取总持仓价值 (亿元)
-                const totalHoldingText = row.querySelector('td:nth-child(11)').textContent.trim();
-                const totalHolding = parseFloat(totalHoldingText.replace(/,/g, ''));
-                
-                // 提取商务品总持仓价值 (亿元)
-                const businessHoldingText = row.querySelector('td:nth-child(12)').textContent.trim();
-                const businessHolding = parseFloat(businessHoldingText.replace(/,/g, ''));
-                
-                // 提取商务品持仓价值占比 (%)
-                const ratioText = row.querySelector('td:nth-child(13)').textContent.trim();
-                const ratio = parseFloat(ratioText.replace('%', ''));
-                
-                if (!isNaN(totalHolding) && !isNaN(businessHolding) && !isNaN(ratio)) {
-                    data.push({
-                        x: totalHolding,
-                        y: businessHolding,
-                        company: companyName,
-                        ratio: ratio,
-                        productCount: productCount
-                    });
-                }
-            } catch (e) {
-                console.error('提取公司数据错误:', e);
-            }
-        });
-        
-        // 按总持仓价值排序
-        data.sort((a, b) => b.x - a.x);
-        
-        return data;
-    }
-    
     // 过滤数据 - 更新为同时支持占比和规模筛选
     function filterData(data) {
         let result = [...data];
@@ -660,27 +618,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function initBusinessAnalysis() {
         showBusinessSection();
         initViewButtons();
-        
-        // 当表格加载完成后提取数据
-        if (document.getElementById('company-analytics-tbody')) {
-            allCompanyData = extractCompanyData();
-            updateChartData();
-        } else {
-            // 监听表格内容变化
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'childList' && document.getElementById('company-analytics-tbody')) {
-                        allCompanyData = extractCompanyData();
-                        updateChartData();
-                    }
-                });
-            });
-            
-            const companySection = document.getElementById('company-analytics-section');
-            if (companySection) {
-                observer.observe(companySection, { childList: true, subtree: true });
-            }
-        }
+        fetchCompanyData(); // Fetch data from API
         
         // 手动实现拖拽平移功能
         setupDirectPanning();
@@ -759,6 +697,51 @@ document.addEventListener("DOMContentLoaded", function() {
         chartContainer.addEventListener('mouseenter', function() {
             this.style.cursor = 'grab';
         });
+    }
+    
+    // 获取商务品分析数据
+    function fetchCompanyData() {
+        console.log('Fetching business data from /api/business_data...');
+        fetch('/api/business_data')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.chart_data) {
+                    console.log('Business data fetched successfully:', data);
+                    allCompanyData = data.chart_data; // Use data from API
+                    
+                    // 更新统计信息徽章
+                    if (data.stats) {
+                        const totalBusinessEl = document.getElementById('total-business');
+                        const businessCompaniesEl = document.getElementById('business-companies');
+                        const businessScaleEl = document.getElementById('business-scale');
+
+                        if (totalBusinessEl) totalBusinessEl.textContent = data.stats.total_business !== undefined ? data.stats.total_business : '-';
+                        if (businessCompaniesEl) businessCompaniesEl.textContent = data.stats.business_companies !== undefined ? data.stats.business_companies : '-';
+                        if (businessScaleEl) businessScaleEl.textContent = data.stats.business_scale !== undefined ? data.stats.business_scale.toFixed(2) : '-';
+                    }
+                    
+                    updateChartData(); // Update chart with new data
+                } else {
+                    console.error('Failed to load business chart data:', data.error || 'Unknown error');
+                    // Optionally display an error to the user on the page
+                    const chartContainer = document.getElementById('company-business-chart');
+                    if(chartContainer && chartContainer.parentElement){
+                         chartContainer.parentElement.innerHTML = '<p class=\"text-center text-danger\">加载图表数据失败。</p>';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching business data:', error);
+                const chartContainer = document.getElementById('company-business-chart');
+                if(chartContainer && chartContainer.parentElement){
+                     chartContainer.parentElement.innerHTML = '<p class=\"text-center text-danger\">加载图表数据时发生网络错误。</p>';
+                }
+            });
     }
     
     // 在页面完全加载后初始化商务品分析

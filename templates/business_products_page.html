@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}商务品分析与推广效果 - ETF数据分析平台{% endblock %}
+
+{% block extra_css %}
+    {# 如果此页面有特定CSS，可以在这里链接 #}
+    {# 例如，飞书推广表格可能需要一些样式 #}
+    <style>
+        /* 可以在这里为 business.html 或飞书表格添加特定样式 */
+        #feishu-promo-container h2 {
+            margin-top: 2rem; /* 给飞书表格的标题添加一些上边距 */
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        {# 商务品分析模块 #}
+        {% include "modules/business.html" %}
+
+        {# 分隔线或一些间距 #}
+        <hr class="my-4">
+
+        {# 飞书推广数据表格 #}
+        {% include "partials/_feishu_promo_table.html" %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }} 
+    {# _feishu_promo_table.html 内部已经包含了其自身的JS逻辑来获取和渲染数据 #}
+    {# 如果 modules/business.html 需要特定的JS，可以在这里引入或编写 #}
+{% endblock %} 

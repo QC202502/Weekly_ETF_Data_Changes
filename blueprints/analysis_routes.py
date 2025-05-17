@@ -7,6 +7,11 @@ import base64
 import pandas as pd
 from docx import Document
 import os
+import logging # 添加导入
+import numpy as np # 需要导入 numpy 来检查 np.isnan
+
+# 配置 logger
+logger = logging.getLogger(__name__) # 添加 logger 初始化
 
 # 创建蓝图
 analysis_bp = Blueprint('analysis', __name__)
@@ -226,3 +231,109 @@ def generate_report():
         import traceback
         traceback.print_exc()
         return jsonify({"error": f"生成报告出错：{str(e)}"})
+
+@analysis_bp.route('/api/business_data')
+def api_business_data():
+    """提供商务品分析散点图所需的数据。
+
+    返回每个公司的:
+    - company_short_name (公司简称)
+    - total_holding_value (总持仓规模, 作为 x)
+    - total_business_value (商务品总规模, 作为 y)
+    - business_agreement_ratio (商务品占比, 作为 ratio)
+    - product_count (产品数量, 用于点大小)
+    """
+    try:
+        from database.models import Database # 确保导入Database类
+        db = Database()
+        # 假设 get_company_analytics_for_dashboard 可以返回我们需要的所有字段
+        # 或者我们需要一个新的方法。这里我们先尝试使用现有的，如果字段不足后续再调整。
+        # 我们需要的数据字段：company_short_name, total_holding_value, 
+        # total_business_value, business_agreement_ratio, product_count
+        
+        # 尝试直接从 etf_company_analytics 获取原始数据，因为JS端会做筛选和TOP N处理
+        # 如果直接调用 get_company_analytics_for_dashboard，它内部可能有排序和限制
+        conn = db.connect()
+        query = """
+            SELECT 
+                company_short_name, 
+                total_holding_value, 
+                business_total_holding_value,
+                business_agreement_ratio, 
+                product_count 
+            FROM etf_company_analytics
+        """
+        # 使用 pandas 读取数据，方便转换为字典列表
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+
+        if df.empty:
+            return jsonify({"error": "未能从数据库获取商务品分析数据"}), 500
+
+        # 将列名转换为JS期望的格式
+        df.rename(columns={
+            'company_short_name': 'company',
+            'total_holding_value': 'x',
+            'business_total_holding_value': 'y',
+            'business_agreement_ratio': 'ratio',
+            'product_count': 'productCount'
+        }, inplace=True)
+
+        # 确保所有数值列都是float或int，并且处理NaN/None为0，避免JSON序列化问题
+        for col in ['x', 'y', 'ratio', 'productCount']:
+            if col in df.columns:
+                # 确保先转换为数值，再fillna
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                df[col] = df[col].fillna(0)
+            else:
+                # 如果某个期望的列不存在，用0填充，但前端JS需要能处理
+                df[col] = 0 
+                logger.warning(f"列 {col} 在商务品分析数据中缺失，已用0填充。")
+        
+        # 转换ratio为百分比数值 (例如 0.75 -> 75)
+        if 'ratio' in df.columns: # 检查列是否存在
+            # 先确保是数值类型
+            df['ratio'] = pd.to_numeric(df['ratio'], errors='coerce').fillna(0)
+            # 检查最大值，避免已经是百分比的再次乘以100
+            # 只有当ratio的最大值在 (0, 1] 区间时才乘以100
+            if not df['ratio'].empty:
+                max_ratio = df['ratio'].max()
+                if 0 < max_ratio <= 1.0:
+                    df['ratio'] = df['ratio'] * 100
+                elif max_ratio > 100: # 如果数值已经很大，可能本身就是百分比，但单位不对，这里可能需要进一步的逻辑或警告
+                    logger.warning(f"Ratio列的最大值 {max_ratio} 似乎已经大于100，请检查数据源是否已经是百分比但未正确处理。")
+            # 如果列为空或所有值都为0，则max_ratio会是0，不会进入乘100的逻辑，这是正确的
+
+        chart_data = df.to_dict(orient='records')
+        
+        # 还需要返回一些汇总统计数据，如 modules/business.html 中顶部的徽章所示
+        # total_business: 拥有商务品的公司数量 (这里可以理解为 chart_data 中 y > 0 的公司数)
+        # business_companies: 基金公司总数 (即 chart_data 的长度)
+        # business_scale: 商务品总持仓规模 (即所有公司 y 值的总和)
+
+        total_business_companies_with_products = df[df['y'] > 0].shape[0]
+        total_companies_count = len(chart_data)
+        
+        # 明确处理 total_business_scale 可能为 NaN 的情况
+        raw_total_business_scale = df['y'].sum()
+        if pd.isna(raw_total_business_scale): # 使用 pd.isna() 来检查NaN
+            total_business_scale = 0.0
+        else:
+            # 确保转换为Python float类型，因为numpy float类型有时也不能直接被jsonify处理
+            total_business_scale = float(raw_total_business_scale)
+
+        return jsonify({
+            "success": True,
+            "chart_data": chart_data,
+            "stats": {
+                "total_business": total_business_companies_with_products, # 持有商务品的公司数
+                "business_companies": total_companies_count, # 基金公司总数 (参与图表)
+                "business_scale": round(total_business_scale, 2)
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"获取商务品分析API数据出错: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return jsonify({"error": f"服务器内部错误: {str(e)}"}), 500

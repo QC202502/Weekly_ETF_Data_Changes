@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}市场概览与基金公司分析 - ETF数据分析平台{% endblock %}
+
+{% block extra_css %}
+    {# 如果此页面有特定CSS，可以在这里链接 #}
+    {# 例如，基金公司分析可能需要它自己的CSS #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/company_analytics.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+    {# dashboard.html 中的其他相关CSS，如果需要的话 #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fund_size_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/amount_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/holding_value_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/business_value_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/business_ratio_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/holder_ratio_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/value_ratio_quartiles.css') }}?v={{ config.get('__version__', '1.0') }}&t={{ now }}">
+    <style>
+        /* dashboard.html中的内联样式，确保一致性 */
+        .fund-size-q4 { color: #dc2626 !important; font-weight: 600 !important; }
+        .fund-size-q3 { color: #ea580c !important; font-weight: 600 !important; }
+        .fund-size-q2 { color: #0369a1 !important; font-weight: 600 !important; }
+        .fund-size-q1 { color: #16a34a !important; font-weight: 600 !important; }
+        .amount-q4 { color: #dc2626 !important; font-weight: 600 !important; }
+        .amount-q3 { color: #ea580c !important; font-weight: 600 !important; }
+        .amount-q2 { color: #0369a1 !important; font-weight: 600 !important; }
+        .amount-q1 { color: #16a34a !important; font-weight: 600 !important; }
+        .holding-value-q4 { color: #dc2626 !important; font-weight: 600 !important; }
+        .holding-value-q3 { color: #ea580c !important; font-weight: 600 !important; }
+        .holding-value-q2 { color: #0369a1 !important; font-weight: 600 !important; }
+        .holding-value-q1 { color: #16a34a !important; font-weight: 600 !important; }
+        .business-value-q4 { color: #dc2626 !important; font-weight: 600 !important; }
+        .business-value-q3 { color: #ea580c !important; font-weight: 600 !important; }
+        .business-value-q2 { color: #0369a1 !important; font-weight: 600 !important; }
+        .business-value-q1 { color: #16a34a !important; font-weight: 600 !important; }
+        .business-ratio-q4 { color: #dc2626 !important; font-weight: 600 !important; }
+        .business-ratio-q3 { color: #ea580c !important; font-weight: 600 !important; }
+        .business-ratio-q2 { color: #0369a1 !important; font-weight: 600 !important; }
+        .business-ratio-q1 { color: #16a34a !important; font-weight: 600 !important; }
+        .holder-ratio-q4 { color: #dc2626 !important; font-weight: 600 !important; }
+        .holder-ratio-q3 { color: #ea580c !important; font-weight: 600 !important; }
+        .holder-ratio-q2 { color: #0369a1 !important; font-weight: 600 !important; }
+        .holder-ratio-q1 { color: #16a34a !important; font-weight: 600 !important; }
+        .value-ratio-q4 { color: #dc2626 !important; font-weight: 600 !important; }
+        .value-ratio-q3 { color: #ea580c !important; font-weight: 600 !important; }
+        .value-ratio-q2 { color: #0369a1 !important; font-weight: 600 !important; }
+        .value-ratio-q1 { color: #16a34a !important; font-weight: 600 !important; }
+        #company-analytics-tbody td.text-right { color: inherit; }
+        .company-analytics-table th.active-sort { background-color: #e9ecef; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        {# 市场概览基本信息 #}
+        {% include "modules/overview.html" %}
+
+        {# 分隔线或一些间距 #}
+        <hr class="my-4">
+
+        {# 基金公司分析概览模块 #}
+        <div id="company-analytics-content-wrapper">
+            <div class="row mt-4" id="company-analytics-section">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">基金公司分析概览
+                                <small class="text-muted">
+                                    (当前按 
+                                    {% if current_sort_by == 'total_holding_value' %}持仓价值
+                                    {% elif current_sort_by == 'product_count' %}产品数量
+                                    {% elif current_sort_by == 'total_fund_size' %}总规模
+                                    {% elif current_sort_by == 'total_amount' %}总成交额
+                                    {% elif current_sort_by == 'total_attention_count' %}自选人数
+                                    {% elif current_sort_by == 'total_holder_count_holders' %}持仓人数
+                                    {% elif current_sort_by == 'holder_attention_ratio' %}持仓自选比
+                                    {% elif current_sort_by == 'business_agreement_count' %}商务品数量
+                                    {% elif current_sort_by == 'business_agreement_ratio' %}商务品占比
+                                    {% elif current_sort_by == 'business_total_holding_value' %}商务品总持仓价值
+                                    {% elif current_sort_by == 'business_holding_value_ratio' %}商务品持仓价值占比
+                                    {% elif current_sort_by == 'latest_date' %}数据日期
+                                    {% else %}{{ current_sort_by }}
+                                    {% endif %}
+                                    {{ '升序' if current_order == 'asc' else '降序' }}排序)
+                                </small>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if company_analytics %}
+                            <!-- 添加过滤工具栏 -->
+                            <div class="table-filter-toolbar">
+                                <div class="filter-label">快速筛选:</div>
+                                <input type="text" class="filter-input" id="company-filter" placeholder="输入公司名称进行筛选..." aria-label="筛选公司">
+                                <div class="filter-label">显示: <span id="filter-count" class="status-badge status-badge-success">全部 {{ company_analytics|length }}</span></div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-sm fixed-column-table company-analytics-table">
+                                    <thead class="sticky-header">
+                                        <tr>
+                                            <th>序号</th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('company_short_name')">基金公司 <span class="sort-indicator" data-column="company_short_name"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('product_count')">产品数量 <span class="sort-indicator" data-column="product_count"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('business_agreement_count')">商务品数量 <span class="sort-indicator" data-column="business_agreement_count"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('business_agreement_ratio')">商务品占比 (%) <span class="sort-indicator" data-column="business_agreement_ratio"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('total_fund_size')">总管理规模 (亿元) <span class="sort-indicator" data-column="total_fund_size"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('total_amount')">总成交额 (亿元) <span class="sort-indicator" data-column="total_amount"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('total_attention_count')">总自选热度 <span class="sort-indicator" data-column="total_attention_count"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('total_holder_count_holders')">总持仓人数 <span class="sort-indicator" data-column="total_holder_count_holders"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('holder_attention_ratio')">持仓自选比 (%) <span class="sort-indicator" data-column="holder_attention_ratio"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('total_holding_value')">总持仓价值 (亿元) <span class="sort-indicator" data-column="total_holding_value"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('business_total_holding_value')">商务品总持仓价值 (亿元) <span class="sort-indicator" data-column="business_total_holding_value"></span></th>
+                                            <th style="cursor: pointer;" onclick="sortCompanyTable('business_holding_value_ratio')">商务品持仓价值占比 (%) <span class="sort-indicator" data-column="business_holding_value_ratio"></span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="company-analytics-tbody">
+                                        {% include '_company_analytics_table_body.html' %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-center">暂无基金公司分析数据。</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }} 
+    {# Scripts from dashboard.html for company analytics #}
+    <script>
+        // Pass Flask variables to JavaScript
+        const currentSortBy = "{{ current_sort_by|default('total_holding_value') }}";
+        const currentOrder = "{{ current_order|default('desc') }}";
+
+        function applyQuartileColors(selector, valueClass, quartilePrefix) {
+            const cells = document.querySelectorAll(selector);
+            if (cells.length === 0) return;
+            
+            const values = [];
+            cells.forEach(cell => {
+                const valueSpan = cell.querySelector(valueClass) || cell; // Fallback to cell if span not found
+                const text = valueSpan.textContent.trim().replace('%', '');
+                const value = parseFloat(text);
+                if (!isNaN(value)) {
+                    values.push({ element: valueSpan, value: value });
+                }
+            });
+
+            if (values.length === 0) return;
+
+            values.sort((a, b) => a.value - b.value);
+
+            const q1Val = values[Math.floor(values.length * 0.25)]?.value;
+            const q2Val = values[Math.floor(values.length * 0.5)]?.value;
+            const q3Val = values[Math.floor(values.length * 0.75)]?.value;
+
+            values.forEach(item => {
+                item.element.classList.remove(quartilePrefix + '-q0', quartilePrefix + '-q1', quartilePrefix + '-q2', quartilePrefix + '-q3', quartilePrefix + '-q4');
+                let colorClass = quartilePrefix + '-q1'; // Default to Q1
+                if (item.value === 0 && (quartilePrefix === 'business-ratio' || quartilePrefix === 'value-ratio')) {
+                     colorClass = quartilePrefix + '-q0';
+                } else if (q3Val !== undefined && item.value >= q3Val) {
+                    colorClass = quartilePrefix + '-q4';
+                } else if (q2Val !== undefined && item.value >= q2Val) {
+                    colorClass = quartilePrefix + '-q3';
+                } else if (q1Val !== undefined && item.value >= q1Val) {
+                    colorClass = quartilePrefix + '-q2';
+                }
+                item.element.classList.add(colorClass);
+            });
+        }
+
+        function applyAllQuartileColors() {
+            applyQuartileColors('#company-analytics-tbody tr td.fund-size-cell', 'span.fund-size-value', 'fund-size');
+            applyQuartileColors('#company-analytics-tbody tr td.amount-cell', 'span.amount-value', 'amount');
+            applyQuartileColors('#company-analytics-tbody tr td.holding-value-cell', 'span.holding-value-value', 'holding-value');
+            applyQuartileColors('#company-analytics-tbody tr td.business-value-column', 'span.mono-value', 'business-value');
+            applyQuartileColors('#company-analytics-tbody tr td.business-ratio-column:nth-child(5)', 'span.ratio-value', 'business-ratio');
+            applyQuartileColors('#company-analytics-tbody tr td.business-ratio-column:nth-child(10)', 'span.ratio-value', 'holder-ratio');
+            applyQuartileColors('#company-analytics-tbody tr td.business-ratio-column:nth-child(13)', 'span.ratio-value', 'value-ratio');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSortIndicators();
+            applyAllQuartileColors();
+
+            const filterInput = document.getElementById('company-filter');
+            if (filterInput) {
+                filterInput.addEventListener('input', function() {
+                    const filterText = this.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll('#company-analytics-tbody tr');
+                    let visibleCount = 0;
+                    rows.forEach(row => {
+                        const companyNameCell = row.querySelector('td:nth-child(2)');
+                        if (companyNameCell) {
+                             const companyName = companyNameCell.textContent.toLowerCase();
+                            if (companyName.includes(filterText)) {
+                                row.style.display = '';
+                                visibleCount++;
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        }
+                    });
+                    const filterCountBadge = document.getElementById('filter-count');
+                    if (filterCountBadge) {
+                        filterCountBadge.textContent = filterText ? `${visibleCount} / ${rows.length}` : `全部 ${rows.length}`;
+                        // Update badge class (success, warning, danger)
+                        if (visibleCount === 0) filterCountBadge.className = 'status-badge status-badge-danger';
+                        else if (visibleCount < rows.length) filterCountBadge.className = 'status-badge status-badge-warning';
+                        else filterCountBadge.className = 'status-badge status-badge-success';
+                    }
+                    setTimeout(applyAllQuartileColors, 50); 
+                });
+            }
+            
+            // Fallback coloring if initial DOMContentLoaded is too fast
+            setTimeout(applyAllQuartileColors, 300);
+            setTimeout(applyAllQuartileColors, 1000);
+
+
+            const tbody = document.getElementById('company-analytics-tbody');
+            if (tbody && typeof MutationObserver !== 'undefined') {
+                const observer = new MutationObserver(() => {
+                    setTimeout(applyAllQuartileColors, 50);
+                });
+                observer.observe(tbody, { childList: true, subtree: true });
+            }
+             // Ensure functions from main.js or other included scripts are available if needed
+            if (typeof adjustCompanyColumnWidth === 'function') {
+                adjustCompanyColumnWidth();
+                window.addEventListener('resize', function() { 
+                    setTimeout(adjustCompanyColumnWidth, 100); 
+                    setTimeout(applyAllQuartileColors, 150); 
+                });
+            }
+            if (typeof reapplyProgressBars === 'function') { 
+                setTimeout(reapplyProgressBars, 500); 
+            }
+            if (typeof initBusinessValueInteractions === 'function') { 
+                initBusinessValueInteractions(); 
+            }
+        });
+
+        function highlightSortColumn() {
+            document.querySelectorAll('.company-analytics-table th').forEach(th => th.classList.remove('active-sort'));
+            const currentColumnTh = document.querySelector(`.company-analytics-table th [data-column="${currentSortBy}"]`);
+            if (currentColumnTh) currentColumnTh.closest('th').classList.add('active-sort');
+        }
+
+        function updateSortIndicators() {
+            document.querySelectorAll('.sort-indicator').forEach(indicator => {
+                const column = indicator.dataset.column;
+                indicator.innerHTML = ''; 
+                if (column === currentSortBy) {
+                    indicator.innerHTML = currentOrder === 'asc' ? '&#9650;' : '&#9660;';
+                }
+            });
+            highlightSortColumn();
+        }
+
+        function sortCompanyTable(sortBy) {
+            let newOrder = 'desc'; 
+            if (sortBy === currentSortBy) {
+                newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            }
+            // Reload page with new sort parameters
+            window.location.href = `${window.location.pathname}?sort_by=${sortBy}&order=${newOrder}`;
+        }
+    </script>
+{% endblock %} 

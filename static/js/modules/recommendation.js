@@ -189,15 +189,20 @@ function renderRecommendations(recommendationsData, mainContainerElement) {
     }
     
     console.log('[recommendation.js] Price data to render:', recommendationsData.price_return);
+    console.log('[recommendation.js] Favorites data to render:', recommendationsData.favorites);
     console.log('[recommendation.js] Attention data to render:', recommendationsData.attention);
     console.log('[recommendation.js] Holders data to render:', recommendationsData.holders);
     
     const priceReturnItems = recommendationsData.price_return || [];
+    const favoritesItems = recommendationsData.favorites || [];
     const attentionItems = recommendationsData.attention || [];
     const holdersItems = recommendationsData.holders || [];
 
     console.log(`[recommendation.js] Rendering price-return with ${priceReturnItems.length} items.`);
     renderRecommendationTable(priceReturnItems, 'price-return', mainContainerElement);
+    
+    console.log(`[recommendation.js] Rendering favorites with ${favoritesItems.length} items.`);
+    renderRecommendationTable(favoritesItems, 'favorites', mainContainerElement);
     
     console.log(`[recommendation.js] Rendering attention with ${attentionItems.length} items.`);
     renderRecommendationTable(attentionItems, 'attention', mainContainerElement);
@@ -305,6 +310,8 @@ function renderRecommendationTable(items, type, mainRecContainer) {
     
     if (type === 'price-return') {
         headerRow += '<th>涨幅</th>';
+    } else if (type === 'favorites') {
+        headerRow += '<th>加自选数</th>';
     } else if (type === 'attention') {
         headerRow += '<th>关注人数</th>';
     } else if (type === 'holders') {
@@ -332,7 +339,14 @@ function renderRecommendationTable(items, type, mainRecContainer) {
             const isBusiness = typeof item.is_business === 'boolean' ? item.is_business : false;
             const businessText = item.business_text || (isBusiness ? '商务' : '非商务');
 
-            let html = `<td>${index + 1}</td>`;
+            let rankHtml = '';
+            if (index < 3) {
+                rankHtml = `<span class="rank-badge rank-badge-${index + 1}">${index + 1}</span>`;
+            } else {
+                rankHtml = `${index + 1}`;
+            }
+            
+            let html = `<td>${rankHtml}</td>`;
             html += `<td>${code}</td>`;
             html += `<td>${name}</td>`;
             
@@ -346,6 +360,37 @@ function renderRecommendationTable(items, type, mainRecContainer) {
                     const sign = change >= 0 ? '+' : '';
                     html += `<td class="${colorClass}">${sign}${change.toFixed(2)}%</td>`;
                 }
+            } else if (type === 'favorites') {
+                const attentionCount = Number(item.attention_count);
+                let attentionColorClass = '';
+                let sign = '';
+                
+                if (!isNaN(attentionCount)) {
+                    // 自选变化数，使用正/负标记
+                    if (attentionCount > 0) {
+                        attentionColorClass = 'text-danger';
+                        sign = '+';
+                    } else if (attentionCount < 0) {
+                        attentionColorClass = 'text-success';
+                    }
+                }
+                
+                html += `<td class="favorites-item">
+                    <span class="favorites-count ${attentionColorClass}">${sign}${isNaN(attentionCount) ? '-' : attentionCount.toLocaleString()}</span>`;
+                
+                // If the item has price_change_rate, we'll show it in the same column with the attention count
+                if (item.price_change_rate !== undefined) {
+                    const change = Number(item.price_change_rate);
+                    if (!isNaN(change)) {
+                        const colorClass = change >= 0 ? 'positive' : 'negative';
+                        const priceSign = change >= 0 ? '+' : '';
+                        html += `<span class="price-change ${colorClass}">(${priceSign}${change.toFixed(2)}%)</span>`;
+                        
+                        // Store price change data as attribute for tooltip
+                        row.dataset.priceChange = change.toFixed(2) + '%';
+                    }
+                }
+                html += `</td>`;
             } else if (type === 'attention') {
                 const attentionChange = Number(item.attention_change);
                 html += `<td class="text-primary">${isNaN(attentionChange) ? '-' : attentionChange.toLocaleString()}</td>`;

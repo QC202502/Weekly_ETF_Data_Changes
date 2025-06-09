@@ -25,8 +25,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息持仓自选比 (%)	
-__version__ = "3.7.2"   
-RELEASE_DATE = "2025-06-09"
+__version__ = "3.8.0"   
+RELEASE_DATE = "2025-06-10"
 
 # 创建Flask应用
 app = Flask(__name__)
@@ -166,6 +166,7 @@ def index():
         "holders": [],
         "value": [],
         "price_return": [],
+        "favorites": [],  # 新增加自选排行榜数据
         "trade_date": "",  # 将由数据库提供的最新日期填充
         "date_for_title": ""  # 将由数据库提供的最新日期填充
     }
@@ -215,6 +216,11 @@ def index():
         value_data = db.get_etf_value_recommendations()
         if value_data is not None:
             recommendations["value"] = value_data
+            
+        # 获取ETF加自选排行榜数据
+        favorites_data = db.get_etf_favorites_recommendations()
+        if favorites_data is not None:
+            recommendations["favorites"] = favorites_data
             
     except Exception as e:
         print(f"加载ETF推荐数据出错: {str(e)}")

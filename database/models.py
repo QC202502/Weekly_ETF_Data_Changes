@@ -143,6 +143,94 @@ class Database:
             print(f"获取ETF自选推荐数据失败: {str(e)}")
             return []
     
+    def get_etf_favorites_recommendations(self):
+        """获取ETF加自选排行榜数据"""
+        try:
+            # 查询最新日期
+            date_query = """
+            SELECT MAX(date) FROM etf_attention_history
+            """
+            latest_date_result = self.execute_query(date_query)
+            if not latest_date_result or not latest_date_result[0][0]:
+                print("未找到最新日期")
+                return []
+                
+            latest_date = latest_date_result[0][0]
+            
+            # 查询前一天日期
+            prev_date_query = """
+            SELECT DISTINCT date FROM etf_attention_history
+            WHERE date < ?
+            ORDER BY date DESC
+            LIMIT 1
+            """
+            prev_date_result = self.execute_query(prev_date_query, (latest_date,))
+            if not prev_date_result or not prev_date_result[0][0]:
+                print("未找到前一天日期")
+                return []
+                
+            prev_date = prev_date_result[0][0]
+            
+            print(f"计算自选日变化数据：最新日期={latest_date}，前一天日期={prev_date}")
+            
+            # 查询两天之间的自选变化
+            query = """
+            SELECT 
+                a1.code, 
+                i.name, 
+                (a1.attention_count - a2.attention_count) as attention_daily_change,
+                i.tracking_index_name,
+                i.fund_manager,
+                CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_type
+            FROM etf_attention_history a1
+            JOIN etf_attention_history a2 ON a1.code = a2.code
+            JOIN etf_info i ON a1.code = i.code
+            LEFT JOIN etf_business b ON a1.code = b.code
+            WHERE a1.date = ? AND a2.date = ?
+            ORDER BY attention_daily_change DESC
+            LIMIT 20
+            """
+            
+            result = self.execute_query(query, (latest_date, prev_date))
+            favorites_data = []
+            
+            for row in result:
+                # 基本数据
+                item = {
+                    'code': row[0],
+                    'name': row[1],
+                    'attention_count': int(row[2]) if row[2] else 0,  # 这里使用日变化而不是总数
+                    'tracking_index': row[3] if row[3] else '',
+                    'fund_manager': row[4] if row[4] else '',
+                    'business_type': row[5] if row[5] else '非商务品'
+                }
+                
+                # 尝试获取最新价格变化率
+                try:
+                    price_query = """
+                    SELECT change_rate
+                    FROM etf_price
+                    WHERE code = ? AND date = (SELECT MAX(date) FROM etf_price)
+                    LIMIT 1
+                    """
+                    price_result = self.execute_query(price_query, (row[0],))
+                    if price_result and price_result[0] and price_result[0][0] is not None:
+                        item['price_change_rate'] = float(price_result[0][0])
+                    else:
+                        item['price_change_rate'] = 0.0
+                except Exception as price_err:
+                    print(f"获取价格变化率出错 (代码 {row[0]}): {str(price_err)}")
+                    item['price_change_rate'] = 0.0
+                
+                favorites_data.append(item)
+            
+            return favorites_data
+        except Exception as e:
+            print(f"获取ETF加自选排行榜数据失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return []
+    
     def get_etf_amount_recommendations(self):
         """获取ETF成交额推荐数据"""
         try:

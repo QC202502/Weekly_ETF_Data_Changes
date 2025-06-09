@@ -53,6 +53,11 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="favorites-tab" data-bs-toggle="tab" data-bs-target="#favorites-recommendations" type="button" role="tab" aria-controls="favorites-recommendations" aria-selected="false">
+                            <i class="bi bi-star-fill"></i> 自选日变化TOP20
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
                         <button class="nav-link" id="attention-tab" data-bs-toggle="tab" data-bs-target="#attention-recommendations" type="button" role="tab" aria-controls="attention-recommendations" aria-selected="false">
                             <i class="bi bi-eye-fill"></i> 关注TOP20
                         </button>
@@ -67,6 +72,10 @@
             <div class="card-body">
                 <div class="tab-content" id="recommendation-tab-content">
                     <div class="tab-pane fade show active" id="price-return-recommendations" role="tabpanel" aria-labelledby="price-tab">
+                        <!-- 内容将由JS填充 -->
+                        <div class="text-center p-3"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 加载中...</div>
+                    </div>
+                    <div class="tab-pane fade" id="favorites-recommendations" role="tabpanel" aria-labelledby="favorites-tab">
                         <!-- 内容将由JS填充 -->
                         <div class="text-center p-3"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 加载中...</div>
                     </div>

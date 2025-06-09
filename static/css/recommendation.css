@@ -139,3 +139,113 @@
     background-color: #fff;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
+
+/* 推荐栏目CSS */
+.recommendation-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.recommendation-table th, 
+.recommendation-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.recommendation-table tr:hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+
+.recommendation-table .text-danger {
+    color: #dc3545 !important;
+}
+
+.recommendation-table .text-success {
+    color: #28a745 !important;
+}
+
+.recommendation-table .text-primary {
+    color: #007bff !important;
+}
+
+/* 新增: 加自选排行榜样式 */
+.favorites-count {
+    font-weight: bold;
+}
+
+.favorites-count.text-danger {
+    color: #dc3545 !important;  /* 正变化，显示红色 */
+}
+
+.favorites-count.text-success {
+    color: #28a745 !important;  /* 负变化，显示绿色 */
+}
+
+.favorites-count:not(.text-danger):not(.text-success) {
+    color: #666 !important;  /* 无变化，显示灰色 */
+}
+
+.favorites-item {
+    position: relative;
+}
+
+.favorites-item .price-change {
+    font-size: 0.85em;
+    margin-left: 5px;
+    color: #666;
+}
+
+.favorites-item .price-change.positive {
+    color: #dc3545;
+}
+
+.favorites-item .price-change.negative {
+    color: #28a745;
+}
+
+/* 推荐悬浮提示样式 */
+.recommendation-tooltip {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: none;
+    width: 250px;
+}
+
+.recommendation-tooltip p {
+    margin-bottom: 5px;
+}
+
+/* 排名标记 */
+.rank-badge {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    text-align: center;
+    line-height: 24px;
+    margin-right: 5px;
+    font-weight: bold;
+}
+
+.rank-badge-1 {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.rank-badge-2 {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.rank-badge-3 {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}

@@ -404,9 +404,9 @@ def process_etf_holders_file(file_path, date, db):
         for _, row in valid_data.iterrows():
             try:
                 cursor.execute("""
-                    INSERT INTO etf_holders_history (code, holder_count, holding_amount, date, update_time)
-                    VALUES (?, ?, ?, ?, ?)
-                """, (row['code'], row['holder_count'], row['holding_amount'], row['date'], current_time))
+                    INSERT INTO etf_holders_history (code, holder_count, holding_amount, holding_value, date, update_time)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (row['code'], row['holder_count'], row['holding_amount'], row['holding_value'], row['date'], current_time))
             except Exception as e:
                 logger.error(f"插入持有人数据时出错: {str(e)}")
         

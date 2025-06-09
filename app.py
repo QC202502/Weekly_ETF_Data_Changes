@@ -25,21 +25,23 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 版本信息持仓自选比 (%)	
-__version__ = "3.7.1"   
-RELEASE_DATE = "2025-05-17"
+__version__ = "3.7.2"   
+RELEASE_DATE = "2025-06-09"
 
 # 创建Flask应用
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 限制上传文件大小为50MB
 app.logger.setLevel(logging.DEBUG)
+app.config['FLASK_ENV'] = os.getenv('FLASK_ENV', 'development')  # 添加环境变量配置
 
 # 添加全局Jinja2变量
 @app.context_processor
 def inject_globals():
     return {
         'now': int(time.time()),  # 添加当前时间戳作为全局变量
-        'version': __version__
+        'version': __version__,
+        'config': app.config  # 添加配置到模板上下文
     }
 
 # 禁用静态文件缓存

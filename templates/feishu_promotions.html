@@ -29,9 +29,30 @@
         .filter-controls label {
             font-weight: 500;
             color: #495057;
+            margin-bottom: 5px;
         }
         .filter-controls .btn {
-            margin-top: 25px;
+            margin-top: 0;
+            height: 38px;
+        }
+        .filter-controls .form-control,
+        .filter-controls .form-select {
+            border-radius: 6px;
+            border-color: #ced4da;
+        }
+        .filter-controls .form-control:focus,
+        .filter-controls .form-select:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        .filter-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #343a40;
+        }
+        .filter-group {
+            margin-bottom: 15px;
         }
         .table-container {
             background-color: #fff;
@@ -119,6 +140,9 @@
         .name-column {
             width: 9%;
         }
+        .company-column {
+            width: 10%;
+        }
         .date-column {
             width: 7%;
         }
@@ -184,29 +208,41 @@
         </div>
         
         <div class="filter-controls">
+            <div class="filter-title"><i class="bi bi-funnel me-2"></i>筛选条件</div>
             <div class="row">
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label for="filter-code"><i class="bi bi-search me-1"></i>按产品代码/名称筛选:</label>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label for="filter-code"><i class="bi bi-search me-1"></i>产品代码/名称:</label>
                         <input type="text" id="filter-code" class="form-control" placeholder="输入ETF代码或名称...">
                     </div>
                 </div>
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label for="filter-channel"><i class="bi bi-filter me-1"></i>按推广渠道筛选:</label>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label for="filter-company"><i class="bi bi-building me-1"></i>基金公司:</label>
+                        <select id="filter-company" class="form-select">
+                            <option value="">全部公司</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label for="filter-channel"><i class="bi bi-broadcast me-1"></i>推广渠道:</label>
                         <select id="filter-channel" class="form-select">
                             <option value="">全部渠道</option>
                         </select>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="d-grid gap-2">
-                        <button id="apply-filter" class="btn btn-primary">
-                            <i class="bi bi-funnel-fill me-1"></i>应用筛选
-                        </button>
-                        <button id="reset-filter" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>重置
-                        </button>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <div class="d-flex">
+                            <button id="apply-filter" class="btn btn-primary flex-grow-1 me-2">
+                                <i class="bi bi-funnel-fill me-1"></i>应用筛选
+                            </button>
+                            <button id="reset-filter" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -221,6 +257,7 @@
                         <tr>
                             <th rowspan="2" class="code-column">产品代码</th>
                             <th rowspan="2" class="name-column">产品名称</th>
+                            <th rowspan="2" class="company-column">基金公司</th>
                             <th rowspan="2" class="date-column">推广时间</th>
                             <th rowspan="2" class="date-column">下线时间</th>
                             <th rowspan="2" class="days-column">推广天数</th>
@@ -275,6 +312,7 @@
             // 筛选相关元素
             const filterCode = document.getElementById('filter-code');
             const filterChannel = document.getElementById('filter-channel');
+            const filterCompany = document.getElementById('filter-company');
             const applyFilterBtn = document.getElementById('apply-filter');
             const resetFilterBtn = document.getElementById('reset-filter');
             
@@ -290,6 +328,7 @@
                 resetFilterBtn.addEventListener('click', function() {
                     filterCode.value = '';
                     filterChannel.value = '';
+                    filterCompany.value = '';
                     applyFilters();
                 });
                 
@@ -304,6 +343,7 @@
             function applyFilters() {
                 const codeFilter = filterCode.value.trim().toLowerCase();
                 const channelFilter = filterChannel.value;
+                const companyFilter = filterCompany.value;
                 
                 // 显示加载动画
                 loadingOverlay.style.display = 'flex';
@@ -323,6 +363,12 @@
                     if (channelFilter) {
                         filteredData = filteredData.filter(item => 
                             item.publish_channel && item.publish_channel.includes(channelFilter)
+                        );
+                    }
+                    
+                    if (companyFilter) {
+                        filteredData = filteredData.filter(item => 
+                            item.company_name && item.company_name === companyFilter
                         );
                     }
                     
@@ -375,7 +421,10 @@
             function initFilterOptions(data) {
                 // 获取所有唯一的推广渠道
                 const channels = new Set();
+                const companies = new Set();
+                
                 data.forEach(item => {
+                    // 处理推广渠道
                     if (item.publish_channel) {
                         // 如果渠道包含逗号，拆分为多个
                         const channelList = item.publish_channel.split(',').map(ch => ch.trim());
@@ -383,17 +432,31 @@
                             if (ch) channels.add(ch);
                         });
                     }
+                    
+                    // 处理基金公司
+                    if (item.company_name) {
+                        companies.add(item.company_name);
+                    }
                 });
                 
                 // 清空原有选项，保留"全部"选项
                 filterChannel.innerHTML = '<option value="">全部渠道</option>';
+                filterCompany.innerHTML = '<option value="">全部公司</option>';
                 
-                // 添加新选项
+                // 添加新选项 - 渠道
                 channels.forEach(channel => {
                     const option = document.createElement('option');
                     option.value = channel;
                     option.textContent = channel;
                     filterChannel.appendChild(option);
+                });
+                
+                // 添加新选项 - 公司
+                Array.from(companies).sort().forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company;
+                    option.textContent = company;
+                    filterCompany.appendChild(option);
                 });
             }
 
@@ -418,11 +481,37 @@
                     // 基本信息
                     addCell(row, item.code || '-', 'code-column');
                     addCell(row, item.name || '-', 'name-column');
+                    addCell(row, item.company_name || '-', 'company-column');
                     addCell(row, item.publish_date || '-', 'date-column');
                     addCell(row, item.offline_date || '-', 'date-column');
                     addCell(row, item.promo_days || '-', 'days-column');
-                    addCell(row, item.publish_channel || '-', 'channel-column');
-                    addCell(row, item.theme || '-', 'theme-column');
+                    
+                    // 处理推广渠道 - 简化APP相关文本
+                    let channelText = item.publish_channel || '-';
+                    channelText = channelText.replace(/APP\s*首页/gi, '首页');
+                    channelText = channelText.replace(/APP\s*理财界面/gi, '理财页');
+                    channelText = channelText.replace(/APP\s*理财页面/gi, '理财页');
+                    addCell(row, channelText, 'channel-column');
+                    
+                    // 处理主题 - 添加tooltip显示完整内容
+                    const themeCell = row.insertCell();
+                    themeCell.className = 'theme-column';
+                    
+                    if (item.theme && item.theme.length > 0) {
+                        const fullTheme = item.theme;
+                        let displayTheme = fullTheme;
+                        
+                        if (fullTheme.length > 10) {
+                            displayTheme = fullTheme.substring(0, 10) + '...';
+                        }
+                        
+                        themeCell.setAttribute('title', fullTheme);
+                        themeCell.setAttribute('data-bs-toggle', 'tooltip');
+                        themeCell.setAttribute('data-bs-placement', 'top');
+                        themeCell.textContent = displayTheme;
+                    } else {
+                        themeCell.textContent = '-';
+                    }
                     
                     // 自选人数（推广前、推广后、变化量）
                     addNumericCell(row, item.pub_attention);
@@ -458,7 +547,7 @@
                     
                     // 基本信息列的汇总
                     const firstCell = addCell(summaryRow, '汇总', 'summary-cell');
-                    firstCell.colSpan = 7; // 合并前7列
+                    firstCell.colSpan = 8; // 合并前8列（增加了基金公司列）
                     firstCell.style.textAlign = 'center';
                     firstCell.style.fontWeight = 'bold';
                     firstCell.style.backgroundColor = '#f0f0f0';
@@ -563,6 +652,14 @@
                     noDataMessageDiv.style.display = 'none';
                 }
             }
+
+            // 在DOM加载完成后初始化tooltip
+            setTimeout(() => {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }, 1000);
         });
     </script>
 {% endblock %} 

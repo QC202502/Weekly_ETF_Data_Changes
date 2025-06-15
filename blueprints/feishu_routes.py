@@ -348,6 +348,11 @@ def get_promotion_stats():
                         logger.info(f"跳过代码 {etf_code} 的记录，因为推送时间为空（尚未推送）")
                         continue
 
+                    # 获取基金公司简称
+                    cursor.execute("SELECT manager_short FROM etf_info WHERE code = ?", (etf_code,))
+                    company_result = cursor.fetchone()
+                    company_name = company_result[0] if company_result else ""
+                    
                     # 下线时间为空，说明还在推送中，使用当前日期作为临时下线日期进行统计
                     if not offline_date:
                         offline_date = datetime.now().strftime('%Y-%m-%d')
@@ -446,6 +451,7 @@ def get_promotion_stats():
                     stats_data.append({
                         'code': etf_code,
                         'name': etf_name,
+                        'company_name': company_name,  # 添加基金公司简称
                         'publish_date': publish_date,
                         'offline_date': offline_date,
                         'publish_channel': publish_channel,

@@ -39,6 +39,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             overflow: hidden;
             margin-bottom: 30px;
+            position: relative;
         }
         .table {
             margin-bottom: 0;
@@ -59,6 +60,59 @@
         .table tbody tr:hover {
             background-color: #f5f9ff;
         }
+        /* 汇总行样式 */
+        .table-summary-row {
+            background-color: #f0f0f0 !important;
+            border-top: 2px solid #dee2e6;
+            font-weight: 600;
+        }
+        .table-summary-row:hover {
+            background-color: #e6e6e6 !important;
+        }
+        .summary-cell {
+            background-color: #f0f0f0;
+            color: #495057;
+            font-size: 1.05em;
+        }
+        
+        /* 全新加载动画样式 */
+        #global-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-content {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         .code-column {
             width: 7%;
         }
@@ -94,30 +148,6 @@
             color: #dc3545;
             font-weight: 600;
         }
-        .loading-overlay {
-            position: relative;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255,255,255,0.9);
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .loading-spinner {
-            display: inline-block;
-            width: 2rem;
-            height: 2rem;
-            margin-right: 10px;
-            vertical-align: middle;
-            border: 0.25em solid #2196f3;
-            border-right-color: transparent;
-            border-radius: 50%;
-            animation: spinner 0.75s linear infinite;
-        }
-        @keyframes spinner {
-            to {transform: rotate(360deg);}
-        }
         .no-data-message {
             padding: 30px;
             text-align: center;
@@ -139,6 +169,14 @@
 
 {% block content %}
     <div class="container-fluid">
+        <!-- 全局加载动画 -->
+        <div id="global-loading-overlay">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <div>正在加载推广效果数据...</div>
+            </div>
+        </div>
+        
         <h1>APP海报推广效果</h1>
         
         <div class="info-banner">
@@ -174,14 +212,9 @@
             </div>
         </div>
         
-        <div id="loading" class="loading-overlay">
-            <div class="loading-spinner"></div>
-            <span>正在加载推广效果数据...</span>
-        </div>
-        
         <div id="error-message" class="error-message" style="display: none;"></div>
         
-        <div class="table-container">
+        <div class="table-container" id="table-container">
             <div class="table-responsive">
                 <table class="table table-striped table-bordered">
                     <thead class="table-dark">
@@ -229,10 +262,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             // DOM元素
             const statsTableBody = document.getElementById('promotion-stats-table-body');
-            const loadingDiv = document.getElementById('loading');
+            const loadingOverlay = document.getElementById('global-loading-overlay');
             const errorMessageDiv = document.getElementById('error-message');
             const noDataMessageDiv = document.getElementById('no-data-message');
-            const tableContainer = document.querySelector('.table-container');
+            const tableContainer = document.getElementById('table-container');
+            
+            // 确保初始状态正确
+            loadingOverlay.style.display = 'flex';
+            noDataMessageDiv.style.display = 'none';
+            errorMessageDiv.style.display = 'none';
             
             // 筛选相关元素
             const filterCode = document.getElementById('filter-code');
@@ -268,8 +306,7 @@
                 const channelFilter = filterChannel.value;
                 
                 // 显示加载动画
-                loadingDiv.style.display = 'flex';
-                tableContainer.style.display = 'none';
+                loadingOverlay.style.display = 'flex';
                 noDataMessageDiv.style.display = 'none';
                 
                 // 短暂延迟以显示加载动画
@@ -290,14 +327,13 @@
                     }
                     
                     // 隐藏加载动画
-                    loadingDiv.style.display = 'none';
+                    loadingOverlay.style.display = 'none';
                     
                     if (filteredData.length > 0) {
                         populateStatsTable(filteredData);
-                        tableContainer.style.display = 'block';
                         noDataMessageDiv.style.display = 'none';
+                        console.log('筛选后表格已显示');
                     } else {
-                        tableContainer.style.display = 'none';
                         noDataMessageDiv.style.display = 'block';
                     }
                 }, 300);
@@ -312,24 +348,25 @@
                     return response.json();
                 })
                 .then(data => {
+                    console.log('数据加载成功，准备隐藏加载动画');
                     // 隐藏加载提示
-                    loadingDiv.style.display = 'none';
+                    loadingOverlay.style.display = 'none';
                     
                     if (data.success && data.data && data.data.length > 0) {
                         originalStatsData = data.data;
                         populateStatsTable(data.data);
-                        tableContainer.style.display = 'block';
+                        noDataMessageDiv.style.display = 'none';
+                        console.log('表格已显示');
                         // 初始化筛选下拉菜单
                         initFilterOptions(data.data);
                     } else if (data.success && (!data.data || data.data.length === 0)) {
-                        tableContainer.style.display = 'none';
                         noDataMessageDiv.style.display = 'block';
                     } else {
                         showError(data.message || '未能成功加载推广效果统计数据，或数据格式不正确。');
                     }
                 })
                 .catch(error => {
-                    loadingDiv.style.display = 'none';
+                    loadingOverlay.style.display = 'none';
                     showError(`获取推广效果统计数据失败: ${error.message}`);
                     console.error('Error fetching promotion stats data:', error);
                 });
@@ -363,6 +400,18 @@
             // 填充推广效果统计表格
             function populateStatsTable(statsData) {
                 statsTableBody.innerHTML = ''; // 清空现有行
+                
+                // 初始化汇总数据
+                let totalPubAttention = 0;
+                let totalOffAttention = 0;
+                let totalAttentionChange = 0;
+                let totalPubHolders = 0;
+                let totalOffHolders = 0;
+                let totalHoldersChange = 0;
+                let totalPubValue = 0;
+                let totalOffValue = 0;
+                let totalValueChange = 0;
+                
                 statsData.forEach(item => {
                     const row = statsTableBody.insertRow();
                     
@@ -389,7 +438,70 @@
                     addNumericCell(row, item.pub_value);
                     addNumericCell(row, item.off_value);
                     addChangeCell(row, item.value_change);
+                    
+                    // 累加汇总数据
+                    totalPubAttention += item.pub_attention || 0;
+                    totalOffAttention += item.off_attention || 0;
+                    totalAttentionChange += item.attention_change || 0;
+                    totalPubHolders += item.pub_holders || 0;
+                    totalOffHolders += item.off_holders || 0;
+                    totalHoldersChange += item.holders_change || 0;
+                    totalPubValue += item.pub_value || 0;
+                    totalOffValue += item.off_value || 0;
+                    totalValueChange += item.value_change || 0;
                 });
+                
+                // 添加汇总行
+                if (statsData.length > 0) {
+                    const summaryRow = statsTableBody.insertRow();
+                    summaryRow.className = 'table-summary-row';
+                    
+                    // 基本信息列的汇总
+                    const firstCell = addCell(summaryRow, '汇总', 'summary-cell');
+                    firstCell.colSpan = 7; // 合并前7列
+                    firstCell.style.textAlign = 'center';
+                    firstCell.style.fontWeight = 'bold';
+                    firstCell.style.backgroundColor = '#f0f0f0';
+                    
+                    // 自选人数汇总
+                    const pubAttentionCell = addNumericCell(summaryRow, totalPubAttention);
+                    pubAttentionCell.style.fontWeight = 'bold';
+                    pubAttentionCell.style.backgroundColor = '#f0f0f0';
+                    
+                    const offAttentionCell = addNumericCell(summaryRow, totalOffAttention);
+                    offAttentionCell.style.fontWeight = 'bold';
+                    offAttentionCell.style.backgroundColor = '#f0f0f0';
+                    
+                    const attentionChangeCell = addChangeCell(summaryRow, totalAttentionChange);
+                    attentionChangeCell.style.fontWeight = 'bold';
+                    attentionChangeCell.style.backgroundColor = '#f0f0f0';
+                    
+                    // 持有人数汇总
+                    const pubHoldersCell = addNumericCell(summaryRow, totalPubHolders);
+                    pubHoldersCell.style.fontWeight = 'bold';
+                    pubHoldersCell.style.backgroundColor = '#f0f0f0';
+                    
+                    const offHoldersCell = addNumericCell(summaryRow, totalOffHolders);
+                    offHoldersCell.style.fontWeight = 'bold';
+                    offHoldersCell.style.backgroundColor = '#f0f0f0';
+                    
+                    const holdersChangeCell = addChangeCell(summaryRow, totalHoldersChange);
+                    holdersChangeCell.style.fontWeight = 'bold';
+                    holdersChangeCell.style.backgroundColor = '#f0f0f0';
+                    
+                    // 持仓价值汇总
+                    const pubValueCell = addNumericCell(summaryRow, totalPubValue);
+                    pubValueCell.style.fontWeight = 'bold';
+                    pubValueCell.style.backgroundColor = '#f0f0f0';
+                    
+                    const offValueCell = addNumericCell(summaryRow, totalOffValue);
+                    offValueCell.style.fontWeight = 'bold';
+                    offValueCell.style.backgroundColor = '#f0f0f0';
+                    
+                    const valueChangeCell = addChangeCell(summaryRow, totalValueChange);
+                    valueChangeCell.style.fontWeight = 'bold';
+                    valueChangeCell.style.backgroundColor = '#f0f0f0';
+                }
             }
             
             // 添加单元格的辅助函数
@@ -406,7 +518,13 @@
             function addNumericCell(row, value) {
                 const cell = row.insertCell();
                 cell.className = 'numeric-column';
-                cell.textContent = value ? value.toLocaleString() : '-';
+                
+                // 对于持仓价值相关的单元格，确保显示为整数
+                if (cell.cellIndex >= 13 && cell.cellIndex <= 14) { // 持仓价值的推广前和推广后列
+                    cell.textContent = value ? Math.round(value).toLocaleString() : '-';
+                } else {
+                    cell.textContent = value ? value.toLocaleString() : '-';
+                }
                 return cell;
             }
             
@@ -415,12 +533,23 @@
                 const cell = row.insertCell();
                 cell.className = 'change-column';
                 
-                if (changeValue > 0) {
-                    cell.innerHTML = `<span class="positive-change">+${changeValue.toLocaleString()}</span>`;
-                } else if (changeValue < 0) {
-                    cell.innerHTML = `<span class="negative-change">${changeValue.toLocaleString()}</span>`;
+                // 对于持仓价值变化列，确保显示为整数
+                if (cell.cellIndex === 15) { // 持仓价值变化列
+                    if (changeValue > 0) {
+                        cell.innerHTML = `<span class="positive-change">+${Math.round(changeValue).toLocaleString()}</span>`;
+                    } else if (changeValue < 0) {
+                        cell.innerHTML = `<span class="negative-change">${Math.round(changeValue).toLocaleString()}</span>`;
+                    } else {
+                        cell.textContent = '0';
+                    }
                 } else {
-                    cell.textContent = '0';
+                    if (changeValue > 0) {
+                        cell.innerHTML = `<span class="positive-change">+${changeValue.toLocaleString()}</span>`;
+                    } else if (changeValue < 0) {
+                        cell.innerHTML = `<span class="negative-change">${changeValue.toLocaleString()}</span>`;
+                    } else {
+                        cell.textContent = '0';
+                    }
                 }
                 
                 return cell;
@@ -431,7 +560,7 @@
                 if (errorMessageDiv) {
                     errorMessageDiv.textContent = message;
                     errorMessageDiv.style.display = 'block';
-                    tableContainer.style.display = 'none';
+                    noDataMessageDiv.style.display = 'none';
                 }
             }
         });

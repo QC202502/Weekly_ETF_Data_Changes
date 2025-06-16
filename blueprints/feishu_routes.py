@@ -613,3 +613,205 @@ def save_promo_data():
             "success": False,
             "message": f"保存推广数据时出错: {str(e)}"
         }), 500
+
+
+@feishu_bp.route('/api/feishu/promotion-overview', methods=['GET'])
+def get_promotion_overview():
+    """获取推广效果关键指标总览数据"""
+    try:
+        # 创建数据库连接
+        db = Database()
+        conn = db.connect()
+        cursor = conn.cursor()
+
+        # 获取查询参数（支持时间范围和渠道筛选）
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        channel = request.args.get('channel')
+        company = request.args.get('company')  # 支持按基金公司筛选
+
+        # 构建查询条件
+        conditions = []
+        params = []
+        
+        if start_date:
+            conditions.append("publish_date >= ?")
+            params.append(start_date)
+        
+        if end_date:
+            conditions.append("publish_date <= ?")
+            params.append(end_date)
+        
+        if channel:
+            conditions.append("publish_channel = ?")
+            params.append(channel)
+        
+        # 准备SQL查询
+        sql_condition = " AND ".join(conditions) if conditions else ""
+        where_clause = f"WHERE {sql_condition}" if sql_condition else ""
+        
+        # 获取所有推广记录
+        cursor.execute(f"""
+            SELECT code, name, publish_date, offline_date, publish_channel 
+            FROM feishu_promo_data
+            {where_clause}
+        """, params)
+        
+        promo_records = cursor.fetchall()
+        
+        # 统计数据
+        total_promotions = len(promo_records)
+        total_etfs = len(set([record[0] for record in promo_records]))  # 唯一ETF数量
+        
+        # 渠道分布 - 使用字典进行标准化和合并
+        channel_counts = {}
+        
+        cursor.execute(f"""
+            SELECT publish_channel, COUNT(*) as count
+            FROM feishu_promo_data
+            {where_clause}
+            GROUP BY publish_channel
+            ORDER BY count DESC
+        """, params)
+        
+        for channel_record in cursor.fetchall():
+            if not channel_record[0]:  # 跳过空渠道
+                continue
+                
+            channel_name = channel_record[0]
+            count = channel_record[1]
+            
+            # 标准化渠道名称（处理多渠道情况）
+            if ',' in channel_name:
+                # 拆分、排序并重新组合渠道名称
+                channels = sorted([ch.strip() for ch in channel_name.split(',')])
+                normalized_name = ', '.join(channels)
+                
+                # 更新计数或创建新条目
+                if normalized_name in channel_counts:
+                    channel_counts[normalized_name] += count
+                else:
+                    channel_counts[normalized_name] = count
+            else:
+                # 单一渠道
+                if channel_name in channel_counts:
+                    channel_counts[channel_name] += count
+                else:
+                    channel_counts[channel_name] = count
+        
+        # 转换为列表格式
+        channels = [
+            {'name': name, 'count': count}
+            for name, count in sorted(channel_counts.items(), key=lambda x: x[1], reverse=True)
+        ]
+        
+        # 基金公司分布
+        company_stats = []
+        if company:
+            # 添加公司筛选条件
+            if sql_condition:
+                sql_condition += " AND "
+                company_where_clause = f"WHERE {sql_condition} code IN (SELECT code FROM etf_info WHERE manager_short = ?)"
+            else:
+                company_where_clause = "WHERE code IN (SELECT code FROM etf_info WHERE manager_short = ?)"
+            
+            params.append(company)
+            
+            cursor.execute(f"""
+                SELECT COUNT(*) 
+                FROM feishu_promo_data 
+                {company_where_clause}
+            """, params)
+            company_promo_count = cursor.fetchone()[0]
+        else:
+            # 获取各公司推广数量统计
+            cursor.execute(f"""
+                SELECT e.manager_short, COUNT(*) as count
+                FROM feishu_promo_data f
+                JOIN etf_info e ON f.code = e.code
+                {where_clause}
+                GROUP BY e.manager_short
+                ORDER BY count DESC
+                LIMIT 5
+            """, params)
+            
+            for company_record in cursor.fetchall():
+                if company_record[0]:  # 确保公司名不为空
+                    company_stats.append({
+                        'name': company_record[0],
+                        'count': company_record[1]
+                    })
+        
+        # 计算平均推广指标（自选增长、持有人增长、持仓价值增长）
+        total_attention_change = 0
+        total_holders_change = 0
+        total_value_change = 0
+        count_with_metrics = 0
+        
+        for record in promo_records:
+            etf_code, etf_name, publish_date, offline_date, channel = record
+            
+            # 跳过未完成的推广
+            if not publish_date or not offline_date:
+                continue
+                
+            # 解析日期
+            try:
+                if '/' in publish_date:
+                    pub_date = datetime.strptime(publish_date, '%Y/%m/%d')
+                else:
+                    pub_date = datetime.strptime(publish_date, '%Y-%m-%d')
+                    
+                if '/' in offline_date:
+                    off_date = datetime.strptime(offline_date, '%Y/%m/%d')
+                else:
+                    off_date = datetime.strptime(offline_date, '%Y-%m-%d')
+                
+                # 计算推广前的数据（推广日期前一天）
+                prev_day = pub_date - timedelta(days=1)
+                prev_day_str = prev_day.strftime('%Y-%m-%d')
+                
+                # 获取推广前后的指标
+                pub_attention = db.get_attention_on_date(etf_code, prev_day_str) or 0
+                pub_holders = db.get_holders_on_date(etf_code, prev_day_str) or 0
+                pub_value = db.get_value_on_date(etf_code, prev_day_str) or 0
+                
+                off_attention = db.get_attention_on_date(etf_code, offline_date) or 0
+                off_holders = db.get_holders_on_date(etf_code, offline_date) or 0
+                off_value = db.get_value_on_date(etf_code, offline_date) or 0
+                
+                # 计算变化值
+                attention_change = off_attention - pub_attention
+                holders_change = off_holders - pub_holders
+                value_change = off_value - pub_value
+                
+                total_attention_change += attention_change
+                total_holders_change += holders_change
+                total_value_change += value_change
+                count_with_metrics += 1
+                
+            except (ValueError, TypeError) as e:
+                logger.warning(f"计算指标变化时出错: {str(e)}, code={etf_code}, publish_date={publish_date}, offline_date={offline_date}")
+                continue
+        
+        # 计算平均值
+        avg_attention_change = round(total_attention_change / count_with_metrics if count_with_metrics > 0 else 0)
+        avg_holders_change = round(total_holders_change / count_with_metrics if count_with_metrics > 0 else 0)
+        avg_value_change = round(total_value_change / count_with_metrics if count_with_metrics > 0 else 0)
+        
+        # 组装结果
+        overview_data = {
+            "total_promotions": total_promotions,
+            "total_etfs": total_etfs,
+            "channels": channels,
+            "company_stats": company_stats,
+            "avg_attention_change": avg_attention_change,
+            "avg_holders_change": avg_holders_change,
+            "avg_value_change": avg_value_change,
+        }
+        
+        return jsonify({"success": True, "data": overview_data})
+        
+    except Exception as e:
+        logger.error(f"获取推广效果总览数据时出错: {str(e)}")
+        return jsonify({"success": False, "error": str(e)})

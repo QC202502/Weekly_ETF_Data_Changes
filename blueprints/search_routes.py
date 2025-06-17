@@ -582,21 +582,34 @@ def get_recommendations():
         # 1. 尝试获取涨幅数据
         try:
             query = """
+            WITH grouped_etfs AS (
+                SELECT 
+                    p.code, 
+                    i.name, 
+                    p.change_rate, 
+                    i.fund_manager, 
+                    ROUND(i.fund_size / 1, 2) as fund_size, 
+                    i.tracking_index_code,
+                    i.tracking_index_name,
+                    CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
+                    CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_text
+                FROM etf_price p
+                JOIN etf_info i ON p.code = i.code
+                LEFT JOIN etf_business b ON p.code = b.code
+                WHERE p.date = (SELECT MAX(date) FROM etf_price)
+                ORDER BY i.tracking_index_code, p.change_rate DESC
+            )
             SELECT 
-                p.code, 
-                i.name, 
-                p.change_rate, 
-                i.fund_manager, 
-                ROUND(i.fund_size / 1, 2) as fund_size, 
-                i.tracking_index_code,
-                i.tracking_index_name,
-                CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
-                CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_text
-            FROM etf_price p
-            JOIN etf_info i ON p.code = i.code
-            LEFT JOIN etf_business b ON p.code = b.code
-            WHERE p.date = (SELECT MAX(date) FROM etf_price)
-            ORDER BY p.change_rate DESC
+                g1.code, g1.name, g1.change_rate, g1.fund_manager, 
+                g1.fund_size, g1.tracking_index_code, g1.tracking_index_name, 
+                g1.is_business, g1.business_text
+            FROM grouped_etfs g1
+            WHERE NOT EXISTS (
+                SELECT 1 FROM grouped_etfs g2
+                WHERE g2.tracking_index_code = g1.tracking_index_code
+                AND g2.change_rate > g1.change_rate
+            )
+            ORDER BY g1.change_rate DESC
             LIMIT 20
             """
             

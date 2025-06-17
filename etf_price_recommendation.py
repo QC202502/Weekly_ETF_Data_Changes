@@ -87,7 +87,7 @@ def get_top_etfs_by_return(df, top_n=20):
         # 按涨幅排序，取前N个
         top_etfs = top_etfs_by_index.sort_values('当日涨跌幅(%)', ascending=False).head(top_n)
         
-        print(f"成功获取{len(top_etfs)}只涨幅最高的ETF")
+        print(f"成功获取{len(top_etfs)}只涨幅最高的ETF（每个跟踪指数只取最高涨幅的一只）")
         return top_etfs
     except Exception as e:
         print(f"获取涨幅最高的ETF失败: {str(e)}")

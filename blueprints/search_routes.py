@@ -910,9 +910,7 @@ def get_recommendations():
                         WHERE fee_rank = 1
                         """
                         cursor.execute(query_lowest_fee)
-                        lowest_fee_results = cursor.fetchall()
-                        
-                        for row in lowest_fee_results:
+                        for row in cursor.fetchall():
                             code, tracking_index_code, fund_manager, manager_short, fee_rate = row
                             lowest_fee_business[tracking_index_code] = {
                                 'code': code,
@@ -953,10 +951,9 @@ def get_recommendations():
                     lowest_fee_data = lowest_fee_business.get(tracking_index_code, {})
                     lowest_fee_code = lowest_fee_data.get('code')
                     
-                    # 确保数据正确
-                    management_fee_rate = item.get('management_fee_rate', 0)
-                    if not management_fee_rate and management_fee_rate != 0:
-                        management_fee_rate = 0
+                    # 获取ETF的管理费率以便比较
+                    item_fee_rate = item.get('management_fee_rate', 0)
+                    lowest_fee_rate = lowest_fee_data.get('fee_rate', 0)
                     
                     # 转换为前端需要的格式
                     recommendations["favorites"].append({
@@ -972,16 +969,16 @@ def get_recommendations():
                         'tracking_index': item.get('tracking_index_name', ''),
                         'is_business': item.get('is_business', False),
                         'business_text': item.get('business_text', '非商务品'),
-                        'management_fee_rate': management_fee_rate,
+                        'management_fee_rate': item_fee_rate,
                         # 替补商务品信息
                         'best_volume_code': best_volume_data.get('code', ''),
                         'best_volume_manager': best_volume_data.get('manager', ''),
                         'is_business_product': item.get('is_business', False),
                         'is_max_volume': is_max_volume,
-                        # 低费率商务品信息
-                        'lowest_fee_code': lowest_fee_data.get('code', ''),
-                        'lowest_fee_manager': lowest_fee_data.get('manager', ''),
-                        'lowest_fee_rate': lowest_fee_data.get('fee_rate', 0)
+                        # 低费率商务品信息，确保只有当费率严格小于当前ETF的费率时才显示
+                        'lowest_fee_code': lowest_fee_code if lowest_fee_rate < item_fee_rate else '',
+                        'lowest_fee_manager': lowest_fee_data.get('manager', '') if lowest_fee_rate < item_fee_rate else '',
+                        'lowest_fee_rate': lowest_fee_rate if lowest_fee_rate < item_fee_rate else 0
                     })
                 
                 print(f"成功加载ETF加自选排行榜数据，共{len(recommendations['favorites'])}条记录")

@@ -14,49 +14,53 @@ from typing import List, Dict
 from services.index_service import get_index_intro  # 导入get_index_intro函数
 
 # 数据库路径
-DATABASE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data/etf_data.db')
+DATABASE_PATH = os.path.join(os.path.dirname(
+    os.path.dirname(__file__)), 'data/etf_data.db')
+
 
 class Database:
     """
     数据库操作类
     """
+
     def __init__(self):
         """初始化数据库连接"""
         self.db_file = DATABASE_PATH
         os.makedirs(os.path.dirname(self.db_file), exist_ok=True)
         self.conn = None
-        
+
         # 检查数据库文件是否存在
         if not os.path.exists(self.db_file):
             print(f"警告：数据库文件 {self.db_file} 不存在")
             print("请确保已经导入了ETF数据")
-        
+
         # 初始化连接，但不立即关闭
         self.connect()
-        
+
         # 尝试检查表是否存在，但不关闭连接
         try:
             cursor = self.conn.cursor()
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='etf_info'")
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='etf_info'")
             if not cursor.fetchone():
                 print("警告：数据库表不存在")
                 print("请确保已经导入了ETF数据")
             cursor.close()
         except Exception as e:
             print(f"检查数据库表时出错: {str(e)}")
-    
+
     def connect(self):
         """创建数据库连接"""
         if self.conn is None:
             self.conn = sqlite3.connect(self.db_file)
         return self.conn
-    
+
     def close(self):
         """关闭数据库连接"""
         if self.conn:
             self.conn.close()
             self.conn = None
-    
+
     def execute_query(self, query, params=None):
         """执行SQL查询"""
         try:
@@ -72,7 +76,7 @@ class Database:
         except Exception as e:
             print(f"执行SQL查询失败: {str(e)}")
             return []
-    
+
     def get_etf_price_recommendations(self):
         """获取ETF价格推荐数据"""
         try:
@@ -96,7 +100,7 @@ class Database:
         except Exception as e:
             print(f"获取ETF价格推荐数据失败: {str(e)}")
             return []
-    
+
     def get_etf_holders_recommendations(self):
         """获取ETF持有人数据推荐"""
         try:
@@ -112,14 +116,15 @@ class Database:
                     'code': row[0],
                     'name': row[1],
                     'holder_count': int(row[2]) if row[2] else 0,
-                    'holder_household_count': int(row[2]) if row[2] else 0  # 使用total_holder_count代替
+                    # 使用total_holder_count代替
+                    'holder_household_count': int(row[2]) if row[2] else 0
                 }
                 for row in result
             ]
         except Exception as e:
             print(f"获取ETF持有人推荐数据失败: {str(e)}")
             return []
-    
+
     def get_etf_attention_recommendations(self):
         """获取ETF自选数据推荐"""
         try:
@@ -142,7 +147,7 @@ class Database:
         except Exception as e:
             print(f"获取ETF自选推荐数据失败: {str(e)}")
             return []
-    
+
     def get_etf_favorites_recommendations(self):
         """获取ETF加自选排行榜数据"""
         try:
@@ -154,9 +159,9 @@ class Database:
             if not latest_date_result or not latest_date_result[0][0]:
                 print("未找到最新日期")
                 return []
-                
+
             latest_date = latest_date_result[0][0]
-            
+
             # 查询前一天日期
             prev_date_query = """
             SELECT DISTINCT date FROM etf_attention_history
@@ -164,47 +169,186 @@ class Database:
             ORDER BY date DESC
             LIMIT 1
             """
-            prev_date_result = self.execute_query(prev_date_query, (latest_date,))
+            prev_date_result = self.execute_query(
+                prev_date_query, (latest_date,))
             if not prev_date_result or not prev_date_result[0][0]:
                 print("未找到前一天日期")
                 return []
-                
+
             prev_date = prev_date_result[0][0]
-            
+
             print(f"计算自选日变化数据：最新日期={latest_date}，前一天日期={prev_date}")
-            
+
             # 查询两天之间的自选变化
             query = """
+            WITH daily_changes AS (
+                SELECT 
+                    a1.code, 
+                    i.name, 
+                    (a1.attention_count - a2.attention_count) as attention_daily_change,
+                    i.tracking_index_code,
+                    i.tracking_index_name,
+                    i.management_fee_rate,
+                    i.fund_manager,
+                    i.manager_short,
+                    CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
+                    CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_type
+                FROM etf_attention_history a1
+                JOIN etf_attention_history a2 ON a1.code = a2.code
+                JOIN etf_info i ON a1.code = i.code
+                LEFT JOIN etf_business b ON a1.code = b.code
+                WHERE a1.date = ? AND a2.date = ?
+                ORDER BY attention_daily_change DESC
+            ),
+            business_etfs AS (
+                -- 筛选出所有商务品
+                SELECT 
+                    dc.code, 
+                    dc.name, 
+                    dc.fund_manager,
+                    dc.manager_short,
+                    dc.tracking_index_code,
+                    dc.tracking_index_name,
+                    dc.management_fee_rate,
+                    p.amount
+                FROM daily_changes dc
+                JOIN etf_price p ON dc.code = p.code
+                WHERE dc.is_business = 1
+                AND p.date = (SELECT MAX(date) FROM etf_price)
+            ),
+            best_volume_business AS (
+                -- 对每个指数，找出交易量最大的"商务品"
+                WITH all_etfs AS (
+                    -- 所有ETF按指数分组
+                    SELECT 
+                        dc.tracking_index_code,
+                        dc.code,
+                        dc.manager_short,
+                        p.amount,
+                        dc.is_business
+                    FROM daily_changes dc
+                    JOIN etf_price p ON dc.code = p.code
+                    WHERE p.date = (SELECT MAX(date) FROM etf_price)
+                ),
+                business_etfs_by_index AS (
+                    -- 仅商务品
+                    SELECT *
+                    FROM all_etfs
+                    WHERE is_business = 1
+                ),
+                max_volume_business AS (
+                    -- 每个指数下交易量最大的"商务品"
+                    SELECT 
+                        be1.tracking_index_code,
+                        be1.code,
+                        be1.manager_short,
+                        be1.amount
+                    FROM business_etfs_by_index be1
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM business_etfs_by_index be2
+                        WHERE be2.tracking_index_code = be1.tracking_index_code
+                        AND be2.amount > be1.amount
+                    )
+                ),
+                current_etf_rank AS (
+                    -- 每个指数下自选变动排名第一的ETF
+                    SELECT 
+                        dc1.tracking_index_code,
+                        dc1.code AS rank_one_code,
+                        p1.amount AS rank_one_amount
+                    FROM daily_changes dc1
+                    JOIN etf_price p1 ON dc1.code = p1.code
+                    WHERE p1.date = (SELECT MAX(date) FROM etf_price)
+                    AND NOT EXISTS (
+                        SELECT 1 FROM daily_changes dc2
+                        WHERE dc2.tracking_index_code = dc1.tracking_index_code
+                        AND dc2.attention_daily_change > dc1.attention_daily_change
+                    )
+                )
+                -- 最终结果
+                SELECT
+                    mvb.tracking_index_code,
+                    mvb.code AS best_volume_code,
+                    mvb.manager_short AS best_volume_manager,
+                    1 AS is_business_product, -- 始终为1，因为只选择商务品
+                    CASE 
+                        WHEN mvb.amount > cer.rank_one_amount THEN 0 -- 有商务品交易量大于排行榜中的ETF，显示红色
+                        ELSE 1 -- 没有商务品交易量大于排行榜中的ETF，显示绿色
+                    END AS is_max_volume
+                FROM max_volume_business mvb
+                JOIN current_etf_rank cer ON mvb.tracking_index_code = cer.tracking_index_code
+            ),
+            lowest_fee_business AS (
+                -- 对每个指数和每个ETF，找出费率严格低于该ETF的同指数商务品中费率最低的
+                SELECT DISTINCT
+                    dc.tracking_index_code,
+                    dc.code AS etf_code,
+                    b_min.code AS lowest_fee_code,
+                    b_min.manager_short AS lowest_fee_manager,
+                    b_min.management_fee_rate
+                FROM daily_changes dc
+                JOIN business_etfs b_min ON dc.tracking_index_code = b_min.tracking_index_code
+                WHERE NOT EXISTS (
+                    -- 确保没有其他同指数商务品的费率更低
+                    SELECT 1 FROM business_etfs b2
+                    WHERE b2.tracking_index_code = dc.tracking_index_code
+                    AND b2.management_fee_rate < b_min.management_fee_rate
+                )
+                AND b_min.management_fee_rate < dc.management_fee_rate  -- 严格小于当前ETF的费率
+                AND b_min.code != dc.code  -- 不是当前ETF自身
+            )
             SELECT 
-                a1.code, 
-                i.name, 
-                (a1.attention_count - a2.attention_count) as attention_daily_change,
-                i.tracking_index_name,
-                i.fund_manager,
-                CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_type
-            FROM etf_attention_history a1
-            JOIN etf_attention_history a2 ON a1.code = a2.code
-            JOIN etf_info i ON a1.code = i.code
-            LEFT JOIN etf_business b ON a1.code = b.code
-            WHERE a1.date = ? AND a2.date = ?
-            ORDER BY attention_daily_change DESC
+                dc.code, 
+                dc.name, 
+                dc.attention_daily_change, 
+                dc.tracking_index_name,
+                dc.tracking_index_code,
+                dc.fund_manager,
+                dc.manager_short,
+                dc.is_business, 
+                dc.business_type,
+                dc.management_fee_rate,
+                bvb.best_volume_code,
+                bvb.best_volume_manager,
+                bvb.is_business_product,
+                bvb.is_max_volume,
+                lfb.lowest_fee_code,
+                lfb.lowest_fee_manager,
+                lfb.management_fee_rate AS lowest_fee_rate
+            FROM daily_changes dc
+            LEFT JOIN best_volume_business bvb ON dc.tracking_index_code = bvb.tracking_index_code
+            LEFT JOIN lowest_fee_business lfb ON dc.tracking_index_code = lfb.tracking_index_code AND dc.code = lfb.etf_code
+            ORDER BY dc.attention_daily_change DESC
             LIMIT 20
             """
-            
+
             result = self.execute_query(query, (latest_date, prev_date))
             favorites_data = []
-            
+
             for row in result:
                 # 基本数据
                 item = {
                     'code': row[0],
                     'name': row[1],
-                    'attention_count': int(row[2]) if row[2] else 0,  # 这里使用日变化而不是总数
+                    'attention_count': int(row[2]) if row[2] else 0,
                     'tracking_index': row[3] if row[3] else '',
-                    'fund_manager': row[4] if row[4] else '',
-                    'business_type': row[5] if row[5] else '非商务品'
+                    'tracking_index_code': row[4] if row[4] else '',
+                    'fund_manager': row[5] if row[5] else '',
+                    'manager_short': row[6] if row[6] else '',
+                    'is_business': int(row[7]) if row[7] is not None else 0,
+                    'business_type': row[8] if row[8] else '非商务品',
+                    'management_fee_rate': float(row[9]) if row[9] is not None else 0.0,
+                    # 替补商务品数据
+                    'best_volume_code': row[10] if row[10] else None,
+                    'best_volume_manager': row[11] if row[11] else None,
+                    'is_business_product': int(row[12]) if row[12] is not None else 0,
+                    'is_max_volume': int(row[13]) if row[13] is not None else 1,
+                    # 低费率商务品数据
+                    'lowest_fee_code': row[14] if row[14] else None,
+                    'lowest_fee_manager': row[15] if row[15] else None,
+                    'lowest_fee_rate': float(row[16]) if row[16] is not None else 0.0
                 }
-                
+
                 # 尝试获取最新价格变化率
                 try:
                     price_query = """
@@ -221,16 +365,16 @@ class Database:
                 except Exception as price_err:
                     print(f"获取价格变化率出错 (代码 {row[0]}): {str(price_err)}")
                     item['price_change_rate'] = 0.0
-                
+
                 favorites_data.append(item)
-            
+
             return favorites_data
         except Exception as e:
             print(f"获取ETF加自选排行榜数据失败: {str(e)}")
             import traceback
             traceback.print_exc()
             return []
-    
+
     def get_etf_amount_recommendations(self):
         """获取ETF成交额推荐数据"""
         try:
@@ -253,7 +397,7 @@ class Database:
         except Exception as e:
             print(f"获取ETF成交额推荐数据失败: {str(e)}")
             return []
-    
+
     def get_etf_value_recommendations(self):
         """获取ETF持仓价值推荐数据"""
         try:
@@ -268,7 +412,8 @@ class Database:
                 {
                     'code': row[0],
                     'name': row[1],
-                    'holding_value': float(row[2]) if row[2] else 0,  # 使用基金规模代替
+                    # 使用基金规模代替
+                    'holding_value': float(row[2]) if row[2] else 0,
                     'turnover_rate': 0.0  # 暂时使用0
                 }
                 for row in result
@@ -276,7 +421,7 @@ class Database:
         except Exception as e:
             print(f"获取ETF持仓价值推荐数据失败: {str(e)}")
             return []
-    
+
     def get_all_etf_info(self):
         """获取所有ETF基本信息"""
         try:
@@ -287,12 +432,12 @@ class Database:
             """
             result = self.execute_query(query)
             columns = ['code', 'name', 'fund_size', 'fund_manager', 'exchange', 'tracking_index_code',
-                      'tracking_error', 'information_ratio', 'total_holder_count']
+                       'tracking_error', 'information_ratio', 'total_holder_count']
             return [dict(zip(columns, row)) for row in result]
         except Exception as e:
             print(f"获取所有ETF基本信息失败: {str(e)}")
             return []
-    
+
     def get_all_business_etf(self):
         """获取所有商务ETF数据"""
         try:
@@ -303,12 +448,12 @@ class Database:
             """
             result = self.execute_query(query)
             columns = ['code', 'name', 'fund_company', 'start_date', 'end_date',
-                      'management_fee_rate', 'custody_fee_rate', 'fund_size']
+                       'management_fee_rate', 'custody_fee_rate', 'fund_size']
             return [dict(zip(columns, row)) for row in result]
         except Exception as e:
             print(f"获取所有商务ETF数据失败: {str(e)}")
             return []
-    
+
     def __del__(self):
         """析构函数，确保关闭数据库连接"""
         self.close()
@@ -318,7 +463,7 @@ class Database:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 创建ETF基本信息表
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS etf_info (
@@ -341,7 +486,7 @@ class Database:
                 notes TEXT
             )
             ''')
-            
+
             # 创建ETF价格表
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS etf_price (
@@ -360,7 +505,7 @@ class Database:
                 PRIMARY KEY (code, date)
             )
             ''')
-            
+
             # 创建ETF自选表
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS etf_attention (
@@ -370,7 +515,7 @@ class Database:
                 date TEXT
             )
             ''')
-            
+
             # 创建ETF自选历史表
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS etf_attention_history (
@@ -381,7 +526,7 @@ class Database:
                 PRIMARY KEY (code, date)
             )
             ''')
-            
+
             # 创建ETF持有人表
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS etf_holders (
@@ -393,7 +538,7 @@ class Database:
                 date TEXT
             )
             ''')
-            
+
             # 创建ETF持有人历史表
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS etf_holders_history (
@@ -406,7 +551,7 @@ class Database:
                 PRIMARY KEY (code, date)
             )
             ''')
-            
+
             # 创建ETF指数分类表
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS etf_index_classification (
@@ -418,7 +563,7 @@ class Database:
                 description TEXT
             )
             ''')
-            
+
             # 创建商务品ETF表
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS business_etf (
@@ -433,7 +578,7 @@ class Database:
                 notes TEXT
             )
             ''')
-            
+
             # 创建飞书推广数据表
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS feishu_promo_data (
@@ -450,13 +595,13 @@ class Database:
                 FOREIGN KEY (code) REFERENCES etf_info(code)
             )
             ''')
-            
+
             conn.commit()
             print("数据库表创建成功")
-            
+
             # 创建公司分析表
             self.create_company_analytics_table(conn)
-            
+
             return True
         except Exception as e:
             if conn:
@@ -465,7 +610,7 @@ class Database:
             import traceback
             traceback.print_exc()
             return False
-    
+
     def create_company_analytics_table(self, conn):
         """创建基金公司分析表"""
         try:
@@ -507,15 +652,15 @@ class Database:
         print("开始更新基金公司层面聚合分析数据...")
         try:
             conn = self.connect()
-            
+
             # 确保表存在且是最新结构：先删除旧表（如果存在），再创建新表
             cursor = conn.cursor()
             cursor.execute("DROP TABLE IF EXISTS etf_company_analytics")
             conn.commit()
             cursor.close()
             print("已删除旧的 'etf_company_analytics' 表（如果存在）。")
-            self.create_company_analytics_table(conn) # 用最新定义创建表
-            
+            self.create_company_analytics_table(conn)  # 用最新定义创建表
+
             # 清空旧数据 (现在不需要了，因为表是新创建的)
             # cursor = conn.cursor()
             # cursor.execute("DELETE FROM etf_company_analytics")
@@ -543,9 +688,11 @@ class Database:
                 return False
             # 确保关键计数列是整数类型
             if 'product_count' in df_info.columns:
-                df_info['product_count'] = pd.to_numeric(df_info['product_count'], errors='coerce').fillna(0).astype(int)
+                df_info['product_count'] = pd.to_numeric(
+                    df_info['product_count'], errors='coerce').fillna(0).astype(int)
             if 'total_holder_count_info' in df_info.columns:
-                 df_info['total_holder_count_info'] = pd.to_numeric(df_info['total_holder_count_info'], errors='coerce').fillna(0).astype(int)
+                df_info['total_holder_count_info'] = pd.to_numeric(
+                    df_info['total_holder_count_info'], errors='coerce').fillna(0).astype(int)
 
             df_info = df_info.set_index('company_name')
 
@@ -565,11 +712,12 @@ class Database:
             latest_price_date = get_latest_data_date('etf_price')
             latest_attention_date = get_latest_data_date('etf_attention')
             latest_holders_date = get_latest_data_date('etf_holders')
-            
-            print(f"最新价格日期: {latest_price_date}, 最新关注日期: {latest_attention_date}, 最新持有人日期: {latest_holders_date}")
+
+            print(
+                f"最新价格日期: {latest_price_date}, 最新关注日期: {latest_attention_date}, 最新持有人日期: {latest_holders_date}")
 
             all_company_data = df_info
-            all_company_data['latest_date'] = latest_price_date # 主数据日期
+            all_company_data['latest_date'] = latest_price_date  # 主数据日期
 
             # 3. 从 etf_price 获取聚合数据
             if latest_price_date:
@@ -588,7 +736,8 @@ class Database:
                 df_price = pd.read_sql_query(query_price, conn)
                 if not df_price.empty:
                     df_price = df_price.set_index('company_name')
-                    all_company_data = all_company_data.join(df_price, how='left')
+                    all_company_data = all_company_data.join(
+                        df_price, how='left')
                 else:
                     print(f"在日期 {latest_price_date} 未从 etf_price 获取到聚合数据。")
             else:
@@ -611,13 +760,15 @@ class Database:
                 df_attention = pd.read_sql_query(query_attention, conn)
                 if not df_attention.empty:
                     df_attention = df_attention.set_index('company_name')
-                    all_company_data = all_company_data.join(df_attention, how='left')
+                    all_company_data = all_company_data.join(
+                        df_attention, how='left')
                 else:
-                    print(f"在日期 {latest_attention_date} 未从 etf_attention 获取到聚合数据。")
+                    print(
+                        f"在日期 {latest_attention_date} 未从 etf_attention 获取到聚合数据。")
             else:
                 print("无法获取 etf_attention 最新日期，相关指标将为空。")
                 all_company_data['total_attention_count'] = None
-            
+
             # 5. 从 etf_holders 获取聚合数据
             if latest_holders_date:
                 query_holders = f"""
@@ -634,7 +785,8 @@ class Database:
                 df_holders = pd.read_sql_query(query_holders, conn)
                 if not df_holders.empty:
                     df_holders = df_holders.set_index('company_name')
-                    all_company_data = all_company_data.join(df_holders, how='left')
+                    all_company_data = all_company_data.join(
+                        df_holders, how='left')
                 else:
                     print(f"在日期 {latest_holders_date} 未从 etf_holders 获取到聚合数据。")
             else:
@@ -662,22 +814,26 @@ class Database:
                 df_business = df_business.set_index('company_name')
                 # 确保关键计数列是整数类型
                 if 'business_agreement_count' in df_business.columns:
-                    df_business['business_agreement_count'] = pd.to_numeric(df_business['business_agreement_count'], errors='coerce').fillna(0).astype(int)
-                all_company_data = all_company_data.join(df_business, how='left')
+                    df_business['business_agreement_count'] = pd.to_numeric(
+                        df_business['business_agreement_count'], errors='coerce').fillna(0).astype(int)
+                all_company_data = all_company_data.join(
+                    df_business, how='left')
             else:
                 print("未从 etf_business 获取到聚合数据。")
                 for col in ['business_agreement_count', 'business_agreement_total_size', 'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee']:
                     all_company_data[col] = None
-            
+
             # 需求5: business_agreement_count，null 显示为 0
             if 'business_agreement_count' in all_company_data.columns:
-                all_company_data['business_agreement_count'] = all_company_data['business_agreement_count'].fillna(0).astype(int)
-            else: # 如果列因为没有数据源而未创建，则添加并填充0
+                all_company_data['business_agreement_count'] = all_company_data['business_agreement_count'].fillna(
+                    0).astype(int)
+            else:  # 如果列因为没有数据源而未创建，则添加并填充0
                 all_company_data['business_agreement_count'] = 0
 
             # 添加更新时间戳
-            all_company_data['update_timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            
+            all_company_data['update_timestamp'] = datetime.now().strftime(
+                '%Y-%m-%d %H:%M:%S')
+
             # 7. 计算商务品总持仓价值和商务品持仓价值占比
             if latest_holders_date:
                 query_business_holders = f"""
@@ -690,21 +846,27 @@ class Database:
                 WHERE h.date = '{latest_holders_date}' AND i.fund_manager IS NOT NULL AND i.fund_manager != ''
                 GROUP BY i.fund_manager;
                 """
-                df_business_holders = pd.read_sql_query(query_business_holders, conn)
+                df_business_holders = pd.read_sql_query(
+                    query_business_holders, conn)
                 if not df_business_holders.empty:
-                    df_business_holders = df_business_holders.set_index('company_name')
-                    all_company_data = all_company_data.join(df_business_holders, how='left')
-                    
+                    df_business_holders = df_business_holders.set_index(
+                        'company_name')
+                    all_company_data = all_company_data.join(
+                        df_business_holders, how='left')
+
                     # 填充空值为0
-                    all_company_data['business_total_holding_value'] = all_company_data['business_total_holding_value'].fillna(0.0)
-                    
+                    all_company_data['business_total_holding_value'] = all_company_data['business_total_holding_value'].fillna(
+                        0.0)
+
                     # 确保total_holding_value列存在且非空
                     if 'total_holding_value' in all_company_data.columns:
-                        all_company_data['total_holding_value'] = all_company_data['total_holding_value'].fillna(0.0)
-                        
+                        all_company_data['total_holding_value'] = all_company_data['total_holding_value'].fillna(
+                            0.0)
+
                         # 计算商务品持仓价值占比 (%)
                         all_company_data['business_holding_value_ratio'] = all_company_data.apply(
-                            lambda row: (row['business_total_holding_value'] * 100.0 / row['total_holding_value'])
+                            lambda row: (
+                                row['business_total_holding_value'] * 100.0 / row['total_holding_value'])
                             if row['total_holding_value'] > 0 else 0.0,
                             axis=1
                         ).round(1)
@@ -718,713 +880,906 @@ class Database:
                 print("无法获取 etf_holders 最新日期，商务品持仓价值相关指标将为空。")
                 all_company_data['business_total_holding_value'] = 0.0
                 all_company_data['business_holding_value_ratio'] = 0.0
-            
+
             # 重置索引，使 company_name 成为一列
             all_company_data = all_company_data.reset_index()
             # company_name 列已经存在且正确，不需要再 rename
-            
+
             # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
             # company_id 列暂时没有来源，会填充为None
             # 我们新增了 company_short_name，也加入 expected_cols
             expected_cols = [
-                'company_name', 'company_short_name', # company_id 已删除
+                'company_name', 'company_short_name',  # company_id 已删除
                 'product_count', 'total_fund_size', 'avg_fund_size',
-                'total_holder_count_info', 'latest_date', 
+                'total_holder_count_info', 'latest_date',
                 # avg_price_change_rate 已删除
-                'total_amount', 'avg_turnover_rate', 
+                'total_amount', 'avg_turnover_rate',
                 # total_net_inflow 已删除
                 'total_attention_count', 'total_shares_holders',
-                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
-                'total_holding_value', 
-                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
+                'total_holder_count_holders', 'holder_attention_ratio',  # 新增持仓自选比
+                'total_holding_value',
+                'business_agreement_count', 'business_agreement_ratio',  # 新增商务品占比
                 'business_agreement_total_size',
                 'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
-                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+                'business_total_holding_value', 'business_holding_value_ratio'  # 新增：允许按这两个新列排序
             ]
             for col in expected_cols:
                 if col not in all_company_data.columns:
-                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
-            
+                    all_company_data[col] = None  # 如果列不存在，添加并赋值为None
+
             # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
-            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+            all_company_data = all_company_data.astype(
+                object).where(pd.notnull(all_company_data), None)
 
             # 插入数据到 etf_company_analytics
             # 调整列顺序以匹配表定义
             all_company_data = all_company_data[expected_cols]
 
             # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
-            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
-            
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False,
+                                    dtype=self.get_company_analytics_table_sql_dtypes())  # 添加dtype确保类型正确
+
             print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
 
             # 计算商务品占比 (需求6)
             print("DEBUG: Before calculating business_agreement_ratio:")
             if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
-                 # If company_short_name is not there yet (it's the index before reset_index)
-                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
+                # If company_short_name is not there yet (it's the index before reset_index)
+                # temp for company name
+                temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name'
             elif 'company_short_name' in all_company_data.columns:
-                 temp_company_col = 'company_short_name'
-            else: # Fallback if no suitable company name column is found before reset_index
-                 temp_company_col = None
+                temp_company_col = 'company_short_name'
+            else:  # Fallback if no suitable company name column is found before reset_index
+                temp_company_col = None
 
             if 'product_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
-                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
-                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
+                    print("product_count sample:", all_company_data[[
+                          temp_company_col, 'product_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col:  # If it is the index
+                    print("product_count sample (index as company name):",
+                          all_company_data[['product_count']].head())
                 else:
-                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
-                print("product_count dtypes:", all_company_data['product_count'].dtype)
-                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
-                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
+                    print("product_count sample (company name col not found for debug):",
+                          all_company_data[['product_count']].head())
+                print("product_count dtypes:",
+                      all_company_data['product_count'].dtype)
+                print("product_count has NaN:",
+                      all_company_data['product_count'].isnull().any())
+                print("product_count min, max, mean:", all_company_data['product_count'].min(
+                ), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
             else:
                 print("product_count column MISSING")
 
             if 'business_agreement_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
+                    print("business_agreement_count sample:", all_company_data[[
+                          temp_company_col, 'business_agreement_count']].head())
                 elif temp_company_col and all_company_data.index.name == temp_company_col:
-                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
+                    print("business_agreement_count sample (index as company name):",
+                          all_company_data[['business_agreement_count']].head())
                 else:
-                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
-                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
-                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
-                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
+                    print("business_agreement_count sample (company name col not found for debug):",
+                          all_company_data[['business_agreement_count']].head())
+                print("business_agreement_count dtypes:",
+                      all_company_data['business_agreement_count'].dtype)
+                print("business_agreement_count has NaN:",
+                      all_company_data['business_agreement_count'].isnull().any())
+                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(
+                ), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
             else:
                 print("business_agreement_count column MISSING")
 
             if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
-                #确保 product_count 和 business_agreement_count 是数值类型
+                # 确保 product_count 和 business_agreement_count 是数值类型
                 # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
                 # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
-                
+
                 # 计算占比，处理分母为0的情况
                 # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
-                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
-                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
+                pc_col = pd.to_numeric(
+                    all_company_data['product_count'], errors='coerce').fillna(0)
+                bc_col = pd.to_numeric(
+                    all_company_data['business_agreement_count'], errors='coerce').fillna(0)
 
-                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
-                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
+                print(
+                    f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
+                print(
+                    f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
 
                 all_company_data['business_agreement_ratio'] = \
                     (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
 
-                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                print(
+                    f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
 
                 # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
-                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                all_company_data['business_agreement_ratio'] = pd.to_numeric(
+                    all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
             else:
-                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
-                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
+                print(
+                    "product_count or business_agreement_count column MISSING for business_agreement_ratio")
+                # 如果相关列不存在，则占比为0
+                all_company_data['business_agreement_ratio'] = 0.0
 
             # 计算持仓自选比 (需求2 新)
             print("DEBUG: Before calculating holder_attention_ratio:")
             if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
-                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
-                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
-                
-                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
-                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
+                h_col = pd.to_numeric(
+                    all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
+                a_col = pd.to_numeric(
+                    all_company_data['total_attention_count'], errors='coerce').fillna(0)
+
+                print(
+                    f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
+                print(
+                    f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
 
                 all_company_data['holder_attention_ratio'] = \
                     (h_col * 100.0 / a_col).where(a_col != 0, 0)
-                
-                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
+
+                all_company_data['holder_attention_ratio'] = pd.to_numeric(
+                    all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
             else:
-                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
+                print(
+                    "total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
                 all_company_data['holder_attention_ratio'] = 0.0
 
             # 重置索引，使 company_name 成为一列
             all_company_data = all_company_data.reset_index()
-            
+
             # 在写入数据库前，对关键数值列进行最终的类型确认和 NaN 处理
-            numeric_int_cols = ['product_count', 'total_holder_count_info', 'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
-            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
-                                  'total_shares_holders', 'total_holding_value', 
+            numeric_int_cols = ['product_count', 'total_holder_count_info',
+                                'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
+            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate',
+                                  'total_shares_holders', 'total_holding_value',
                                   'business_agreement_ratio', 'business_agreement_total_size',
                                   'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
                                   'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
 
             for col in numeric_int_cols:
                 if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0).astype(int)
+                    all_company_data[col] = pd.to_numeric(
+                        all_company_data[col], errors='coerce').fillna(0).astype(int)
                 else:
-                    all_company_data[col] = 0 # 如果列在聚合过程中未创建，则添加并设为0
+                    all_company_data[col] = 0  # 如果列在聚合过程中未创建，则添加并设为0
 
             for col in numeric_float_cols:
                 if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0.0).astype(float)
+                    all_company_data[col] = pd.to_numeric(
+                        all_company_data[col], errors='coerce').fillna(0.0).astype(float)
                 else:
-                    all_company_data[col] = 0.0 # 如果列在聚合过程中未创建，则添加并设为0.0
+                    all_company_data[col] = 0.0  # 如果列在聚合过程中未创建，则添加并设为0.0
 
             print("DEBUG: Final dtypes before to_sql for key columns:")
             if 'business_agreement_ratio' in all_company_data.columns:
-                print(f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
+                print(
+                    f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
             if 'holder_attention_ratio' in all_company_data.columns:
-                print(f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
+                print(
+                    f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
             if 'product_count' in all_company_data.columns:
-                print(f"  product_count dtype: {all_company_data['product_count'].dtype}")
+                print(
+                    f"  product_count dtype: {all_company_data['product_count'].dtype}")
             if 'business_agreement_count' in all_company_data.columns:
-                print(f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
+                print(
+                    f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
 
             # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
             expected_cols = [
-                'company_name', 'company_short_name', # company_id 已删除
+                'company_name', 'company_short_name',  # company_id 已删除
                 'product_count', 'total_fund_size', 'avg_fund_size',
-                'total_holder_count_info', 'latest_date', 
+                'total_holder_count_info', 'latest_date',
                 # avg_price_change_rate 已删除
-                'total_amount', 'avg_turnover_rate', 
+                'total_amount', 'avg_turnover_rate',
                 # total_net_inflow 已删除
                 'total_attention_count', 'total_shares_holders',
-                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
-                'total_holding_value', 
-                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
+                'total_holder_count_holders', 'holder_attention_ratio',  # 新增持仓自选比
+                'total_holding_value',
+                'business_agreement_count', 'business_agreement_ratio',  # 新增商务品占比
                 'business_agreement_total_size',
                 'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
-                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+                'business_total_holding_value', 'business_holding_value_ratio'  # 新增：允许按这两个新列排序
             ]
             for col in expected_cols:
                 if col not in all_company_data.columns:
-                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
-            
+                    all_company_data[col] = None  # 如果列不存在，添加并赋值为None
+
             # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
-            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+            all_company_data = all_company_data.astype(
+                object).where(pd.notnull(all_company_data), None)
 
             # 插入数据到 etf_company_analytics
             # 调整列顺序以匹配表定义
             all_company_data = all_company_data[expected_cols]
 
             # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
-            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
-            
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False,
+                                    dtype=self.get_company_analytics_table_sql_dtypes())  # 添加dtype确保类型正确
+
             print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
 
             # 计算商务品占比 (需求6)
             print("DEBUG: Before calculating business_agreement_ratio:")
             if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
-                 # If company_short_name is not there yet (it's the index before reset_index)
-                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
+                # If company_short_name is not there yet (it's the index before reset_index)
+                # temp for company name
+                temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name'
             elif 'company_short_name' in all_company_data.columns:
-                 temp_company_col = 'company_short_name'
-            else: # Fallback if no suitable company name column is found before reset_index
-                 temp_company_col = None
+                temp_company_col = 'company_short_name'
+            else:  # Fallback if no suitable company name column is found before reset_index
+                temp_company_col = None
 
             if 'product_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
-                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
-                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
+                    print("product_count sample:", all_company_data[[
+                          temp_company_col, 'product_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col:  # If it is the index
+                    print("product_count sample (index as company name):",
+                          all_company_data[['product_count']].head())
                 else:
-                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
-                print("product_count dtypes:", all_company_data['product_count'].dtype)
-                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
-                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
+                    print("product_count sample (company name col not found for debug):",
+                          all_company_data[['product_count']].head())
+                print("product_count dtypes:",
+                      all_company_data['product_count'].dtype)
+                print("product_count has NaN:",
+                      all_company_data['product_count'].isnull().any())
+                print("product_count min, max, mean:", all_company_data['product_count'].min(
+                ), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
             else:
                 print("product_count column MISSING")
 
             if 'business_agreement_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
+                    print("business_agreement_count sample:", all_company_data[[
+                          temp_company_col, 'business_agreement_count']].head())
                 elif temp_company_col and all_company_data.index.name == temp_company_col:
-                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
+                    print("business_agreement_count sample (index as company name):",
+                          all_company_data[['business_agreement_count']].head())
                 else:
-                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
-                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
-                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
-                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
+                    print("business_agreement_count sample (company name col not found for debug):",
+                          all_company_data[['business_agreement_count']].head())
+                print("business_agreement_count dtypes:",
+                      all_company_data['business_agreement_count'].dtype)
+                print("business_agreement_count has NaN:",
+                      all_company_data['business_agreement_count'].isnull().any())
+                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(
+                ), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
             else:
                 print("business_agreement_count column MISSING")
 
             if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
-                #确保 product_count 和 business_agreement_count 是数值类型
+                # 确保 product_count 和 business_agreement_count 是数值类型
                 # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
                 # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
-                
+
                 # 计算占比，处理分母为0的情况
                 # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
-                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
-                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
+                pc_col = pd.to_numeric(
+                    all_company_data['product_count'], errors='coerce').fillna(0)
+                bc_col = pd.to_numeric(
+                    all_company_data['business_agreement_count'], errors='coerce').fillna(0)
 
-                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
-                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
+                print(
+                    f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
+                print(
+                    f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
 
                 all_company_data['business_agreement_ratio'] = \
                     (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
 
-                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                print(
+                    f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
 
                 # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
-                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                all_company_data['business_agreement_ratio'] = pd.to_numeric(
+                    all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
             else:
-                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
-                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
+                print(
+                    "product_count or business_agreement_count column MISSING for business_agreement_ratio")
+                # 如果相关列不存在，则占比为0
+                all_company_data['business_agreement_ratio'] = 0.0
 
             # 计算持仓自选比 (需求2 新)
             print("DEBUG: Before calculating holder_attention_ratio:")
             if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
-                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
-                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
-                
-                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
-                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
+                h_col = pd.to_numeric(
+                    all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
+                a_col = pd.to_numeric(
+                    all_company_data['total_attention_count'], errors='coerce').fillna(0)
+
+                print(
+                    f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
+                print(
+                    f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
 
                 all_company_data['holder_attention_ratio'] = \
                     (h_col * 100.0 / a_col).where(a_col != 0, 0)
-                
-                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
+
+                all_company_data['holder_attention_ratio'] = pd.to_numeric(
+                    all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
             else:
-                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
+                print(
+                    "total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
                 all_company_data['holder_attention_ratio'] = 0.0
 
             # 重置索引，使 company_name 成为一列
             all_company_data = all_company_data.reset_index()
-            
+
             # 在写入数据库前，对关键数值列进行最终的类型确认和 NaN 处理
-            numeric_int_cols = ['product_count', 'total_holder_count_info', 'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
-            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
-                                  'total_shares_holders', 'total_holding_value', 
+            numeric_int_cols = ['product_count', 'total_holder_count_info',
+                                'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
+            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate',
+                                  'total_shares_holders', 'total_holding_value',
                                   'business_agreement_ratio', 'business_agreement_total_size',
                                   'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
                                   'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
 
             for col in numeric_int_cols:
                 if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0).astype(int)
+                    all_company_data[col] = pd.to_numeric(
+                        all_company_data[col], errors='coerce').fillna(0).astype(int)
                 else:
-                    all_company_data[col] = 0 # 如果列在聚合过程中未创建，则添加并设为0
+                    all_company_data[col] = 0  # 如果列在聚合过程中未创建，则添加并设为0
 
             for col in numeric_float_cols:
                 if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0.0).astype(float)
+                    all_company_data[col] = pd.to_numeric(
+                        all_company_data[col], errors='coerce').fillna(0.0).astype(float)
                 else:
-                    all_company_data[col] = 0.0 # 如果列在聚合过程中未创建，则添加并设为0.0
+                    all_company_data[col] = 0.0  # 如果列在聚合过程中未创建，则添加并设为0.0
 
             print("DEBUG: Final dtypes before to_sql for key columns:")
             if 'business_agreement_ratio' in all_company_data.columns:
-                print(f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
+                print(
+                    f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
             if 'holder_attention_ratio' in all_company_data.columns:
-                print(f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
+                print(
+                    f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
             if 'product_count' in all_company_data.columns:
-                print(f"  product_count dtype: {all_company_data['product_count'].dtype}")
+                print(
+                    f"  product_count dtype: {all_company_data['product_count'].dtype}")
             if 'business_agreement_count' in all_company_data.columns:
-                print(f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
+                print(
+                    f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
 
             # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
             expected_cols = [
-                'company_name', 'company_short_name', # company_id 已删除
+                'company_name', 'company_short_name',  # company_id 已删除
                 'product_count', 'total_fund_size', 'avg_fund_size',
-                'total_holder_count_info', 'latest_date', 
+                'total_holder_count_info', 'latest_date',
                 # avg_price_change_rate 已删除
-                'total_amount', 'avg_turnover_rate', 
+                'total_amount', 'avg_turnover_rate',
                 # total_net_inflow 已删除
                 'total_attention_count', 'total_shares_holders',
-                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
-                'total_holding_value', 
-                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
+                'total_holder_count_holders', 'holder_attention_ratio',  # 新增持仓自选比
+                'total_holding_value',
+                'business_agreement_count', 'business_agreement_ratio',  # 新增商务品占比
                 'business_agreement_total_size',
                 'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
-                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+                'business_total_holding_value', 'business_holding_value_ratio'  # 新增：允许按这两个新列排序
             ]
             for col in expected_cols:
                 if col not in all_company_data.columns:
-                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
-            
+                    all_company_data[col] = None  # 如果列不存在，添加并赋值为None
+
             # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
-            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+            all_company_data = all_company_data.astype(
+                object).where(pd.notnull(all_company_data), None)
 
             # 插入数据到 etf_company_analytics
             # 调整列顺序以匹配表定义
             all_company_data = all_company_data[expected_cols]
 
             # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
-            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
-            
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False,
+                                    dtype=self.get_company_analytics_table_sql_dtypes())  # 添加dtype确保类型正确
+
             print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
 
             # 计算商务品占比 (需求6)
             print("DEBUG: Before calculating business_agreement_ratio:")
             if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
-                 # If company_short_name is not there yet (it's the index before reset_index)
-                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
+                # If company_short_name is not there yet (it's the index before reset_index)
+                # temp for company name
+                temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name'
             elif 'company_short_name' in all_company_data.columns:
-                 temp_company_col = 'company_short_name'
-            else: # Fallback if no suitable company name column is found before reset_index
-                 temp_company_col = None
+                temp_company_col = 'company_short_name'
+            else:  # Fallback if no suitable company name column is found before reset_index
+                temp_company_col = None
 
             if 'product_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
-                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
-                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
+                    print("product_count sample:", all_company_data[[
+                          temp_company_col, 'product_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col:  # If it is the index
+                    print("product_count sample (index as company name):",
+                          all_company_data[['product_count']].head())
                 else:
-                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
-                print("product_count dtypes:", all_company_data['product_count'].dtype)
-                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
-                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
+                    print("product_count sample (company name col not found for debug):",
+                          all_company_data[['product_count']].head())
+                print("product_count dtypes:",
+                      all_company_data['product_count'].dtype)
+                print("product_count has NaN:",
+                      all_company_data['product_count'].isnull().any())
+                print("product_count min, max, mean:", all_company_data['product_count'].min(
+                ), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
             else:
                 print("product_count column MISSING")
 
             if 'business_agreement_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
+                    print("business_agreement_count sample:", all_company_data[[
+                          temp_company_col, 'business_agreement_count']].head())
                 elif temp_company_col and all_company_data.index.name == temp_company_col:
-                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
+                    print("business_agreement_count sample (index as company name):",
+                          all_company_data[['business_agreement_count']].head())
                 else:
-                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
-                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
-                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
-                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
+                    print("business_agreement_count sample (company name col not found for debug):",
+                          all_company_data[['business_agreement_count']].head())
+                print("business_agreement_count dtypes:",
+                      all_company_data['business_agreement_count'].dtype)
+                print("business_agreement_count has NaN:",
+                      all_company_data['business_agreement_count'].isnull().any())
+                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(
+                ), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
             else:
                 print("business_agreement_count column MISSING")
 
             if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
-                #确保 product_count 和 business_agreement_count 是数值类型
+                # 确保 product_count 和 business_agreement_count 是数值类型
                 # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
                 # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
-                
+
                 # 计算占比，处理分母为0的情况
                 # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
-                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
-                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
+                pc_col = pd.to_numeric(
+                    all_company_data['product_count'], errors='coerce').fillna(0)
+                bc_col = pd.to_numeric(
+                    all_company_data['business_agreement_count'], errors='coerce').fillna(0)
 
-                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
-                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
+                print(
+                    f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
+                print(
+                    f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
 
                 all_company_data['business_agreement_ratio'] = \
                     (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
 
-                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                print(
+                    f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
 
                 # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
-                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                all_company_data['business_agreement_ratio'] = pd.to_numeric(
+                    all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
             else:
-                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
-                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
+                print(
+                    "product_count or business_agreement_count column MISSING for business_agreement_ratio")
+                # 如果相关列不存在，则占比为0
+                all_company_data['business_agreement_ratio'] = 0.0
 
             # 计算持仓自选比 (需求2 新)
             print("DEBUG: Before calculating holder_attention_ratio:")
             if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
-                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
-                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
-                
-                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
-                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
+                h_col = pd.to_numeric(
+                    all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
+                a_col = pd.to_numeric(
+                    all_company_data['total_attention_count'], errors='coerce').fillna(0)
+
+                print(
+                    f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
+                print(
+                    f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
 
                 all_company_data['holder_attention_ratio'] = \
                     (h_col * 100.0 / a_col).where(a_col != 0, 0)
-                
-                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
+
+                all_company_data['holder_attention_ratio'] = pd.to_numeric(
+                    all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
             else:
-                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
+                print(
+                    "total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
                 all_company_data['holder_attention_ratio'] = 0.0
 
             # 重置索引，使 company_name 成为一列
             all_company_data = all_company_data.reset_index()
-            
+
             # 在写入数据库前，对关键数值列进行最终的类型确认和 NaN 处理
-            numeric_int_cols = ['product_count', 'total_holder_count_info', 'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
-            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
-                                  'total_shares_holders', 'total_holding_value', 
+            numeric_int_cols = ['product_count', 'total_holder_count_info',
+                                'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
+            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate',
+                                  'total_shares_holders', 'total_holding_value',
                                   'business_agreement_ratio', 'business_agreement_total_size',
                                   'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
                                   'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
 
             for col in numeric_int_cols:
                 if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0).astype(int)
+                    all_company_data[col] = pd.to_numeric(
+                        all_company_data[col], errors='coerce').fillna(0).astype(int)
                 else:
-                    all_company_data[col] = 0 # 如果列在聚合过程中未创建，则添加并设为0
+                    all_company_data[col] = 0  # 如果列在聚合过程中未创建，则添加并设为0
 
             for col in numeric_float_cols:
                 if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0.0).astype(float)
+                    all_company_data[col] = pd.to_numeric(
+                        all_company_data[col], errors='coerce').fillna(0.0).astype(float)
                 else:
-                    all_company_data[col] = 0.0 # 如果列在聚合过程中未创建，则添加并设为0.0
+                    all_company_data[col] = 0.0  # 如果列在聚合过程中未创建，则添加并设为0.0
 
             print("DEBUG: Final dtypes before to_sql for key columns:")
             if 'business_agreement_ratio' in all_company_data.columns:
-                print(f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
+                print(
+                    f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
             if 'holder_attention_ratio' in all_company_data.columns:
-                print(f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
+                print(
+                    f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
             if 'product_count' in all_company_data.columns:
-                print(f"  product_count dtype: {all_company_data['product_count'].dtype}")
+                print(
+                    f"  product_count dtype: {all_company_data['product_count'].dtype}")
             if 'business_agreement_count' in all_company_data.columns:
-                print(f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
+                print(
+                    f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
 
             # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
             expected_cols = [
-                'company_name', 'company_short_name', # company_id 已删除
+                'company_name', 'company_short_name',  # company_id 已删除
                 'product_count', 'total_fund_size', 'avg_fund_size',
-                'total_holder_count_info', 'latest_date', 
+                'total_holder_count_info', 'latest_date',
                 # avg_price_change_rate 已删除
-                'total_amount', 'avg_turnover_rate', 
+                'total_amount', 'avg_turnover_rate',
                 # total_net_inflow 已删除
                 'total_attention_count', 'total_shares_holders',
-                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
-                'total_holding_value', 
-                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
+                'total_holder_count_holders', 'holder_attention_ratio',  # 新增持仓自选比
+                'total_holding_value',
+                'business_agreement_count', 'business_agreement_ratio',  # 新增商务品占比
                 'business_agreement_total_size',
                 'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
-                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+                'business_total_holding_value', 'business_holding_value_ratio'  # 新增：允许按这两个新列排序
             ]
             for col in expected_cols:
                 if col not in all_company_data.columns:
-                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
-            
+                    all_company_data[col] = None  # 如果列不存在，添加并赋值为None
+
             # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
-            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+            all_company_data = all_company_data.astype(
+                object).where(pd.notnull(all_company_data), None)
 
             # 插入数据到 etf_company_analytics
             # 调整列顺序以匹配表定义
             all_company_data = all_company_data[expected_cols]
 
             # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
-            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
-            
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False,
+                                    dtype=self.get_company_analytics_table_sql_dtypes())  # 添加dtype确保类型正确
+
             print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
 
             # 计算商务品占比 (需求6)
             print("DEBUG: Before calculating business_agreement_ratio:")
             if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
-                 # If company_short_name is not there yet (it's the index before reset_index)
-                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
+                # If company_short_name is not there yet (it's the index before reset_index)
+                # temp for company name
+                temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name'
             elif 'company_short_name' in all_company_data.columns:
-                 temp_company_col = 'company_short_name'
-            else: # Fallback if no suitable company name column is found before reset_index
-                 temp_company_col = None
+                temp_company_col = 'company_short_name'
+            else:  # Fallback if no suitable company name column is found before reset_index
+                temp_company_col = None
 
             if 'product_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
-                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
-                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
+                    print("product_count sample:", all_company_data[[
+                          temp_company_col, 'product_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col:  # If it is the index
+                    print("product_count sample (index as company name):",
+                          all_company_data[['product_count']].head())
                 else:
-                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
-                print("product_count dtypes:", all_company_data['product_count'].dtype)
-                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
-                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
+                    print("product_count sample (company name col not found for debug):",
+                          all_company_data[['product_count']].head())
+                print("product_count dtypes:",
+                      all_company_data['product_count'].dtype)
+                print("product_count has NaN:",
+                      all_company_data['product_count'].isnull().any())
+                print("product_count min, max, mean:", all_company_data['product_count'].min(
+                ), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
             else:
                 print("product_count column MISSING")
 
             if 'business_agreement_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
+                    print("business_agreement_count sample:", all_company_data[[
+                          temp_company_col, 'business_agreement_count']].head())
                 elif temp_company_col and all_company_data.index.name == temp_company_col:
-                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
+                    print("business_agreement_count sample (index as company name):",
+                          all_company_data[['business_agreement_count']].head())
                 else:
-                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
-                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
-                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
-                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
+                    print("business_agreement_count sample (company name col not found for debug):",
+                          all_company_data[['business_agreement_count']].head())
+                print("business_agreement_count dtypes:",
+                      all_company_data['business_agreement_count'].dtype)
+                print("business_agreement_count has NaN:",
+                      all_company_data['business_agreement_count'].isnull().any())
+                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(
+                ), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
             else:
                 print("business_agreement_count column MISSING")
 
             if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
-                #确保 product_count 和 business_agreement_count 是数值类型
+                # 确保 product_count 和 business_agreement_count 是数值类型
                 # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
                 # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
-                
+
                 # 计算占比，处理分母为0的情况
                 # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
-                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
-                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
+                pc_col = pd.to_numeric(
+                    all_company_data['product_count'], errors='coerce').fillna(0)
+                bc_col = pd.to_numeric(
+                    all_company_data['business_agreement_count'], errors='coerce').fillna(0)
 
-                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
-                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
+                print(
+                    f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
+                print(
+                    f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
 
                 all_company_data['business_agreement_ratio'] = \
                     (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
 
-                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                print(
+                    f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
 
                 # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
-                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                all_company_data['business_agreement_ratio'] = pd.to_numeric(
+                    all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
             else:
-                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
-                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
+                print(
+                    "product_count or business_agreement_count column MISSING for business_agreement_ratio")
+                # 如果相关列不存在，则占比为0
+                all_company_data['business_agreement_ratio'] = 0.0
 
             # 计算持仓自选比 (需求2 新)
             print("DEBUG: Before calculating holder_attention_ratio:")
             if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
-                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
-                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
-                
-                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
-                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
+                h_col = pd.to_numeric(
+                    all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
+                a_col = pd.to_numeric(
+                    all_company_data['total_attention_count'], errors='coerce').fillna(0)
+
+                print(
+                    f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
+                print(
+                    f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
 
                 all_company_data['holder_attention_ratio'] = \
                     (h_col * 100.0 / a_col).where(a_col != 0, 0)
-                
-                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
+
+                all_company_data['holder_attention_ratio'] = pd.to_numeric(
+                    all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
             else:
-                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
+                print(
+                    "total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
                 all_company_data['holder_attention_ratio'] = 0.0
 
             # 重置索引，使 company_name 成为一列
             all_company_data = all_company_data.reset_index()
-            
+
             # 在写入数据库前，对关键数值列进行最终的类型确认和 NaN 处理
-            numeric_int_cols = ['product_count', 'total_holder_count_info', 'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
-            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate', 
-                                  'total_shares_holders', 'total_holding_value', 
+            numeric_int_cols = ['product_count', 'total_holder_count_info',
+                                'total_attention_count', 'total_holder_count_holders', 'business_agreement_count']
+            numeric_float_cols = ['total_fund_size', 'avg_fund_size', 'total_amount', 'avg_turnover_rate',
+                                  'total_shares_holders', 'total_holding_value',
                                   'business_agreement_ratio', 'business_agreement_total_size',
                                   'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'holder_attention_ratio',
                                   'business_total_holding_value', 'business_holding_value_ratio']  # 新增列
 
             for col in numeric_int_cols:
                 if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0).astype(int)
+                    all_company_data[col] = pd.to_numeric(
+                        all_company_data[col], errors='coerce').fillna(0).astype(int)
                 else:
-                    all_company_data[col] = 0 # 如果列在聚合过程中未创建，则添加并设为0
+                    all_company_data[col] = 0  # 如果列在聚合过程中未创建，则添加并设为0
 
             for col in numeric_float_cols:
                 if col in all_company_data.columns:
-                    all_company_data[col] = pd.to_numeric(all_company_data[col], errors='coerce').fillna(0.0).astype(float)
+                    all_company_data[col] = pd.to_numeric(
+                        all_company_data[col], errors='coerce').fillna(0.0).astype(float)
                 else:
-                    all_company_data[col] = 0.0 # 如果列在聚合过程中未创建，则添加并设为0.0
+                    all_company_data[col] = 0.0  # 如果列在聚合过程中未创建，则添加并设为0.0
 
             print("DEBUG: Final dtypes before to_sql for key columns:")
             if 'business_agreement_ratio' in all_company_data.columns:
-                print(f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
+                print(
+                    f"  business_agreement_ratio dtype: {all_company_data['business_agreement_ratio'].dtype}, sample: {all_company_data['business_agreement_ratio'].head().tolist()[:3]}")
             if 'holder_attention_ratio' in all_company_data.columns:
-                print(f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
+                print(
+                    f"  holder_attention_ratio dtype: {all_company_data['holder_attention_ratio'].dtype}, sample: {all_company_data['holder_attention_ratio'].head().tolist()[:3]}")
             if 'product_count' in all_company_data.columns:
-                print(f"  product_count dtype: {all_company_data['product_count'].dtype}")
+                print(
+                    f"  product_count dtype: {all_company_data['product_count'].dtype}")
             if 'business_agreement_count' in all_company_data.columns:
-                print(f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
+                print(
+                    f"  business_agreement_count dtype: {all_company_data['business_agreement_count'].dtype}")
 
             # 确保所有预期的列都存在，填充缺失的聚合列为 None 或 0
             expected_cols = [
-                'company_name', 'company_short_name', # company_id 已删除
+                'company_name', 'company_short_name',  # company_id 已删除
                 'product_count', 'total_fund_size', 'avg_fund_size',
-                'total_holder_count_info', 'latest_date', 
+                'total_holder_count_info', 'latest_date',
                 # avg_price_change_rate 已删除
-                'total_amount', 'avg_turnover_rate', 
+                'total_amount', 'avg_turnover_rate',
                 # total_net_inflow 已删除
                 'total_attention_count', 'total_shares_holders',
-                'total_holder_count_holders', 'holder_attention_ratio', # 新增持仓自选比
-                'total_holding_value', 
-                'business_agreement_count', 'business_agreement_ratio', # 新增商务品占比
+                'total_holder_count_holders', 'holder_attention_ratio',  # 新增持仓自选比
+                'total_holding_value',
+                'business_agreement_count', 'business_agreement_ratio',  # 新增商务品占比
                 'business_agreement_total_size',
                 'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
-                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+                'business_total_holding_value', 'business_holding_value_ratio'  # 新增：允许按这两个新列排序
             ]
             for col in expected_cols:
                 if col not in all_company_data.columns:
-                    all_company_data[col] = None # 如果列不存在，添加并赋值为None
-            
+                    all_company_data[col] = None  # 如果列不存在，添加并赋值为None
+
             # 将NaN替换为None，以便正确插入数据库 (特别是对于非数值型主键如company_id)
-            all_company_data = all_company_data.astype(object).where(pd.notnull(all_company_data), None)
+            all_company_data = all_company_data.astype(
+                object).where(pd.notnull(all_company_data), None)
 
             # 插入数据到 etf_company_analytics
             # 调整列顺序以匹配表定义
             all_company_data = all_company_data[expected_cols]
 
             # 使用 'replace' 确保表总是被DataFrame的内容完全替换，避免UNIQUE constraint问题
-            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False, dtype=self.get_company_analytics_table_sql_dtypes()) # 添加dtype确保类型正确
-            
+            all_company_data.to_sql('etf_company_analytics', conn, if_exists='replace', index=False,
+                                    dtype=self.get_company_analytics_table_sql_dtypes())  # 添加dtype确保类型正确
+
             print(f"成功更新基金公司层面聚合分析数据，共 {len(all_company_data)} 条记录。")
 
             # 计算商务品占比 (需求6)
             print("DEBUG: Before calculating business_agreement_ratio:")
             if 'company_short_name' not in all_company_data.columns and 'company_name' in all_company_data.columns:
-                 # If company_short_name is not there yet (it's the index before reset_index)
-                 temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name' # temp for company name
+                # If company_short_name is not there yet (it's the index before reset_index)
+                # temp for company name
+                temp_company_col = all_company_data.index.name if all_company_data.index.name == 'company_name' else 'company_name'
             elif 'company_short_name' in all_company_data.columns:
-                 temp_company_col = 'company_short_name'
-            else: # Fallback if no suitable company name column is found before reset_index
-                 temp_company_col = None
+                temp_company_col = 'company_short_name'
+            else:  # Fallback if no suitable company name column is found before reset_index
+                temp_company_col = None
 
             if 'product_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("product_count sample:", all_company_data[[temp_company_col, 'product_count']].head())
-                elif temp_company_col and all_company_data.index.name == temp_company_col: # If it is the index
-                    print("product_count sample (index as company name):", all_company_data[['product_count']].head())
+                    print("product_count sample:", all_company_data[[
+                          temp_company_col, 'product_count']].head())
+                elif temp_company_col and all_company_data.index.name == temp_company_col:  # If it is the index
+                    print("product_count sample (index as company name):",
+                          all_company_data[['product_count']].head())
                 else:
-                    print("product_count sample (company name col not found for debug):", all_company_data[['product_count']].head())
-                print("product_count dtypes:", all_company_data['product_count'].dtype)
-                print("product_count has NaN:", all_company_data['product_count'].isnull().any())
-                print("product_count min, max, mean:", all_company_data['product_count'].min(), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
+                    print("product_count sample (company name col not found for debug):",
+                          all_company_data[['product_count']].head())
+                print("product_count dtypes:",
+                      all_company_data['product_count'].dtype)
+                print("product_count has NaN:",
+                      all_company_data['product_count'].isnull().any())
+                print("product_count min, max, mean:", all_company_data['product_count'].min(
+                ), all_company_data['product_count'].max(), all_company_data['product_count'].mean())
             else:
                 print("product_count column MISSING")
 
             if 'business_agreement_count' in all_company_data.columns:
                 if temp_company_col and temp_company_col in all_company_data.columns:
-                    print("business_agreement_count sample:", all_company_data[[temp_company_col, 'business_agreement_count']].head())
+                    print("business_agreement_count sample:", all_company_data[[
+                          temp_company_col, 'business_agreement_count']].head())
                 elif temp_company_col and all_company_data.index.name == temp_company_col:
-                    print("business_agreement_count sample (index as company name):", all_company_data[['business_agreement_count']].head())
+                    print("business_agreement_count sample (index as company name):",
+                          all_company_data[['business_agreement_count']].head())
                 else:
-                    print("business_agreement_count sample (company name col not found for debug):", all_company_data[['business_agreement_count']].head())
-                print("business_agreement_count dtypes:", all_company_data['business_agreement_count'].dtype)
-                print("business_agreement_count has NaN:", all_company_data['business_agreement_count'].isnull().any())
-                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
+                    print("business_agreement_count sample (company name col not found for debug):",
+                          all_company_data[['business_agreement_count']].head())
+                print("business_agreement_count dtypes:",
+                      all_company_data['business_agreement_count'].dtype)
+                print("business_agreement_count has NaN:",
+                      all_company_data['business_agreement_count'].isnull().any())
+                print("business_agreement_count min, max, mean:", all_company_data['business_agreement_count'].min(
+                ), all_company_data['business_agreement_count'].max(), all_company_data['business_agreement_count'].mean())
             else:
                 print("business_agreement_count column MISSING")
 
             if 'product_count' in all_company_data.columns and 'business_agreement_count' in all_company_data.columns:
-                #确保 product_count 和 business_agreement_count 是数值类型
+                # 确保 product_count 和 business_agreement_count 是数值类型
                 # all_company_data['product_count'] = pd.to_numeric(all_company_data['product_count'], errors='coerce') # 移除不必要的转换
                 # all_company_data['business_agreement_count'] = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce') # 移除不必要的转换
-                
+
                 # 计算占比，处理分母为0的情况
                 # 确保参与计算的列是数值类型，并且预先处理NaN为0，以避免计算中出现NaN或类型错误
-                pc_col = pd.to_numeric(all_company_data['product_count'], errors='coerce').fillna(0)
-                bc_col = pd.to_numeric(all_company_data['business_agreement_count'], errors='coerce').fillna(0)
+                pc_col = pd.to_numeric(
+                    all_company_data['product_count'], errors='coerce').fillna(0)
+                bc_col = pd.to_numeric(
+                    all_company_data['business_agreement_count'], errors='coerce').fillna(0)
 
-                print(f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
-                print(f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
+                print(
+                    f"DEBUG: product_count for ratio calculation (after to_numeric, fillna(0)): min={pc_col.min()}, max={pc_col.max()}, mean={pc_col.mean()}")
+                print(
+                    f"DEBUG: business_agreement_count for ratio calculation (after to_numeric, fillna(0)): min={bc_col.min()}, max={bc_col.max()}, mean={bc_col.mean()}")
 
                 all_company_data['business_agreement_ratio'] = \
                     (bc_col * 100.0 / pc_col).where(pc_col != 0, 0)
 
-                print(f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                print(
+                    f"DEBUG: business_agreement_ratio after direct calculation: min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
 
                 # 在四舍五入前，确保列是数值类型并且填充NaN，以避免round的TypeError
-                all_company_data['business_agreement_ratio'] = pd.to_numeric(all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
+                all_company_data['business_agreement_ratio'] = pd.to_numeric(
+                    all_company_data['business_agreement_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['business_agreement_ratio'] = all_company_data['business_agreement_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: business_agreement_ratio after round(2): min={all_company_data['business_agreement_ratio'].min()}, max={all_company_data['business_agreement_ratio'].max()}, mean={all_company_data['business_agreement_ratio'].mean()}")
             else:
-                print("product_count or business_agreement_count column MISSING for business_agreement_ratio")
-                all_company_data['business_agreement_ratio'] = 0.0 # 如果相关列不存在，则占比为0
+                print(
+                    "product_count or business_agreement_count column MISSING for business_agreement_ratio")
+                # 如果相关列不存在，则占比为0
+                all_company_data['business_agreement_ratio'] = 0.0
 
             # 计算持仓自选比 (需求2 新)
             print("DEBUG: Before calculating holder_attention_ratio:")
             if 'total_holder_count_holders' in all_company_data.columns and 'total_attention_count' in all_company_data.columns:
-                h_col = pd.to_numeric(all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
-                a_col = pd.to_numeric(all_company_data['total_attention_count'], errors='coerce').fillna(0)
-                
-                print(f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
-                print(f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
+                h_col = pd.to_numeric(
+                    all_company_data['total_holder_count_holders'], errors='coerce').fillna(0)
+                a_col = pd.to_numeric(
+                    all_company_data['total_attention_count'], errors='coerce').fillna(0)
+
+                print(
+                    f"DEBUG: total_holder_count_holders for ratio (after to_numeric, fillna(0)): min={h_col.min()}, max={h_col.max()}, mean={h_col.mean()}")
+                print(
+                    f"DEBUG: total_attention_count for ratio (after to_numeric, fillna(0)): min={a_col.min()}, max={a_col.max()}, mean={a_col.mean()}")
 
                 all_company_data['holder_attention_ratio'] = \
                     (h_col * 100.0 / a_col).where(a_col != 0, 0)
-                
-                all_company_data['holder_attention_ratio'] = pd.to_numeric(all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
-                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(2) # 保留两位小数
-                print(f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
+
+                all_company_data['holder_attention_ratio'] = pd.to_numeric(
+                    all_company_data['holder_attention_ratio'], errors='coerce').fillna(0.0)
+                all_company_data['holder_attention_ratio'] = all_company_data['holder_attention_ratio'].round(
+                    2)  # 保留两位小数
+                print(
+                    f"DEBUG: holder_attention_ratio after calculation and round(2): min={all_company_data['holder_attention_ratio'].min()}, max={all_company_data['holder_attention_ratio'].max()}, mean={all_company_data['holder_attention_ratio'].mean()}")
             else:
-                print("total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
+                print(
+                    "total_holder_count_holders or total_attention_count column MISSING for holder_attention_ratio")
                 all_company_data['holder_attention_ratio'] = 0.0
 
             # 重置索引，使 company_name 成为一列
             all_company_data = all_company_data.reset_index()
-            
+
             return True
 
         except sqlite3.Error as e:
@@ -1460,7 +1815,7 @@ class Database:
             'total_holder_count_holders': 'INTEGER',
             'holder_attention_ratio': 'REAL',
             'total_holding_value': 'REAL',
-            'business_total_holding_value': 'REAL', # 新增
+            'business_total_holding_value': 'REAL',  # 新增
             'business_holding_value_ratio': 'REAL',  # 新增
             'latest_date': 'TEXT',
             'company_name': 'TEXT',
@@ -1473,15 +1828,16 @@ class Database:
             'business_agreement_avg_cust_fee': 'REAL',
             'update_timestamp': 'TEXT'
         }
-    
+
     def get_existing_dates(self, table_name, code=None):
         """获取指定表中已存在的日期"""
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             if code:
-                cursor.execute(f"SELECT DISTINCT date FROM {table_name} WHERE code = ?", (code,))
+                cursor.execute(
+                    f"SELECT DISTINCT date FROM {table_name} WHERE code = ?", (code,))
             else:
                 cursor.execute(f"SELECT DISTINCT date FROM {table_name}")
             dates = [row[0] for row in cursor.fetchall()]
@@ -1490,29 +1846,30 @@ class Database:
         except Exception as e:
             print(f"获取日期时出错: {str(e)}")
             return []
-    
+
     def save_etf_info(self, df: pd.DataFrame) -> bool:
         """保存ETF基本信息"""
         try:
             print("开始处理ETF基本信息数据...")
-            
+
             # 显示原始数据信息
             print("原始列名：", df.columns.tolist())
             print("原始数据前5行：")
             print(df.head())
-            
+
             # 标准化列名（去除多余的空格和换行符）
-            df.columns = [col.strip().replace('\n', ' ').replace('[', '(').replace(']', ')') for col in df.columns]
-            
+            df.columns = [col.strip().replace('\n', ' ').replace(
+                '[', '(').replace(']', ')') for col in df.columns]
+
             # 标准化ETF代码
             from utils.etf_code import normalize_etf_code
-            
+
             if '证券代码' in df.columns:
                 print("标准化ETF代码...")
                 print("标准化前示例：", df['证券代码'].head(5).tolist())
                 df['证券代码'] = df['证券代码'].apply(normalize_etf_code)
                 print("标准化后示例：", df['证券代码'].head(5).tolist())
-            
+
             # 检查列名是否包含指定的关键词
             column_keywords = {
                 '基金规模': 'fund_size',
@@ -1528,33 +1885,35 @@ class Database:
                 '成交笔数': 'transaction_count',
                 '总市值': 'total_market_value'
             }
-            
+
             # 重命名包含关键词的列
             for cn_keyword, en_name in column_keywords.items():
-                matching_cols = [col for col in df.columns if cn_keyword in col]
+                matching_cols = [
+                    col for col in df.columns if cn_keyword in col]
                 if matching_cols:
                     # 用第一个匹配的列名
                     print(f"列名映射: '{matching_cols[0]}' -> '{en_name}'")
                     df = df.rename(columns={matching_cols[0]: en_name})
-            
+
             # 将业绩比较基准、成立年限、成立日期、场内简称和跟踪指数名称映射为英文字段名
             if '业绩比较基准' in df.columns:
                 df = df.rename(columns={'业绩比较基准': 'benchmark'})
-            
+
             if '成立年限' in df.columns or any('成立年限' in col for col in df.columns):
                 matching_cols = [col for col in df.columns if '成立年限' in col]
                 if matching_cols:
-                    df = df.rename(columns={matching_cols[0]: 'years_since_establishment'})
-            
+                    df = df.rename(
+                        columns={matching_cols[0]: 'years_since_establishment'})
+
             if '基金成立日' in df.columns:
                 df = df.rename(columns={'基金成立日': 'establishment_date'})
-            
+
             if '基金场内简称' in df.columns:
                 df = df.rename(columns={'基金场内简称': 'fund_exchange_abbr'})
-            
+
             if '跟踪指数名称' in df.columns:
                 df = df.rename(columns={'跟踪指数名称': 'tracking_index_name'})
-            
+
             # 基本的列名映射
             column_mapping = {
                 '证券代码': 'code',
@@ -1564,14 +1923,14 @@ class Database:
                 '指数使用费率': 'index_usage_fee',
                 '跟踪指数代码': 'tracking_index_code'
             }
-            
+
             # 重命名基本列
             for old_name, new_name in column_mapping.items():
                 if old_name in df.columns:
                     df = df.rename(columns={old_name: new_name})
-            
+
             print("重命名后的列名：", df.columns.tolist())
-            
+
             # 标准化ETF代码（确保一致性）
             if 'code' in df.columns:
                 print("标准化ETF代码...")
@@ -1580,7 +1939,7 @@ class Database:
                 print("标准化后示例：", df['code'].head(5).tolist())
                 # 显示ETF代码的唯一数量
                 print(f"标准化后唯一代码数量: {df['code'].nunique()}")
-            
+
             # 定义所有我们需要的列
             required_columns = ['code', 'name', 'fund_manager']
             optional_columns = [
@@ -1592,40 +1951,45 @@ class Database:
                 'years_since_establishment', 'establishment_date', 'fund_exchange_abbr',
                 'date'
             ]
-            
+
             # 检查必需列是否存在
-            missing_required = [col for col in required_columns if col not in df.columns]
+            missing_required = [
+                col for col in required_columns if col not in df.columns]
             if missing_required:
                 print(f"错误：缺少必需列 {missing_required}")
                 return False
-            
+
             # 创建最终的数据框，只包含我们定义的列
-            final_columns = required_columns + [col for col in optional_columns if col in df.columns]
-            
+            final_columns = required_columns + \
+                [col for col in optional_columns if col in df.columns]
+
             # 选择存在的列，丢弃其他未映射列
             final_df = df[final_columns].copy()
-            
+
             # 为所有可选列设置默认值（如果不存在）
             for col in optional_columns:
                 if col not in final_df.columns:
                     final_df[col] = None
-            
+
             # 处理基金规模数据
             if 'fund_size' in final_df.columns:
                 print("\n处理基金规模数据...")
                 print(f"基金规模列的数据类型： {final_df['fund_size'].dtype}")
-                print(f"基金规模的唯一值： {final_df['fund_size'].unique()[:5]}")  # 只显示前5个唯一值
-                
+                # 只显示前5个唯一值
+                print(f"基金规模的唯一值： {final_df['fund_size'].unique()[:5]}")
+
                 # 将基金规模转换为浮点数
-                final_df['fund_size'] = pd.to_numeric(final_df['fund_size'], errors='coerce')
-                
+                final_df['fund_size'] = pd.to_numeric(
+                    final_df['fund_size'], errors='coerce')
+
                 # 显示基金规模的统计信息
                 print("\n处理后的基金规模统计：")
                 print(final_df['fund_size'].describe())
-            
+
             # 处理费率数据
-            fee_columns = ['management_fee_rate', 'custody_fee_rate', 'index_usage_fee']
-            
+            fee_columns = ['management_fee_rate',
+                           'custody_fee_rate', 'index_usage_fee']
+
             # 定义处理费率的函数
             def process_fee_rate(value):
                 if pd.isna(value):
@@ -1644,19 +2008,21 @@ class Database:
                     return value
                 except (ValueError, TypeError):
                     return 0.0
-            
+
             # 处理费率列
             for col in fee_columns:
                 if col in final_df.columns:
                     final_df[col] = final_df[col].apply(process_fee_rate)
-            
+
             # 添加total_annual_fee_rate列
-            fee_cols_exist = [col for col in fee_columns if col in final_df.columns]
+            fee_cols_exist = [
+                col for col in fee_columns if col in final_df.columns]
             if fee_cols_exist:
-                final_df['total_annual_fee_rate'] = final_df[fee_cols_exist].sum(axis=1)
+                final_df['total_annual_fee_rate'] = final_df[fee_cols_exist].sum(
+                    axis=1)
             else:
                 final_df['total_annual_fee_rate'] = 0.0
-            
+
             # 处理数量和金额字段
             def process_numeric_value(value, unit_mult=1.0):
                 if pd.isna(value):
@@ -1674,35 +2040,41 @@ class Database:
                 except (ValueError, TypeError):
                     print(f"警告：无法转换数值 '{value}' 为数字")
                     return 0.0
-            
+
             # 处理月交易量数据（从百万元转为亿元）
             if 'monthly_volume' in final_df.columns:
-                final_df['monthly_volume'] = final_df['monthly_volume'].apply(lambda x: process_numeric_value(x, 0.01))  # 百万到亿的转换
-            
+                final_df['monthly_volume'] = final_df['monthly_volume'].apply(
+                    lambda x: process_numeric_value(x, 0.01))  # 百万到亿的转换
+
             # 处理交易量数据
             if 'daily_avg_volume' in final_df.columns:
-                final_df['daily_avg_volume'] = final_df['daily_avg_volume'].apply(process_numeric_value)
-            
+                final_df['daily_avg_volume'] = final_df['daily_avg_volume'].apply(
+                    process_numeric_value)
+
             # 处理换手率
             if 'turnover_rate' in final_df.columns:
-                final_df['turnover_rate'] = final_df['turnover_rate'].apply(process_numeric_value)
-            
+                final_df['turnover_rate'] = final_df['turnover_rate'].apply(
+                    process_numeric_value)
+
             # 处理日交易量
             if 'daily_volume' in final_df.columns:
-                final_df['daily_volume'] = final_df['daily_volume'].apply(process_numeric_value)
-            
+                final_df['daily_volume'] = final_df['daily_volume'].apply(
+                    process_numeric_value)
+
             # 处理成交笔数
             if 'transaction_count' in final_df.columns:
-                final_df['transaction_count'] = final_df['transaction_count'].apply(lambda x: int(process_numeric_value(x)) if pd.notna(x) else 0)
-            
+                final_df['transaction_count'] = final_df['transaction_count'].apply(
+                    lambda x: int(process_numeric_value(x)) if pd.notna(x) else 0)
+
             # 处理总市值
             if 'total_market_value' in final_df.columns:
-                final_df['total_market_value'] = final_df['total_market_value'].apply(process_numeric_value)
-            
+                final_df['total_market_value'] = final_df['total_market_value'].apply(
+                    process_numeric_value)
+
             # 添加更新时间
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             final_df['update_time'] = current_time
-            
+
             # 添加或使用文件提供的日期列
             # 如果df中已经有date列（从文件名提取的日期），则使用该列
             # 否则使用当前日期
@@ -1712,16 +2084,16 @@ class Database:
                 print(f"未发现日期字段，使用当前日期：{current_date}")
             else:
                 print(f"使用文件中提供的日期：{final_df['date'].iloc[0]}")
-                
+
             # 添加管理人简称
             print("\n处理基金管理人简称...")
-            
+
             # 基金管理人简称提取函数
             def get_manager_short(full_name):
                 """基金管理人简称提取"""
                 if pd.isna(full_name) or not full_name:
                     return "未知"
-                
+
                 # 特定公司单独处理
                 if "摩根基金管理" in full_name:
                     return "摩根"
@@ -1731,35 +2103,37 @@ class Database:
                     return "华泰资管"
                 elif "中银国际证券" in full_name:
                     return "中银国际"
-                
+
                 # 通用后缀处理
                 short_name = full_name
                 # 移除常见后缀
                 suffixes = [
-                    "基金管理有限公司", "基金管理股份有限公司", "基金管理有限责任公司", 
+                    "基金管理有限公司", "基金管理股份有限公司", "基金管理有限责任公司",
                     "基金管理公司", "基金", "股份有限公司", "有限公司", "有限责任公司",
                     "证券资产管理有限公司", "证券资产管理", "资产管理有限公司", "资产管理"
                 ]
-                
+
                 for suffix in suffixes:
                     short_name = short_name.replace(suffix, "")
-                
+
                 return short_name
-            
+
             # 生成管理人简称
             if 'fund_manager' in final_df.columns:
-                final_df['manager_short'] = final_df['fund_manager'].apply(get_manager_short)
+                final_df['manager_short'] = final_df['fund_manager'].apply(
+                    get_manager_short)
                 print("管理人简称示例：")
                 print(final_df[['fund_manager', 'manager_short']].head())
             else:
                 final_df['manager_short'] = "未知"
                 print("警告: 没有fund_manager字段, 所有manager_short设为默认值'未知'")
-            
+
             # 显示数据示例
             print("\n最终数据示例：")
-            print(final_df[['code', 'name', 'fund_manager', 'manager_short', 'fund_size']].head())
+            print(final_df[['code', 'name', 'fund_manager',
+                  'manager_short', 'fund_size']].head())
             print("\n数据形状：", final_df.shape)
-            
+
             # 删除现有表并重新创建
             conn = self.connect()
             cursor = conn.cursor()
@@ -1795,15 +2169,15 @@ class Database:
                     update_time TIMESTAMP
                 )
             """)
-            
+
             # 保存到主表
             final_df.to_sql('etf_info', conn, if_exists='append', index=False)
-            
+
             conn.commit()
-            
+
             print(f"\n成功保存ETF基本信息，共{len(final_df)}条记录")
             return True
-        
+
         except Exception as e:
             print(f"保存ETF基本信息失败: {str(e)}")
             import traceback
@@ -1811,110 +2185,116 @@ class Database:
             if self.conn:
                 self.conn.rollback()
             return False
-    
+
     def save_etf_price(self, df: pd.DataFrame) -> bool:
         """保存ETF价格数据"""
         try:
             print("开始处理ETF价格数据...")
-            
+
             # 导入normalize_etf_code函数用于标准化ETF代码
             from utils.etf_code import normalize_etf_code
-            
+
             # 显示原始数据信息
             print("原始列名：", df.columns.tolist())
             print("原始数据形状：", df.shape)
-            
+
             # 确保代码列正确
             if 'code' not in df.columns:
                 print("缺少代码列，无法继续处理")
                 return False
-            
+
             # 确保数据日期和更新时间存在
             if 'date' not in df.columns:
                 current_date = datetime.now().strftime('%Y-%m-%d')
                 df['date'] = current_date
                 print(f"未发现日期字段，使用当前日期：{current_date}")
-            
+
             if 'update_time' not in df.columns:
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 df['update_time'] = current_time
                 print(f"未发现更新时间字段，使用当前时间：{current_time}")
-            
+
             # 转换数据类型 - 对所有可能的数值列进行处理
             numeric_columns = [
                 'change_rate', 'turnover_rate', 'amount', 'transaction_count', 'total_market_value',
                 'close_price', 'open_price', 'high_price', 'low_price', 'amplitude',
                 'premium_discount', 'premium_discount_rate'
             ]
-            
+
             # 仅处理存在的列
-            numeric_columns = [col for col in numeric_columns if col in df.columns]
-            
+            numeric_columns = [
+                col for col in numeric_columns if col in df.columns]
+
             # 转换数值类型
             for col in numeric_columns:
                 try:
                     # 如果列是字符串类型，尝试清理和转换
                     if df[col].dtype == 'object':
                         # 移除非数字字符（如%、,等）
-                        df[col] = df[col].astype(str).str.replace('%', '').str.replace(',', '').str.strip()
+                        df[col] = df[col].astype(str).str.replace(
+                            '%', '').str.replace(',', '').str.strip()
                     # 转换为浮点数
                     df[col] = pd.to_numeric(df[col], errors='coerce')
                 except Exception as e:
                     print(f"转换列 {col} 时出错: {str(e)}")
                     df[col] = 0.0  # 转换失败时设为默认值
-            
+
             # 保存到数据库
             conn = self.connect()
             try:
                 # 创建或替换现有表
                 cursor = conn.cursor()
                 cursor.execute("DROP TABLE IF EXISTS etf_price")
-                
+
                 # 动态创建表字段列表
                 fields = ["code TEXT", "date TEXT"]
                 for col in numeric_columns:
                     fields.append(f"{col} REAL")
                 fields.append("update_time TIMESTAMP")
                 fields.append("PRIMARY KEY (code, date)")
-                
+
                 # 创建表
                 create_table_sql = f"CREATE TABLE etf_price ({', '.join(fields)})"
                 print(f"创建表SQL: {create_table_sql}")
                 cursor.execute(create_table_sql)
-                
+
                 # 同时删除并重新创建历史表，确保结构一致
                 cursor.execute("DROP TABLE IF EXISTS etf_price_history")
-                
+
                 # 创建历史表，结构与主表相同，但主键改为ID
-                history_fields = ["id INTEGER PRIMARY KEY AUTOINCREMENT", "code TEXT", "date TEXT"]
+                history_fields = [
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT", "code TEXT", "date TEXT"]
                 for col in numeric_columns:
                     history_fields.append(f"{col} REAL")
                 history_fields.append("update_time TIMESTAMP")
                 history_fields.append("UNIQUE(code, date)")
-                
+
                 create_history_sql = f"CREATE TABLE etf_price_history ({', '.join(history_fields)})"
                 print(f"创建历史表SQL: {create_history_sql}")
                 cursor.execute(create_history_sql)
-                
+
                 # 选择要保存的列 - 只保存表中定义的列
-                save_columns = ['code', 'date'] + numeric_columns + ['update_time']
+                save_columns = ['code', 'date'] + \
+                    numeric_columns + ['update_time']
                 # 确保所有列都存在于DataFrame中
                 for col in save_columns:
                     if col not in df.columns:
                         print(f"添加缺失的列 {col}")
                         df[col] = None
-                
+
                 # 只保存定义的列
                 save_df = df[save_columns].copy()
                 print(f"保存到数据库的列: {save_df.columns.tolist()}")
                 print(f"保存的数据样本:\n{save_df.head(2)}")
-                
+
                 # 保存数据到主表
-                save_df.to_sql('etf_price', conn, if_exists='append', index=False)
-                
+                save_df.to_sql('etf_price', conn,
+                               if_exists='append', index=False)
+
                 # 保存数据到历史表 - 使用与主表相同的列
-                save_df.to_sql('etf_price_history', conn, if_exists='append', index=False)
-                
+                save_df.to_sql('etf_price_history', conn,
+                               if_exists='append', index=False)
+
                 conn.commit()
                 print(f"成功保存ETF价格数据，共{len(df)}条记录")
                 print(f"同时保存了{len(df)}条价格历史记录到etf_price_history表")
@@ -1930,34 +2310,35 @@ class Database:
             import traceback
             traceback.print_exc()
             return False
-    
+
     def save_etf_attention(self, df: pd.DataFrame) -> bool:
         """保存ETF自选数据"""
         try:
             print("开始处理ETF自选数据...")
-            
+
             # 显示原始列名和数据
             print("原始列名：", df.columns.tolist())
             print("原始数据前5行：")
             print(df.head())
-            
+
             # 重命名列
             column_mapping = {
                 '标的代码': 'code',
                 '加自选人数': 'attention_count'
             }
             df = df.rename(columns=column_mapping)
-            
+
             # 处理代码列
             df['code'] = df['code'].astype(str).str.zfill(6)
-            
+
             # 确保所需列存在
             required_columns = ['code', 'attention_count']
-            missing_columns = [col for col in required_columns if col not in df.columns]
+            missing_columns = [
+                col for col in required_columns if col not in df.columns]
             if missing_columns:
                 print(f"ETF自选数据缺少必需字段: {missing_columns}")
                 return False
-            
+
             # 确保date字段存在，如果不存在使用当前日期
             if 'date' not in df.columns:
                 # 添加日期列（仅取日期部分）
@@ -1966,23 +2347,24 @@ class Database:
                 print(f"未发现日期字段，使用当前日期：{current_date}")
             else:
                 print(f"使用文件中提供的日期：{df['date'].iloc[0]}")
-            
+
             # 添加更新时间
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             df['update_time'] = current_time
-            
+
             # 确保数字类型正确
             try:
-                df['attention_count'] = pd.to_numeric(df['attention_count'], errors='coerce').fillna(0).astype(int)
+                df['attention_count'] = pd.to_numeric(
+                    df['attention_count'], errors='coerce').fillna(0).astype(int)
             except Exception as e:
                 print(f"转换自选人数时出错: {str(e)}")
-            
+
             # 选择需要的列
             df = df[['code', 'attention_count', 'date', 'update_time']]
-            
+
             # 保存到数据库
             conn = self.connect()
-            
+
             # 删除现有表并重新创建
             cursor = conn.cursor()
             cursor.execute("DROP TABLE IF EXISTS etf_attention")
@@ -1994,7 +2376,7 @@ class Database:
                     update_time TIMESTAMP
                 )
             """)
-            
+
             # 同时保存到历史表
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS etf_attention_history (
@@ -2006,27 +2388,31 @@ class Database:
                     UNIQUE(code, date)
                 )
             """)
-            
+
             # 保存到主表
-            df[['code', 'attention_count', 'date', 'update_time']].to_sql('etf_attention', conn, if_exists='append', index=False)
-            
+            df[['code', 'attention_count', 'date', 'update_time']].to_sql(
+                'etf_attention', conn, if_exists='append', index=False)
+
             # 获取当前数据的日期
-            current_date = df['date'].iloc[0] if not df.empty else datetime.now().strftime('%Y-%m-%d')
-            
+            current_date = df['date'].iloc[0] if not df.empty else datetime.now().strftime(
+                '%Y-%m-%d')
+
             # 先删除历史表中同一天的记录
-            cursor.execute("DELETE FROM etf_attention_history WHERE date = ?", (current_date,))
+            cursor.execute(
+                "DELETE FROM etf_attention_history WHERE date = ?", (current_date,))
             print(f"已删除历史表中日期为 {current_date} 的记录")
-            
+
             # 保存到历史表
-            df[['code', 'attention_count', 'date', 'update_time']].to_sql('etf_attention_history', conn, if_exists='append', index=False)
-            
+            df[['code', 'attention_count', 'date', 'update_time']].to_sql(
+                'etf_attention_history', conn, if_exists='append', index=False)
+
             conn.commit()
             cursor.close()  # 只关闭游标，不关闭连接
-            
+
             print(f"成功保存ETF自选数据，共{len(df)}条记录")
             print(f"同时保存了{len(df)}条历史记录到etf_attention_history表")
             return True
-            
+
         except Exception as e:
             print(f"保存ETF自选数据失败: {str(e)}")
             import traceback
@@ -2034,36 +2420,37 @@ class Database:
             if self.conn:
                 self.conn.rollback()
             return False
-    
+
     def save_etf_holders(self, df: pd.DataFrame) -> bool:
         """保存ETF持有人数据"""
         try:
             print("开始处理ETF持有人数据...")
-            
+
             # 显示原始列名和数据
             print("原始列名：", df.columns.tolist())
             print("原始数据前5行：")
             print(df.head())
-            
+
             # 检查DataFrame是否为空
             if df.empty:
                 print("ETF持有人数据为空")
                 return False
-            
+
             # 确保所需列存在
             required_columns = ['code']
-            missing_columns = [col for col in required_columns if col not in df.columns]
+            missing_columns = [
+                col for col in required_columns if col not in df.columns]
             if missing_columns:
                 print(f"ETF持有人数据缺少必需字段: {missing_columns}")
                 return False
-            
+
             # 处理代码列
             df['code'] = df['code'].astype(str).str.strip()
             # 确保是6位数字代码
             df['code'] = df['code'].str.extract(r'(\d{6})').fillna('')
             # 移除空代码的行
             df = df[df['code'] != '']
-            
+
             # 确保holder_count、holding_amount和holding_value列存在
             if 'holder_count' not in df.columns:
                 df['holder_count'] = 0
@@ -2071,19 +2458,22 @@ class Database:
                 df['holding_amount'] = 0.0
             if 'holding_value' not in df.columns:
                 df['holding_value'] = 0.0
-            
+
             # 转换为数字类型
             try:
-                df['holder_count'] = pd.to_numeric(df['holder_count'], errors='coerce').fillna(0).astype(int)
-                df['holding_amount'] = pd.to_numeric(df['holding_amount'], errors='coerce').fillna(0).astype(float)
-                df['holding_value'] = pd.to_numeric(df['holding_value'], errors='coerce').fillna(0).astype(float)
+                df['holder_count'] = pd.to_numeric(
+                    df['holder_count'], errors='coerce').fillna(0).astype(int)
+                df['holding_amount'] = pd.to_numeric(
+                    df['holding_amount'], errors='coerce').fillna(0).astype(float)
+                df['holding_value'] = pd.to_numeric(
+                    df['holding_value'], errors='coerce').fillna(0).astype(float)
             except Exception as e:
                 print(f"转换数值时出错: {str(e)}")
-            
+
             # 添加更新时间
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             df['update_time'] = current_time
-            
+
             # 确保date字段存在，如果不存在使用当前日期
             if 'date' not in df.columns:
                 # 添加日期列（仅取日期部分）
@@ -2092,14 +2482,15 @@ class Database:
                 print(f"未发现日期字段，使用当前日期：{current_date}")
             else:
                 print(f"使用文件中提供的日期：{df['date'].iloc[0]}")
-            
+
             # 选择最终列
-            final_columns = ['code', 'holder_count', 'holding_amount', 'holding_value', 'date', 'update_time']
+            final_columns = ['code', 'holder_count', 'holding_amount',
+                             'holding_value', 'date', 'update_time']
             df = df[final_columns]
-            
+
             # 保存到数据库
             conn = self.connect()
-            
+
             # 删除现有表并重新创建
             cursor = conn.cursor()
             cursor.execute("DROP TABLE IF EXISTS etf_holders")
@@ -2114,7 +2505,7 @@ class Database:
                     FOREIGN KEY (code) REFERENCES etf_info(code)
                 )
             """)
-            
+
             # 同时创建历史表（如果不存在）
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS etf_holders_history (
@@ -2128,27 +2519,31 @@ class Database:
                     UNIQUE(code, date)
                 )
             """)
-            
+
             # 保存到主表
-            df[['code', 'holder_count', 'holding_amount', 'holding_value', 'date', 'update_time']].to_sql('etf_holders', conn, if_exists='append', index=False)
-            
+            df[['code', 'holder_count', 'holding_amount', 'holding_value', 'date', 'update_time']].to_sql(
+                'etf_holders', conn, if_exists='append', index=False)
+
             # 获取当前数据的日期
-            current_date = df['date'].iloc[0] if not df.empty else datetime.now().strftime('%Y-%m-%d')
-            
+            current_date = df['date'].iloc[0] if not df.empty else datetime.now().strftime(
+                '%Y-%m-%d')
+
             # 先删除历史表中同一天的记录
-            cursor.execute("DELETE FROM etf_holders_history WHERE date = ?", (current_date,))
+            cursor.execute(
+                "DELETE FROM etf_holders_history WHERE date = ?", (current_date,))
             print(f"已删除历史表中日期为 {current_date} 的记录")
-            
+
             # 保存到历史表
-            df[['code', 'holder_count', 'holding_amount', 'holding_value', 'date', 'update_time']].to_sql('etf_holders_history', conn, if_exists='append', index=False)
-            
+            df[['code', 'holder_count', 'holding_amount', 'holding_value', 'date', 'update_time']].to_sql(
+                'etf_holders_history', conn, if_exists='append', index=False)
+
             conn.commit()
             cursor.close()  # 只关闭游标，不关闭连接
-            
+
             print(f"成功保存ETF持有人数据，共{len(df)}条记录")
             print(f"同时保存了{len(df)}条历史记录到etf_holders_history表")
             return True
-            
+
         except Exception as e:
             print(f"保存ETF持有人数据失败: {str(e)}")
             if self.conn:
@@ -2157,7 +2552,7 @@ class Database:
                 except:
                     pass
             return False
-    
+
     def save_etf_index_classification(self, df: pd.DataFrame) -> bool:
         """保存ETF指数分类数据"""
         try:
@@ -2170,29 +2565,32 @@ class Database:
                 '跟踪指数名称': 'index_name',
                 '跟踪基金个数（9 月）': 'fund_count'
             }
-            
+
             # 重命名列
             df = df.rename(columns=columns_mapping)
-            
+
             # 检查必需字段
-            required_columns = ['index_code', 'level1', 'level2', 'level3', 'index_name', 'fund_count']
-            missing_columns = [col for col in required_columns if col not in df.columns]
+            required_columns = ['index_code', 'level1',
+                                'level2', 'level3', 'index_name', 'fund_count']
+            missing_columns = [
+                col for col in required_columns if col not in df.columns]
             if missing_columns:
                 print(f"ETF指数分类数据缺少必需字段: {missing_columns}")
                 return False
-            
+
             # 选择需要的列
             df = df[required_columns]
-            
+
             # 转换数据类型
             numeric_columns = ['fund_count']
             for col in numeric_columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
-            
+
             # 保存到数据库
             conn = self.connect()
             try:
-                df.to_sql('etf_index_classification', conn, if_exists='replace', index=False)
+                df.to_sql('etf_index_classification', conn,
+                          if_exists='replace', index=False)
                 print(f"成功保存ETF指数分类数据，共{len(df)}条记录")
                 return True
             except Exception as e:
@@ -2201,17 +2599,17 @@ class Database:
         except Exception as e:
             print(f"处理ETF指数分类数据失败: {str(e)}")
             return False
-    
+
     def save_business_etf(self, df: pd.DataFrame) -> bool:
         """保存ETF商务协议数据"""
         try:
             print("开始处理ETF商务协议数据...")
-            
+
             # 显示原始列名和数据
             print("原始列名：", df.columns.tolist())
             print("原始数据前5行：")
             print(df.head())
-            
+
             # 重命名列
             column_mapping = {
                 '证券代码': 'code',
@@ -2225,27 +2623,28 @@ class Database:
                 '规模': 'fund_size'  # 修改这里，将规模映射到fund_size
             }
             df = df.rename(columns=column_mapping)
-            
+
             # 处理代码列
             df['code'] = df['code'].astype(str).str.zfill(6)
-            
+
             # 确保所需列存在
             required_columns = ['code', 'product_name', 'fund_company_short', 'start_date', 'end_date',
-                              'management_fee_rate', 'custody_fee_rate', 'fund_size']
-            missing_columns = [col for col in required_columns if col not in df.columns]
+                                'management_fee_rate', 'custody_fee_rate', 'fund_size']
+            missing_columns = [
+                col for col in required_columns if col not in df.columns]
             if missing_columns:
                 print(f"ETF商务协议数据缺少必需字段: {missing_columns}")
                 return False
-            
+
             # 选择需要的列
             df = df[required_columns]
-            
+
             # 添加更新时间
             df['update_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            
+
             # 保存到数据库
             conn = self.connect()
-            
+
             # 创建游标执行DROP TABLE操作
             cursor = conn.cursor()
             cursor.execute("DROP TABLE IF EXISTS etf_business")
@@ -2262,21 +2661,21 @@ class Database:
                     update_time TIMESTAMP
                 )
             """)
-            
+
             # 保存数据
             df.to_sql('etf_business', conn, if_exists='append', index=False)
             conn.commit()
             cursor.close()  # 只关闭游标，不关闭连接
-            
+
             print(f"成功保存ETF商务协议数据，共{len(df)}条记录")
             return True
-        
+
         except Exception as e:
             print(f"保存ETF商务协议数据失败: {str(e)}")
             if self.conn:
                 self.conn.rollback()
             return False
-    
+
     def check_etf_code_exists(self, code):
         """检查ETF代码是否存在"""
         try:
@@ -2286,29 +2685,29 @@ class Database:
                 base_code = code.split('.')[0]
             elif code.startswith('sh') or code.startswith('sz'):
                 base_code = code[2:]
-            
+
             # 确保是6位数字
             base_code = base_code.zfill(6)
-            
+
             print(f"检查ETF代码是否存在: {code} -> {base_code}")
-            
+
             # 使用两种模式匹配：精确匹配和带后缀匹配
             query = "SELECT COUNT(*) FROM etf_info WHERE code LIKE ? OR code LIKE ?"
             params = [f"%{base_code}%", f"%{base_code}.%"]
-            
+
             print(f"执行查询: {query}")
             print(f"查询参数: {params}")
-            
+
             result = self.execute_query(query, params)
             exists = result[0][0] > 0 if result else False
-            
+
             print(f"ETF代码是否存在: {exists}")
             return exists
-            
+
         except Exception as e:
             print(f"检查ETF代码是否存在时出错: {str(e)}")
             return False
-    
+
     def check_company_exists(self, company_name):
         """检查基金公司是否存在"""
         try:
@@ -2318,7 +2717,7 @@ class Database:
         except Exception as e:
             print(f"检查基金公司是否存在时出错: {str(e)}")
             return False
-    
+
     def check_index_name_exists(self, index_name):
         """检查指数名称是否存在"""
         try:
@@ -2328,17 +2727,17 @@ class Database:
         except Exception as e:
             print(f"检查指数名称是否存在时出错: {str(e)}")
             return False
-    
+
     def get_attention_changes(self, code: str) -> dict:
         """获取ETF自选人数变化（当日和近5日）"""
         try:
             # 标准化ETF代码
             code = normalize_etf_code(code)
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询最近日期的自选人数
             cursor.execute("""
                 SELECT date, attention_count
@@ -2347,14 +2746,14 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (code,))
-            
+
             latest_data = cursor.fetchone()
-            
+
             if not latest_data:
                 return {'daily_change': 0, 'five_day_change': 0}
-                
+
             latest_date, latest_count = latest_data
-            
+
             # 查询前一天的自选人数
             cursor.execute("""
                 SELECT date, attention_count
@@ -2363,10 +2762,10 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (code, latest_date))
-            
+
             previous_data = cursor.fetchone()
             previous_count = previous_data[1] if previous_data else latest_count
-            
+
             # 查询5天前的自选人数
             cursor.execute("""
                 SELECT date, attention_count
@@ -2375,38 +2774,38 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 6
             """, (code,))
-            
+
             all_data = cursor.fetchall()
             # 安全获取五天前的数据
             five_day_before_count = latest_count  # 默认值
             if len(all_data) >= 6:
                 five_day_before_count = all_data[5][1]
-            
+
             # 计算变化
             daily_change = latest_count - previous_count
             five_day_change = latest_count - five_day_before_count
-            
+
             return {
                 'daily_change': daily_change,
                 'five_day_change': five_day_change
             }
-            
+
         except Exception as e:
             print(f"获取ETF自选人数变化出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return {'daily_change': 0, 'five_day_change': 0}
-    
+
     def get_holder_changes(self, code: str) -> dict:
         """获取ETF持仓人数变化（当日和近5日）"""
         try:
             # 标准化ETF代码
             code = normalize_etf_code(code)
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询最近日期的持仓人数
             cursor.execute("""
                 SELECT date, holder_count
@@ -2415,14 +2814,14 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (code,))
-            
+
             latest_data = cursor.fetchone()
-            
+
             if not latest_data:
                 return {'daily_change': 0, 'five_day_change': 0}
-                
+
             latest_date, latest_count = latest_data
-            
+
             # 查询前一天的持仓人数
             cursor.execute("""
                 SELECT date, holder_count
@@ -2431,10 +2830,10 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (code, latest_date))
-            
+
             previous_data = cursor.fetchone()
             previous_count = previous_data[1] if previous_data else latest_count
-            
+
             # 查询5天前的持仓人数
             cursor.execute("""
                 SELECT date, holder_count
@@ -2443,38 +2842,38 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 6
             """, (code,))
-            
+
             all_data = cursor.fetchall()
             # 安全获取五天前的数据
             five_day_before_count = latest_count  # 默认值
             if len(all_data) >= 6:
                 five_day_before_count = all_data[5][1]
-            
+
             # 计算变化
             daily_change = latest_count - previous_count
             five_day_change = latest_count - five_day_before_count
-            
+
             return {
                 'daily_change': daily_change,
                 'five_day_change': five_day_change
             }
-            
+
         except Exception as e:
             print(f"获取ETF持仓人数变化出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return {'daily_change': 0, 'five_day_change': 0}
-    
+
     def get_value_changes(self, code: str) -> dict:
         """获取ETF持仓市值变化（当日和近5日）"""
         try:
             # 标准化ETF代码
             code = normalize_etf_code(code)
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询最近日期的持仓市值
             cursor.execute("""
                 SELECT date, holding_value
@@ -2483,14 +2882,14 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (code,))
-            
+
             latest_data = cursor.fetchone()
-            
+
             if not latest_data:
                 return {'daily_change': 0, 'five_day_change': 0}
-                
+
             latest_date, latest_value = latest_data
-            
+
             # 查询前一天的持仓市值
             cursor.execute("""
                 SELECT date, holding_value
@@ -2499,10 +2898,10 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (code, latest_date))
-            
+
             previous_data = cursor.fetchone()
             previous_value = previous_data[1] if previous_data else latest_value
-            
+
             # 查询5天前的持仓市值
             cursor.execute("""
                 SELECT date, holding_value
@@ -2511,38 +2910,38 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 6
             """, (code,))
-            
+
             all_data = cursor.fetchall()
             # 安全获取五天前的数据
             five_day_before_value = latest_value  # 默认值
             if len(all_data) >= 6:
                 five_day_before_value = all_data[5][1]
-            
+
             # 计算变化
             daily_change = latest_value - previous_value
             five_day_change = latest_value - five_day_before_value
-            
+
             return {
                 'daily_change': daily_change,
                 'five_day_change': five_day_change
             }
-            
+
         except Exception as e:
             print(f"获取ETF持仓市值变化出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return {'daily_change': 0, 'five_day_change': 0}
-    
+
     def get_amount_changes(self, code: str) -> dict:
         """获取ETF持仓份额变化（当日和近5日）"""
         try:
             # 标准化ETF代码
             code = normalize_etf_code(code)
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询最近日期的持仓份额
             cursor.execute("""
                 SELECT date, holding_amount
@@ -2551,14 +2950,14 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (code,))
-            
+
             latest_data = cursor.fetchone()
-            
+
             if not latest_data:
                 return {'daily_change': 0, 'five_day_change': 0}
-                
+
             latest_date, latest_amount = latest_data
-            
+
             # 查询前一天的持仓份额
             cursor.execute("""
                 SELECT date, holding_amount
@@ -2567,10 +2966,10 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (code, latest_date))
-            
+
             previous_data = cursor.fetchone()
             previous_amount = previous_data[1] if previous_data else latest_amount
-            
+
             # 查询5天前的持仓份额
             cursor.execute("""
                 SELECT date, holding_amount
@@ -2579,28 +2978,28 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 6
             """, (code,))
-            
+
             all_data = cursor.fetchall()
             # 安全获取五天前的数据
             five_day_before_amount = latest_amount  # 默认值
             if len(all_data) >= 6:
                 five_day_before_amount = all_data[5][1]
-            
+
             # 计算变化
             daily_change = latest_amount - previous_amount
             five_day_change = latest_amount - five_day_before_amount
-            
+
             return {
                 'daily_change': daily_change,
                 'five_day_change': five_day_change
             }
-            
+
         except Exception as e:
             print(f"获取ETF持仓份额变化出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return {'daily_change': 0, 'five_day_change': 0}
-    
+
     def search_by_etf_code(self, code: str) -> List[Dict]:
         """根据ETF代码搜索"""
         try:
@@ -2613,9 +3012,9 @@ class Database:
                 code = code[2:]
             # 确保是6位数字
             code = code.zfill(6)
-            
+
             print(f"搜索ETF代码: {code}")
-            
+
             # 构建查询，获取所有必要字段，包括持仓人数和持仓价值
             # 使用 SUBSTR 来提取ETF代码的数字部分进行比较
             query = """
@@ -2648,24 +3047,24 @@ class Database:
             WHERE i.code LIKE ? OR i.code LIKE ?
             ORDER BY i.fund_size DESC
             """
-            
+
             # 执行查询
             results = self.execute_query(query, (f"%{code}%", f"%{code}.%"))
-            
+
             if not results:
                 return []
-            
+
             # 处理结果
             processed_results = []
             for row in results:
                 etf_code = row[0]
-                
+
                 # 获取变化数据
                 attention_changes = self.get_attention_changes(etf_code)
                 holder_changes = self.get_holder_changes(etf_code)
                 value_changes = self.get_value_changes(etf_code)
                 amount_changes = self.get_amount_changes(etf_code)
-                
+
                 result = {
                     'code': etf_code,
                     'name': row[1],
@@ -2681,7 +3080,8 @@ class Database:
                     'custody_fee_rate': float(row[11]) if row[11] is not None else 0.0,
                     'index_usage_fee': float(row[12]) if row[12] is not None else 0.0,
                     'total_annual_fee_rate': float(row[13]) if row[13] is not None else 0.0,
-                    'attention_count': self.get_latest_attention_count(etf_code) or (int(row[14]) if row[14] is not None else 0),  # 优先使用历史表中的最新数据
+                    # 优先使用历史表中的最新数据
+                    'attention_count': self.get_latest_attention_count(etf_code) or (int(row[14]) if row[14] is not None else 0),
                     'is_business': bool(row[15]),
                     'business_text': '商务品' if row[15] else '非商务品',
                     'holder_count': int(row[16]) if row[16] is not None else 0,
@@ -2700,13 +3100,13 @@ class Database:
                     'holding_value_five_day_change': value_changes['five_day_change']
                 }
                 processed_results.append(result)
-            
+
             return processed_results
-            
+
         except Exception as e:
             print(f"搜索ETF代码时出错: {str(e)}")
             return []
-    
+
     def search_by_index_name(self, index_name):
         """搜索与指定指数名称相关的ETF"""
         try:
@@ -2736,41 +3136,42 @@ class Database:
             WHERE i.tracking_index_name LIKE ?
             ORDER BY i.fund_size DESC
             """
-            
+
             # 执行查询
             params = [f'%{index_name}%']
             results = self.execute_query(query, params)
-            
+
             # 如果没有结果，返回空列表
             if not results:
                 return []
-            
+
             # 按跟踪指数分组
             index_groups = {}
             etf_results = []
-            
+
             for row in results:
                 etf_code = row[0]
                 index_code = row[7] or '未知指数'
                 index_name = row[8] or '未知指数名称'
-                
+
                 # 获取变化数据
                 attention_changes = self.get_attention_changes(etf_code)
                 holder_changes = self.get_holder_changes(etf_code)
                 value_changes = self.get_value_changes(etf_code)
                 amount_changes = self.get_amount_changes(etf_code)
-                
+
                 result = {
                     'code': etf_code,
                     'name': row[1],
                     'manager': row[2],
                     'fund_size': float(row[3] or 0),
-                    'management_fee_rate': float(row[4] or 0), 
+                    'management_fee_rate': float(row[4] or 0),
                     'tracking_error': float(row[5] or 0),
                     'total_holder_count': int(row[6] or 0),
                     'tracking_index_code': index_code,
                     'tracking_index_name': index_name,
-                    'attention_count': self.get_latest_attention_count(etf_code) or int(row[9] or 0),  # 优先使用历史表中的最新数据
+                    # 优先使用历史表中的最新数据
+                    'attention_count': self.get_latest_attention_count(etf_code) or int(row[9] or 0),
                     'is_business': bool(row[10]),
                     'business_text': '商务品' if row[10] else '非商务品',
                     'holder_count': int(row[11] or 0),
@@ -2788,10 +3189,10 @@ class Database:
                     'holding_value_daily_change': value_changes['daily_change'],
                     'holding_value_five_day_change': value_changes['five_day_change']
                 }
-                
+
                 # 添加到结果列表
                 etf_results.append(result)
-                
+
                 # 初始化当前指数组
                 if index_code not in index_groups:
                     index_groups[index_code] = {
@@ -2800,26 +3201,27 @@ class Database:
                         'etfs': [],
                         'total_scale': 0
                     }
-                    
+
                     # 添加指数简介
                     index_intro = get_index_intro(index_code)
                     if index_intro:
                         index_groups[index_code]['index_intro'] = index_intro
-                
+
                 # 添加到对应指数组
                 index_groups[index_code]['etfs'].append(result)
                 # 累加该指数的总规模
                 index_groups[index_code]['total_scale'] += result['fund_size']
-            
+
             # 将索引组转为列表并按总规模排序
             index_groups_list = list(index_groups.values())
-            index_groups_list.sort(key=lambda x: x['total_scale'], reverse=True)
-            
+            index_groups_list.sort(
+                key=lambda x: x['total_scale'], reverse=True)
+
             # 对每个指数组内的ETF按规模排序
             for group in index_groups_list:
                 group['etfs'].sort(key=lambda x: x['fund_size'], reverse=True)
                 group['etf_count'] = len(group['etfs'])
-            
+
             # 返回分组结果
             return {
                 'is_grouped': True,
@@ -2828,23 +3230,23 @@ class Database:
                 'count': len(etf_results),
                 'results': etf_results  # 保留原始的扁平结果，以防需要
             }
-            
+
         except Exception as e:
             print(f"按指数名称搜索时出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return []
-    
+
     def search_by_index_code(self, index_code):
         """根据指数代码搜索ETF"""
         try:
             index_code = index_code.strip()
             print(f"搜索指数代码: {index_code}")
-            
+
             # 如果是带后缀的，去掉后缀
             if '.' in index_code:
                 index_code = index_code.split('.')[0]
-            
+
             query = """
             SELECT 
                 i.code, 
@@ -2875,13 +3277,13 @@ class Database:
             WHERE i.tracking_index_code LIKE ?
             ORDER BY i.fund_size DESC
             """
-            
+
             pattern = f"%{index_code}%"
             results = self.execute_query(query, (pattern,))
-            
+
             if not results:
                 return []
-            
+
             processed_results = []
             for row in results:
                 result = {
@@ -2918,19 +3320,19 @@ class Database:
                     'holding_value_five_day_change': self.get_value_changes(row[0])['five_day_change']
                 }
                 processed_results.append(result)
-            
+
             return processed_results
-            
+
         except Exception as e:
             print(f"搜索指数代码时出错: {str(e)}")
             return []
-    
+
     def search_by_company(self, company_name):
         """根据基金公司名称搜索ETF"""
         try:
             company_name = company_name.strip()
             print(f"搜索基金公司: {company_name}")
-            
+
             query = """
             SELECT 
                 i.code, 
@@ -2961,13 +3363,13 @@ class Database:
             WHERE i.fund_manager LIKE ?
             ORDER BY i.fund_size DESC
             """
-            
+
             pattern = f"%{company_name}%"
             results = self.execute_query(query, (pattern,))
-            
+
             if not results:
                 return []
-            
+
             processed_results = []
             for row in results:
                 result = {
@@ -2985,7 +3387,8 @@ class Database:
                     'custody_fee_rate': float(row[11]) if row[11] is not None else 0.0,
                     'index_usage_fee': float(row[12]) if row[12] is not None else 0.0,
                     'total_annual_fee_rate': float(row[13]) if row[13] is not None else 0.0,
-                    'attention_count': self.get_latest_attention_count(row[0]) or (int(row[14]) if row[14] is not None else 0),  # 优先使用历史表中的最新数据
+                    # 优先使用历史表中的最新数据
+                    'attention_count': self.get_latest_attention_count(row[0]) or (int(row[14]) if row[14] is not None else 0),
                     'is_business': bool(row[15]),
                     'business_text': '商务品' if row[15] else '非商务品',
                     'holder_count': int(row[16]) if row[16] is not None else 0,
@@ -3004,21 +3407,21 @@ class Database:
                     'holding_value_five_day_change': self.get_value_changes(row[0])['five_day_change']
                 }
                 processed_results.append(result)
-            
+
             # 明确返回扁平化的结果列表，不按指数分组
             return processed_results
-            
+
         except Exception as e:
             print(f"搜索基金公司时出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return []
-    
+
     def general_search(self, keyword):
         """通用搜索，关键词可能是ETF代码、指数名称、基金公司名称等"""
         try:
             print(f"通用搜索关键词: '{keyword}'")
-            
+
             # 先尝试单独用基金公司名称搜索，看是否有结果
             if '基金' in keyword or '资管' in keyword or '汇添富' in keyword or '华夏' in keyword or '易方达' in keyword:
                 print(f"尝试先用公司名称搜索: '{keyword}'")
@@ -3035,7 +3438,7 @@ class Database:
                     }
                 else:
                     print(f"基金公司名称搜索失败，继续尝试通用搜索")
-            
+
             # 构建查询SQL
             query = """
             SELECT 
@@ -3062,34 +3465,34 @@ class Database:
             WHERE i.code LIKE ? OR i.name LIKE ? OR i.fund_manager LIKE ? OR i.tracking_index_name LIKE ? OR i.tracking_index_code LIKE ?
             ORDER BY i.fund_size DESC
             """
-            
+
             # 执行查询
             params = [f'%{keyword}%'] * 5
             print(f"执行SQL查询: {query}")
             print(f"SQL参数: {params}")
             results = self.execute_query(query, params)
-            
+
             # 如果没有结果，返回空列表
             if not results:
                 print(f"SQL查询没有结果")
                 return []
-            
+
             print(f"SQL查询返回{len(results)}条结果")
             # 按跟踪指数分组
             index_groups = {}
             etf_results = []
-            
+
             for row in results:
                 etf_code = row[0]
                 index_code = row[7] or '未知指数'
                 index_name = row[8] or '未知指数名称'
-                
+
                 # 获取变化数据
                 attention_changes = self.get_attention_changes(etf_code)
                 holder_changes = self.get_holder_changes(etf_code)
                 value_changes = self.get_value_changes(etf_code)
                 amount_changes = self.get_amount_changes(etf_code)
-                
+
                 result = {
                     'code': etf_code,  # row[0]
                     'name': row[1],
@@ -3117,10 +3520,10 @@ class Database:
                     'holding_value_daily_change': value_changes['daily_change'],
                     'holding_value_five_day_change': value_changes['five_day_change']
                 }
-                
+
                 # 添加到结果列表
                 etf_results.append(result)
-                
+
                 # 初始化当前指数组
                 if index_code not in index_groups:
                     index_groups[index_code] = {
@@ -3129,26 +3532,27 @@ class Database:
                         'etfs': [],
                         'total_scale': 0
                     }
-                    
+
                     # 添加指数简介
                     index_intro = get_index_intro(index_code)
                     if index_intro:
                         index_groups[index_code]['index_intro'] = index_intro
-                
+
                 # 添加到对应指数组
                 index_groups[index_code]['etfs'].append(result)
                 # 累加该指数的总规模
                 index_groups[index_code]['total_scale'] += result['fund_size']
-            
+
             # 将索引组转为列表并按总规模排序
             index_groups_list = list(index_groups.values())
-            index_groups_list.sort(key=lambda x: x['total_scale'], reverse=True)
-            
+            index_groups_list.sort(
+                key=lambda x: x['total_scale'], reverse=True)
+
             # 对每个指数组内的ETF按规模排序
             for group in index_groups_list:
                 group['etfs'].sort(key=lambda x: x['fund_size'], reverse=True)
                 group['etf_count'] = len(group['etfs'])
-            
+
             # 返回分组结果
             return {
                 'is_grouped': True,
@@ -3157,13 +3561,13 @@ class Database:
                 'count': len(etf_results),
                 'results': etf_results  # 保留原始的扁平结果，以防需要
             }
-        
+
         except Exception as e:
             print(f"通用搜索时出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return []
-    
+
     def get_etfs_by_index_code(self, index_code):
         """获取指定指数代码的所有ETF"""
         try:
@@ -3175,22 +3579,22 @@ class Database:
             """
             result = self.execute_query(query, (index_code,))
             columns = ['code', 'name', 'fund_size', 'fund_manager', 'exchange', 'tracking_index_code',
-                      'tracking_error', 'information_ratio', 'total_holder_count']
+                       'tracking_error', 'information_ratio', 'total_holder_count']
             return [dict(zip(columns, row)) for row in result]
         except Exception as e:
             print(f"获取指定指数代码的ETF时出错: {str(e)}")
             return []
-    
+
     def get_etf_attention_history(self, etf_code):
         """获取ETF自选人数历史数据"""
         try:
             # 标准化ETF代码
             etf_code = normalize_etf_code(etf_code)
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询指定ETF的历史自选人数
             cursor.execute("""
                 SELECT date, attention_count
@@ -3198,30 +3602,31 @@ class Database:
                 WHERE code LIKE ?
                 ORDER BY date
             """, (f"%{etf_code}%",))
-            
+
             history = cursor.fetchall()
-            
+
             # 格式化结果
-            result = [{"date": date, "attention_count": count} for date, count in history]
-            
+            result = [{"date": date, "attention_count": count}
+                      for date, count in history]
+
             return result
-        
+
         except Exception as e:
             print(f"获取ETF自选人数历史数据出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return []
-            
+
     def get_etf_holders_history(self, etf_code):
         """获取ETF持有人历史数据"""
         try:
             # 标准化ETF代码
             etf_code = normalize_etf_code(etf_code)
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询指定ETF的历史持有人数据
             cursor.execute("""
                 SELECT date, holder_count, holding_amount, holding_value
@@ -3229,36 +3634,35 @@ class Database:
                 WHERE code LIKE ?
                 ORDER BY date
             """, (f"%{etf_code}%",))
-            
+
             history = cursor.fetchall()
-            
+
             # 格式化结果
             result = [
                 {
-                    "date": date, 
+                    "date": date,
                     "holder_count": holder_count,
                     "holding_amount": holding_amount,
                     "holding_value": holding_value
-                } 
+                }
                 for date, holder_count, holding_amount, holding_value in history
             ]
-            
+
             return result
-        
+
         except Exception as e:
             print(f"获取ETF持有人历史数据出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return []
-            
-            
+
             # 如果存在历史规模表，查询历史规模数据
             cursor.execute("""
                 SELECT count(*)
                 FROM sqlite_master
                 WHERE type='table' AND name='etf_fund_size_history'
             """)
-            
+
             if cursor.fetchone()[0] > 0:
                 cursor.execute("""
                     SELECT date, fund_size
@@ -3266,33 +3670,34 @@ class Database:
                     WHERE code LIKE ?
                     ORDER BY date
                 """, (f"%{etf_code}%",))
-                
+
                 history = cursor.fetchall()
-                
+
                 # 格式化结果
-                result = [{"date": date, "fund_size": fund_size} for date, fund_size in history]
-                
+                result = [{"date": date, "fund_size": fund_size}
+                          for date, fund_size in history]
+
                 return result
             else:
                 print("etf_fund_size_history表不存在")
                 return []
-        
+
         except Exception as e:
             print(f"获取ETF规模历史数据出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return []
-    
+
     def get_latest_attention_count(self, etf_code):
         """获取ETF最新的自选数据（从历史表中）"""
         try:
             # 标准化ETF代码
             etf_code = normalize_etf_code(etf_code)
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询最新日期的自选人数
             cursor.execute("""
                 SELECT attention_count, date
@@ -3301,7 +3706,7 @@ class Database:
                 ORDER BY date DESC 
                 LIMIT 1
             """, (etf_code,))
-            
+
             latest_data = cursor.fetchone()
             if latest_data:
                 attention_count = latest_data[0]
@@ -3316,7 +3721,7 @@ class Database:
                     WHERE code = ? 
                     LIMIT 1
                 """, (etf_code,))
-                
+
                 current_data = cursor.fetchone()
                 if current_data and current_data[0]:
                     return current_data[0]
@@ -3386,12 +3791,13 @@ class Database:
     def get_company_analytics_for_dashboard(self, sort_by: str = 'total_holding_value', ascending: bool = False, limit: int = None) -> List[Dict]:
         """获取用于仪表盘展示的基金公司分析数据，支持排序和限制数量"""
         # 需求1: 默认排序改为 total_holding_value, 移除 limit 的默认值
-        print(f"开始获取基金公司分析数据用于仪表盘，排序依据: {sort_by}, 升序: {ascending}, 限制: {limit}")
+        print(
+            f"开始获取基金公司分析数据用于仪表盘，排序依据: {sort_by}, 升序: {ascending}, 限制: {limit}")
         try:
             conn = self.connect()
             # 构建基础查询语句
             query = "SELECT * FROM etf_company_analytics"
-            
+
             # 添加排序逻辑
             # 为防止SQL注入，sort_by应该是预定义的、安全的列名
             allowed_sort_columns = [
@@ -3401,28 +3807,30 @@ class Database:
                 'total_holder_count_holders', 'holder_attention_ratio', 'total_holding_value',
                 'business_agreement_count', 'business_agreement_ratio', 'business_agreement_total_size',
                 'business_agreement_avg_mgmt_fee', 'business_agreement_avg_cust_fee', 'update_timestamp',
-                'business_total_holding_value', 'business_holding_value_ratio' # 新增：允许按这两个新列排序
+                'business_total_holding_value', 'business_holding_value_ratio'  # 新增：允许按这两个新列排序
             ]
             # 确保 sort_by 是安全的，如果不在允许列表中，则使用默认值
-            if not sort_by or sort_by not in allowed_sort_columns: # This check will fail for new columns until allowed_sort_columns is updated.
-                print(f"警告: 无效或未提供排序字段 '{sort_by}'，将默认按 total_holding_value 降序排序。")
-                sort_by = 'total_holding_value' # 默认排序字段
-                ascending = False # 默认排序方向
-            
+            # This check will fail for new columns until allowed_sort_columns is updated.
+            if not sort_by or sort_by not in allowed_sort_columns:
+                print(
+                    f"警告: 无效或未提供排序字段 '{sort_by}'，将默认按 total_holding_value 降序排序。")
+                sort_by = 'total_holding_value'  # 默认排序字段
+                ascending = False  # 默认排序方向
+
             order_direction = "ASC" if ascending else "DESC"
             query += f" ORDER BY {sort_by} {order_direction}"
 
             # 添加数量限制逻辑
             if limit and isinstance(limit, int) and limit > 0:
                 query += f" LIMIT {limit}"
-            
+
             print(f"执行查询: {query}")
             df = pd.read_sql_query(query, conn)
-            
+
             if df.empty:
                 print("未从 'etf_company_analytics' 获取到基金公司分析数据。")
                 return []
-            
+
             # 将DataFrame转换为字典列表
             results = df.to_dict(orient='records')
             print(f"成功获取 {len(results)} 条基金公司分析数据。")
@@ -3432,7 +3840,8 @@ class Database:
             print(f"数据库操作时发生错误 (get_company_analytics_for_dashboard): {e}")
             return []
         except pd.io.sql.DatabaseError as e:
-            print(f"Pandas SQL操作时发生错误 (get_company_analytics_for_dashboard): {e}")
+            print(
+                f"Pandas SQL操作时发生错误 (get_company_analytics_for_dashboard): {e}")
             return []
         except Exception as e:
             print(f"获取基金公司分析数据时发生未知错误: {e}")
@@ -3440,10 +3849,10 @@ class Database:
         # finally:
             # self.close() # 保持连接由调用者管理
 
-    def update_company_analytics(self, company_name, total_fund_size=None, product_count=None, 
-                                business_agreement_count=None, total_holding_value=None, 
-                                business_total_holding_value=None, total_amount=None,
-                                total_attention_count=None, total_holder_count_holders=None):
+    def update_company_analytics(self, company_name, total_fund_size=None, product_count=None,
+                                 business_agreement_count=None, total_holding_value=None,
+                                 business_total_holding_value=None, total_amount=None,
+                                 total_attention_count=None, total_holder_count_holders=None):
         """
         更新或创建基金公司分析数据
         :param company_name: 基金公司名称
@@ -3461,7 +3870,7 @@ class Database:
             # 确保数据库连接是打开的
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 检查表是否存在，如果不存在则创建
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS etf_company_analytics (
@@ -3481,45 +3890,58 @@ class Database:
                     update_time TIMESTAMP
                 )
             """)
-            
+
             # 准备当前时间
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            
+
             # 检查是否已存在该公司记录
-            cursor.execute("SELECT * FROM etf_company_analytics WHERE company_short_name=?", (company_name,))
+            cursor.execute(
+                "SELECT * FROM etf_company_analytics WHERE company_short_name=?", (company_name,))
             existing_record = cursor.fetchone()
-            
+
             if existing_record:
                 # 获取现有记录的字段名
-                column_names = [description[0] for description in cursor.description]
+                column_names = [description[0]
+                                for description in cursor.description]
                 existing_data = dict(zip(column_names, existing_record))
-                
+
                 # 使用现有数据作为默认值
-                total_fund_size = total_fund_size if total_fund_size is not None else existing_data.get('total_fund_size')
-                product_count = product_count if product_count is not None else existing_data.get('product_count')
-                business_agreement_count = business_agreement_count if business_agreement_count is not None else existing_data.get('business_agreement_count')
-                total_holding_value = total_holding_value if total_holding_value is not None else existing_data.get('total_holding_value')
-                business_total_holding_value = business_total_holding_value if business_total_holding_value is not None else existing_data.get('business_total_holding_value')
-                total_amount = total_amount if total_amount is not None else existing_data.get('total_amount')
-                total_attention_count = total_attention_count if total_attention_count is not None else existing_data.get('total_attention_count')
-                total_holder_count_holders = total_holder_count_holders if total_holder_count_holders is not None else existing_data.get('total_holder_count_holders')
-            
+                total_fund_size = total_fund_size if total_fund_size is not None else existing_data.get(
+                    'total_fund_size')
+                product_count = product_count if product_count is not None else existing_data.get(
+                    'product_count')
+                business_agreement_count = business_agreement_count if business_agreement_count is not None else existing_data.get(
+                    'business_agreement_count')
+                total_holding_value = total_holding_value if total_holding_value is not None else existing_data.get(
+                    'total_holding_value')
+                business_total_holding_value = business_total_holding_value if business_total_holding_value is not None else existing_data.get(
+                    'business_total_holding_value')
+                total_amount = total_amount if total_amount is not None else existing_data.get(
+                    'total_amount')
+                total_attention_count = total_attention_count if total_attention_count is not None else existing_data.get(
+                    'total_attention_count')
+                total_holder_count_holders = total_holder_count_holders if total_holder_count_holders is not None else existing_data.get(
+                    'total_holder_count_holders')
+
             # 计算比率字段
             business_agreement_ratio = 0
             if product_count and product_count > 0 and business_agreement_count:
-                business_agreement_ratio = (business_agreement_count / product_count) * 100
-                
+                business_agreement_ratio = (
+                    business_agreement_count / product_count) * 100
+
             business_holding_value_ratio = 0
             if total_holding_value and total_holding_value > 0 and business_total_holding_value:
-                business_holding_value_ratio = (business_total_holding_value / total_holding_value) * 100
-                
+                business_holding_value_ratio = (
+                    business_total_holding_value / total_holding_value) * 100
+
             holder_attention_ratio = 0
             if total_holder_count_holders and total_holder_count_holders > 0 and total_attention_count:
-                holder_attention_ratio = (total_attention_count / total_holder_count_holders) * 100
-            
+                holder_attention_ratio = (
+                    total_attention_count / total_holder_count_holders) * 100
+
             # 获取最新日期
             latest_date = datetime.now().strftime('%Y-%m-%d')
-            
+
             if existing_record:
                 # 更新现有记录
                 cursor.execute("""
@@ -3559,11 +3981,11 @@ class Database:
                     business_holding_value_ratio, total_amount, total_attention_count,
                     total_holder_count_holders, holder_attention_ratio, latest_date, current_time
                 ))
-            
+
             # 提交更改
             conn.commit()
             return True
-            
+
         except Exception as e:
             import traceback
             traceback.print_exc()
@@ -3578,13 +4000,13 @@ class Database:
             'template_url': 'https://example.com/template',
             'fields': ['company_name', 'total_fund_size', 'product_count', 'business_agreement_count']
         }
-        
+
     def get_promotion_effect_stats(self, code=None):
         """获取ETF推广效果统计数据
-        
+
         参数:
             code: ETF代码，如果为None则返回所有ETF的统计数据
-            
+
         返回:
             包含推广效果统计的字典列表
         """
@@ -3592,16 +4014,17 @@ class Database:
             # 直接从API获取飞书推广记录数据
             from blueprints.feishu_routes import get_feishu_poster_data
             poster_data = get_feishu_poster_data()
-            
+
             if not poster_data:
                 print("无法从飞书API获取推广数据")
                 return []
-            
+
             # 过滤指定代码的数据（如果提供了code参数）
             if code:
                 normalized_code = normalize_etf_code(code)
-                poster_data = [item for item in poster_data if normalize_etf_code(item.get('code', '')) == normalized_code]
-            
+                poster_data = [item for item in poster_data if normalize_etf_code(
+                    item.get('code', '')) == normalized_code]
+
             # 转换为标准格式
             promo_records = [
                 (
@@ -3610,27 +4033,32 @@ class Database:
                     item.get('publish_date', ''),
                     item.get('offline_date', ''),
                     item.get('publish_channel', ''),
-                    item.get('remarks', '')
+                    item.get('remarks', ''),
+                    item.get('expiry_date', '')  # 添加过期日期字段
                 )
                 for item in poster_data
             ]
-            
+
             result = []
-            
+
             # 获取今天的日期作为默认的下线日期
             today_str = datetime.now().strftime('%Y-%m-%d')
-            
+
             for record in promo_records:
-                etf_code, etf_name, publish_date, offline_date, publish_channel, remarks = record
-                
-                # 跳过没有代码或没有推广日期的记录
+                etf_code, etf_name, publish_date, offline_date, publish_channel, remarks, expiry_date = record
+
+                # 处理空字段情况
+                # 推送时间为空，说明还没有推送，跳过这条记录
                 if not etf_code or not publish_date:
+                    print(f"跳过代码 {etf_code} 的记录，因为推送时间为空（尚未推送）或代码为空")
                     continue
-                
-                # 当下线日期为空时，使用当前日期
+
+                # 下线时间为空，说明还在推送中，使用当前日期作为临时下线日期进行统计
                 if not offline_date:
                     offline_date = today_str
-                
+                    print(
+                        f"代码 {etf_code} 的下线时间为空（推送中），使用当前日期 {offline_date} 进行统计")
+
                 # 计算推广天数
                 promo_days = 0
                 try:
@@ -3641,41 +4069,71 @@ class Database:
                     else:
                         pub_date = datetime.strptime(publish_date, '%Y-%m-%d')
                         pub_date_str = publish_date
-                    
+
                     if '/' in offline_date:
                         off_date = datetime.strptime(offline_date, '%Y/%m/%d')
                         off_date_str = off_date.strftime('%Y-%m-%d')
                     else:
                         off_date = datetime.strptime(offline_date, '%Y-%m-%d')
                         off_date_str = offline_date
-                    
+
                     promo_days = (off_date - pub_date).days + 1  # 包括开始和结束日
                 except ValueError as e:
-                    print(f"日期格式错误: {publish_date}, {offline_date}, 错误: {str(e)}")
+                    print(
+                        f"日期格式错误: {publish_date}, {offline_date}, 错误: {str(e)}")
                     pub_date_str = publish_date
                     off_date_str = offline_date
-                
-                # 获取推广日当天的数据
-                pub_attention = self.get_attention_on_date(etf_code, pub_date_str)
-                pub_holders = self.get_holders_on_date(etf_code, pub_date_str)
-                pub_value = self.get_value_on_date(etf_code, pub_date_str)
-                
+
+                # 推广前的数据应该取推广日期前一天的数据
+                try:
+                    # 计算前一天的日期
+                    prev_day = pub_date - timedelta(days=1)
+                    prev_day_str = prev_day.strftime('%Y-%m-%d')
+                    print(
+                        f"代码 {etf_code} 的推广日期为 {pub_date_str}，使用前一天 {prev_day_str} 的数据作为推广前数据")
+
+                    # 获取前一天的数据
+                    pub_attention = self.get_attention_on_date(
+                        etf_code, prev_day_str)
+                    pub_holders = self.get_holders_on_date(
+                        etf_code, prev_day_str)
+                    pub_value = self.get_value_on_date(etf_code, prev_day_str)
+                except (ValueError, TypeError):
+                    # 如果日期格式有问题，回退到使用推广日期本身
+                    print(f"无法解析推广日期 {pub_date_str}，使用当天数据作为推广前数据")
+                    pub_attention = self.get_attention_on_date(
+                        etf_code, pub_date_str)
+                    pub_holders = self.get_holders_on_date(
+                        etf_code, pub_date_str)
+                    pub_value = self.get_value_on_date(etf_code, pub_date_str)
+
                 # 获取下线日当天的数据
-                off_attention = self.get_attention_on_date(etf_code, off_date_str)
+                off_attention = self.get_attention_on_date(
+                    etf_code, off_date_str)
                 off_holders = self.get_holders_on_date(etf_code, off_date_str)
                 off_value = self.get_value_on_date(etf_code, off_date_str)
-                
+
                 # 如果历史表中没有数据，不再使用模拟数据，只显示实际值
-                # 计算变化值
+                # 计算变化值，添加空值检查
+                pub_attention = pub_attention or 0  # 将None转换为0
+                pub_holders = pub_holders or 0
+                pub_value = pub_value or 0
+                off_attention = off_attention or 0
+                off_holders = off_holders or 0
+                off_value = off_value or 0
+
                 attention_change = off_attention - pub_attention
                 holders_change = off_holders - pub_holders
                 value_change = off_value - pub_value
-                
+
                 # 计算百分比变化
-                attention_pct_change = (attention_change / pub_attention * 100) if pub_attention > 0 else 0
-                holders_pct_change = (holders_change / pub_holders * 100) if pub_holders > 0 else 0
-                value_pct_change = (value_change / pub_value * 100) if pub_value > 0 else 0
-                
+                attention_pct_change = (
+                    attention_change / pub_attention * 100) if pub_attention > 0 else 0
+                holders_pct_change = (
+                    holders_change / pub_holders * 100) if pub_holders > 0 else 0
+                value_pct_change = (
+                    value_change / pub_value * 100) if pub_value > 0 else 0
+
                 result.append({
                     'code': etf_code,
                     'name': etf_name,
@@ -3684,6 +4142,7 @@ class Database:
                     'publish_channel': publish_channel,
                     'promo_days': promo_days,
                     'theme': remarks,
+                    'expiry_date': expiry_date,  # 添加过期时间字段
                     'pub_attention': pub_attention,
                     'pub_holders': pub_holders,
                     'pub_value': pub_value,
@@ -3697,23 +4156,23 @@ class Database:
                     'holders_pct_change': round(holders_pct_change, 2),
                     'value_pct_change': round(value_pct_change, 2)
                 })
-            
+
             return result
         except Exception as e:
             print(f"获取ETF推广效果统计数据出错: {str(e)}")
             import traceback
             traceback.print_exc()
             return []
-    
+
     def get_attention_on_date(self, code, date_str):
         """获取指定日期的ETF自选人数"""
         try:
             if not date_str:
                 return 0
-                
+
             # 标准化ETF代码
             normalized_code = normalize_etf_code(code)
-            
+
             # 尝试解析日期
             try:
                 if '/' in date_str:
@@ -3724,11 +4183,11 @@ class Database:
             except ValueError:
                 # 日期格式不正确，返回默认值
                 return 0
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询指定日期的自选人数，如果没有精确匹配，则查找最接近的日期
             cursor.execute("""
                 SELECT attention_count FROM etf_attention_history
@@ -3736,9 +4195,9 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (normalized_code, date_str))
-            
+
             result = cursor.fetchone()
-            
+
             if result:
                 return result[0]
             else:
@@ -3749,7 +4208,7 @@ class Database:
                     ORDER BY date ASC
                     LIMIT 1
                 """, (normalized_code, date_str))
-                
+
                 result = cursor.fetchone()
                 return result[0] if result else 0
         except Exception as e:
@@ -3757,16 +4216,16 @@ class Database:
             import traceback
             traceback.print_exc()
             return 0
-    
+
     def get_holders_on_date(self, code, date_str):
         """获取指定日期的ETF持有人数"""
         try:
             if not date_str:
                 return 0
-                
+
             # 标准化ETF代码
             normalized_code = normalize_etf_code(code)
-            
+
             # 尝试解析日期
             try:
                 if '/' in date_str:
@@ -3777,11 +4236,11 @@ class Database:
             except ValueError:
                 # 日期格式不正确，返回默认值
                 return 0
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询指定日期的持有人数，如果没有精确匹配，则查找最接近的日期
             cursor.execute("""
                 SELECT holder_count FROM etf_holders_history
@@ -3789,9 +4248,9 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (normalized_code, date_str))
-            
+
             result = cursor.fetchone()
-            
+
             if result:
                 return result[0]
             else:
@@ -3802,22 +4261,22 @@ class Database:
                     ORDER BY date ASC
                     LIMIT 1
                 """, (normalized_code, date_str))
-                
+
                 result = cursor.fetchone()
                 return result[0] if result else 0
         except Exception as e:
             print(f"获取指定日期的ETF持有人数出错: {str(e)}")
             return 0
-    
+
     def get_value_on_date(self, code, date_str):
         """获取指定日期的ETF持仓价值"""
         try:
             if not date_str:
                 return 0
-                
+
             # 标准化ETF代码
             normalized_code = normalize_etf_code(code)
-            
+
             # 尝试解析日期
             try:
                 if '/' in date_str:
@@ -3828,11 +4287,11 @@ class Database:
             except ValueError:
                 # 日期格式不正确，返回默认值
                 return 0
-            
+
             # 连接数据库
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # 查询指定日期的持仓价值，如果没有精确匹配，则查找最接近的日期
             cursor.execute("""
                 SELECT holding_value FROM etf_holders_history
@@ -3840,9 +4299,9 @@ class Database:
                 ORDER BY date DESC
                 LIMIT 1
             """, (normalized_code, date_str))
-            
+
             result = cursor.fetchone()
-            
+
             if result:
                 return result[0]
             else:
@@ -3853,7 +4312,7 @@ class Database:
                     ORDER BY date ASC
                     LIMIT 1
                 """, (normalized_code, date_str))
-                
+
                 result = cursor.fetchone()
                 return result[0] if result else 0
         except Exception as e:

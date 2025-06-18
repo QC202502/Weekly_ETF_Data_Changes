@@ -852,71 +852,69 @@ def get_recommendations():
                 if tracking_index_codes:
                     # 查询交易量最大的商务品
                     try:
-                        index_codes_str = ', '.join([f"'{code}'" for code in tracking_index_codes])
+                        # 确保正确构建索引代码列表
+                        index_codes_str = ', '.join([f"'{code}'" for code in tracking_index_codes if code])
+                        if not index_codes_str:
+                            index_codes_str = "''"  # 避免空的IN子句
+                            
+                        # 修复SQL语法，避免过多的嵌套WITH子句
                         query_best_volume = f"""
-                        WITH ranked_business AS (
-                            SELECT 
-                                i.code,
-                                i.tracking_index_code,
-                                i.fund_manager,
-                                i.manager_short,
-                                i.market_volume,
-                                i.management_fee_rate,
-                                ROW_NUMBER() OVER (PARTITION BY i.tracking_index_code ORDER BY i.market_volume DESC) as volume_rank
-                            FROM etf_info i
-                            JOIN etf_business b ON i.code = b.code
-                            WHERE i.tracking_index_code IN ({index_codes_str})
-                        )
                         SELECT 
-                            code,
-                            tracking_index_code,
-                            fund_manager,
-                            manager_short,
-                            market_volume,
-                            management_fee_rate
-                        FROM ranked_business
-                        WHERE volume_rank = 1
+                            i.code,
+                            i.tracking_index_code,
+                            i.fund_manager,
+                            i.manager_short,
+                            i.daily_avg_volume,
+                            i.management_fee_rate
+                        FROM etf_info i
+                        JOIN etf_business b ON i.code = b.code
+                        WHERE i.tracking_index_code IN ({index_codes_str})
+                        AND NOT EXISTS (
+                            SELECT 1 FROM etf_info i2
+                            JOIN etf_business b2 ON i2.code = b2.code
+                            WHERE i2.tracking_index_code = i.tracking_index_code
+                            AND i2.daily_avg_volume > i.daily_avg_volume
+                        )
                         """
+                        
                         cursor.execute(query_best_volume)
                         for row in cursor.fetchall():
                             code, tracking_index_code, fund_manager, manager_short, volume, fee_rate = row
-                            best_volume_business[tracking_index_code] = {
-                                'code': code,
-                                'manager': manager_short or fund_manager,
-                                'volume': volume
-                            }
+                            if tracking_index_code:  # 确保有效的索引代码
+                                best_volume_business[tracking_index_code] = {
+                                    'code': code,
+                                    'manager': manager_short or fund_manager,
+                                    'volume': volume
+                                }
                         
-                        # 查询每个指数下费率最低的商务品
+                        # 查询每个指数下费率最低的商务品，同样修复SQL语法
                         query_lowest_fee = f"""
-                        WITH ranked_fee AS (
-                            SELECT 
-                                i.code,
-                                i.tracking_index_code,
-                                i.fund_manager,
-                                i.manager_short,
-                                i.management_fee_rate,
-                                ROW_NUMBER() OVER (PARTITION BY i.tracking_index_code ORDER BY i.management_fee_rate ASC) as fee_rank
-                            FROM etf_info i
-                            JOIN etf_business b ON i.code = b.code
-                            WHERE i.tracking_index_code IN ({index_codes_str})
-                        )
                         SELECT 
-                            code,
-                            tracking_index_code,
-                            fund_manager,
-                            manager_short,
-                            management_fee_rate
-                        FROM ranked_fee
-                        WHERE fee_rank = 1
+                            i.code,
+                            i.tracking_index_code,
+                            i.fund_manager,
+                            i.manager_short,
+                            i.management_fee_rate
+                        FROM etf_info i
+                        JOIN etf_business b ON i.code = b.code
+                        WHERE i.tracking_index_code IN ({index_codes_str})
+                        AND NOT EXISTS (
+                            SELECT 1 FROM etf_info i2
+                            JOIN etf_business b2 ON i2.code = b2.code
+                            WHERE i2.tracking_index_code = i.tracking_index_code
+                            AND i2.management_fee_rate < i.management_fee_rate
+                        )
                         """
+                        
                         cursor.execute(query_lowest_fee)
                         for row in cursor.fetchall():
                             code, tracking_index_code, fund_manager, manager_short, fee_rate = row
-                            lowest_fee_business[tracking_index_code] = {
-                                'code': code,
-                                'manager': manager_short or fund_manager,
-                                'fee_rate': fee_rate
-                            }
+                            if tracking_index_code:  # 确保有效的索引代码
+                                lowest_fee_business[tracking_index_code] = {
+                                    'code': code,
+                                    'manager': manager_short or fund_manager,
+                                    'fee_rate': fee_rate
+                                }
                     except Exception as e:
                         print(f"查询替补商务品或低费率商务品时出错: {str(e)}")
                         import traceback
@@ -926,7 +924,7 @@ def get_recommendations():
                     # 获取该ETF的交易量
                     etf_volume = 0
                     try:
-                        volume_query = "SELECT market_volume FROM etf_info WHERE code = ?"
+                        volume_query = "SELECT daily_avg_volume FROM etf_info WHERE code = ?"
                         cursor.execute(volume_query, (item['code'],))
                         volume_result = cursor.fetchone()
                         if volume_result and volume_result[0]:
@@ -945,7 +943,9 @@ def get_recommendations():
                             best_volume_volume = best_volume_data.get('volume', 0) or 0
                             # 判断商务品交易量是否大于当前ETF
                             if best_volume_volume > etf_volume:
-                                is_max_volume = 1
+                                is_max_volume = 0  # 商务品交易量大于当前ETF，显示红色
+                            else:
+                                is_max_volume = 1  # 商务品交易量小于当前ETF，显示绿色
                     
                     # 添加低费率商务品数据
                     lowest_fee_data = lowest_fee_business.get(tracking_index_code, {})

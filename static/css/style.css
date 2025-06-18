@@ -31,4 +31,43 @@
 .etf-chart-section .btn-group .btn-outline-secondary.active {
     background-color: #007aff;
     color: white;
+}
+
+/* 替补商务品链接样式 */
+.business-etf-link {
+    display: inline-block;
+    color: #1a73e8;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.business-etf-link:hover {
+    color: #0d47a1;
+    text-decoration: underline;
+}
+
+/* ETF推荐商务品单元格样式 */
+.etf-recommendation-cell {
+    text-align: center;
+    white-space: nowrap;
+    color: #dc3545 !important; /* 整个单元格使用红色 */
+    cursor: pointer;
+}
+
+.etf-recommendation-cell .etf-code {
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    color: inherit;
+}
+
+.etf-recommendation-cell .etf-code:hover {
+    text-decoration: underline;
+}
+
+.etf-recommendation-cell .etf-company {
+    font-size: 12px;
+    margin-left: 5px;
+    color: inherit;
 } 

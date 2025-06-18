@@ -588,22 +588,134 @@ def get_recommendations():
                     i.name, 
                     p.change_rate, 
                     i.fund_manager, 
+                    i.manager_short,
                     ROUND(i.fund_size / 1, 2) as fund_size, 
                     i.tracking_index_code,
                     i.tracking_index_name,
                     CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
-                    CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_text
+                    CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_text,
+                    i.management_fee_rate
                 FROM etf_price p
                 JOIN etf_info i ON p.code = i.code
                 LEFT JOIN etf_business b ON p.code = b.code
                 WHERE p.date = (SELECT MAX(date) FROM etf_price)
                 ORDER BY i.tracking_index_code, p.change_rate DESC
+            ),
+            business_etfs AS (
+                -- 筛选出所有商务品
+                SELECT 
+                    g.code, 
+                    g.name, 
+                    g.fund_manager,
+                    g.manager_short,
+                    g.tracking_index_code,
+                    g.tracking_index_name,
+                    g.management_fee_rate,
+                    p.amount
+                FROM grouped_etfs g
+                JOIN etf_price p ON g.code = p.code
+                WHERE g.is_business = 1
+                AND p.date = (SELECT MAX(date) FROM etf_price)
+            ),
+            best_volume_business AS (
+                -- 对每个指数，找出交易量最大的"商务品"
+                WITH all_etfs AS (
+                    -- 所有ETF按指数分组
+                    SELECT 
+                        g.tracking_index_code,
+                        g.code,
+                        g.manager_short,
+                        p.amount,
+                        CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END AS is_business
+                    FROM grouped_etfs g
+                    JOIN etf_price p ON g.code = p.code
+                    LEFT JOIN etf_business b ON g.code = b.code
+                    WHERE p.date = (SELECT MAX(date) FROM etf_price)
+                ),
+                business_etfs_by_index AS (
+                    -- 仅商务品
+                    SELECT *
+                    FROM all_etfs
+                    WHERE is_business = 1
+                ),
+                max_volume_business AS (
+                    -- 每个指数下交易量最大的"商务品"
+                    SELECT 
+                        be1.tracking_index_code,
+                        be1.code,
+                        be1.manager_short,
+                        be1.amount
+                    FROM business_etfs_by_index be1
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM business_etfs_by_index be2
+                        WHERE be2.tracking_index_code = be1.tracking_index_code
+                        AND be2.amount > be1.amount
+                    )
+                ),
+                current_etf_rank AS (
+                    -- 每个指数下涨幅排名第一的ETF
+                    SELECT 
+                        g1.tracking_index_code,
+                        g1.code AS rank_one_code,
+                        p1.amount AS rank_one_amount
+                    FROM grouped_etfs g1
+                    JOIN etf_price p1 ON g1.code = p1.code
+                    WHERE p1.date = (SELECT MAX(date) FROM etf_price)
+                    AND NOT EXISTS (
+                        SELECT 1 FROM grouped_etfs g2
+                        JOIN etf_price p2 ON g2.code = p2.code
+                        WHERE g2.tracking_index_code = g1.tracking_index_code
+                        AND p2.date = p1.date
+                        AND g2.change_rate > g1.change_rate
+                    )
+                )
+                -- 最终结果
+                SELECT
+                    mvb.tracking_index_code,
+                    mvb.code AS best_volume_code,
+                    mvb.manager_short AS best_volume_manager,
+                    1 AS is_business_product, -- 始终为1，因为只选择商务品
+                    CASE 
+                        WHEN mvb.amount > cer.rank_one_amount THEN 0 -- 有商务品交易量大于排行榜中的ETF，显示红色
+                        ELSE 1 -- 没有商务品交易量大于排行榜中的ETF，显示绿色
+                    END AS is_max_volume
+                FROM max_volume_business mvb
+                JOIN current_etf_rank cer ON mvb.tracking_index_code = cer.tracking_index_code
+            ),
+            lowest_fee_business AS (
+                -- 对每个指数和每个ETF，找出费率严格低于该ETF的同指数商务品中费率最低的
+                SELECT DISTINCT
+                    g.tracking_index_code,
+                    g.code AS etf_code,
+                    b_min.code AS lowest_fee_code,
+                    b_min.manager_short AS lowest_fee_manager,
+                    b_min.management_fee_rate
+                FROM grouped_etfs g
+                JOIN business_etfs b_min ON g.tracking_index_code = b_min.tracking_index_code
+                WHERE NOT EXISTS (
+                    -- 确保没有其他同指数商务品的费率更低
+                    SELECT 1 FROM business_etfs b2
+                    WHERE b2.tracking_index_code = g.tracking_index_code
+                    AND b2.management_fee_rate < b_min.management_fee_rate
+                    AND b2.code != g.code
+                )
+                AND b_min.management_fee_rate < g.management_fee_rate  -- 严格小于当前ETF的费率
+                AND b_min.code != g.code  -- 不是当前ETF自身
             )
             SELECT 
-                g1.code, g1.name, g1.change_rate, g1.fund_manager, 
+                g1.code, g1.name, g1.change_rate, g1.fund_manager, g1.manager_short,
                 g1.fund_size, g1.tracking_index_code, g1.tracking_index_name, 
-                g1.is_business, g1.business_text
+                g1.is_business, g1.business_text, g1.management_fee_rate,
+                bvb.best_volume_code,
+                bvb.best_volume_manager,
+                bvb.is_business_product,
+                bvb.is_max_volume,
+                lfb.lowest_fee_code,
+                lfb.lowest_fee_manager,
+                lfb.management_fee_rate AS lowest_fee_rate
             FROM grouped_etfs g1
+            LEFT JOIN best_volume_business bvb ON g1.tracking_index_code = bvb.tracking_index_code
+            LEFT JOIN lowest_fee_business lfb ON g1.tracking_index_code = lfb.tracking_index_code AND g1.code = lfb.etf_code
             WHERE NOT EXISTS (
                 SELECT 1 FROM grouped_etfs g2
                 WHERE g2.tracking_index_code = g1.tracking_index_code
@@ -618,9 +730,11 @@ def get_recommendations():
             
             # 使用字段名创建结果字典
             field_names = [
-                'code', 'name', 'change_rate', 'fund_manager', 
+                'code', 'name', 'change_rate', 'fund_manager', 'manager_short',
                 'fund_size', 'tracking_index_code', 'tracking_index_name',
-                'is_business', 'business_text'
+                'is_business', 'business_text', 'management_fee_rate',
+                'best_volume_code', 'best_volume_manager', 'is_business_product', 'is_max_volume',
+                'lowest_fee_code', 'lowest_fee_manager', 'lowest_fee_rate'
             ]
             
             for row in results:

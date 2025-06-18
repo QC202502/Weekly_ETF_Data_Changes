@@ -310,17 +310,28 @@ function renderRecommendationTable(items, type, mainRecContainer) {
     
     if (type === 'price-return') {
         headerRow += '<th>涨幅</th>';
+        headerRow += '<th>跟踪指数</th>';
+        headerRow += '<th>基金公司</th>';
+        headerRow += '<th>类型</th>';
+                        headerRow += '<th>替补商务品</th>';
+                headerRow += '<th>低费率商务品</th>';
     } else if (type === 'favorites') {
         headerRow += '<th>加自选数</th>';
+        headerRow += '<th>跟踪指数</th>';
+        headerRow += '<th>基金公司</th>';
+        headerRow += '<th>类型</th>';
     } else if (type === 'attention') {
         headerRow += '<th>关注人数</th>';
+        headerRow += '<th>跟踪指数</th>';
+        headerRow += '<th>基金公司</th>';
+        headerRow += '<th>类型</th>';
     } else if (type === 'holders') {
         headerRow += '<th>持仓人数</th>';
+        headerRow += '<th>跟踪指数</th>';
+        headerRow += '<th>基金公司</th>';
+        headerRow += '<th>类型</th>';
     }
     
-    headerRow += '<th>跟踪指数</th>';
-    headerRow += '<th>基金公司</th>';
-    headerRow += '<th>类型</th>';
     headerRow += '</tr>';
     
     thead.innerHTML = headerRow;
@@ -360,6 +371,49 @@ function renderRecommendationTable(items, type, mainRecContainer) {
                     const sign = change >= 0 ? '+' : '';
                     html += `<td class="${colorClass}">${sign}${change.toFixed(2)}%</td>`;
                 }
+                
+                html += `<td>${trackingIndex}</td>`;
+                html += `<td>${manager}</td>`;
+                html += `<td><span class="badge bg-${isBusiness ? 'danger' : 'secondary'}">${businessText}</span></td>`;
+                
+                // 添加替补商务品和低费率商务品信息
+                
+                // 替补商务品 - 对于每个指数，找出交易量最大的商务品
+                if (item.best_volume_code && item.code !== item.best_volume_code) {
+                    // 判断显示颜色：如果商务品交易量小于等于排行榜ETF，显示绿色；否则显示红色
+                    const colorStyle = item.is_max_volume === 1 ? '#28a745' : '#dc3545';
+                    // 只展示商务品
+                    html += `<td style="color: ${colorStyle} !important; text-align: center; cursor: pointer;">
+                        <span style="font-weight: 500;">${item.best_volume_code}</span> <span>${item.best_volume_manager || '-'}</span>
+                    </td>`;
+                } else {
+                    html += `<td>-</td>`;
+                }
+                
+                // 低费率商务品逻辑
+                if (!isBusiness) {
+                    // 对于非商务品，显示同指数下费率最低的商务品
+                    if (item.lowest_fee_code) {
+                        html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
+                            <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
+                        </td>`;
+                    } else {
+                        html += `<td>-</td>`;
+                    }
+                } else {
+                    // 对于商务品，只有费率严格小于当前ETF的同指数商务品才显示
+                    if (item.lowest_fee_code && 
+                        item.code !== item.lowest_fee_code && 
+                        item.lowest_fee_rate !== undefined && 
+                        item.management_fee_rate !== undefined &&
+                        parseFloat(item.lowest_fee_rate) < parseFloat(item.management_fee_rate)) {
+                        html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
+                            <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
+                        </td>`;
+                    } else {
+                        html += `<td>-</td>`;
+                    }
+                }
             } else if (type === 'favorites') {
                 const attentionCount = Number(item.attention_count);
                 let attentionColorClass = '';
@@ -391,22 +445,58 @@ function renderRecommendationTable(items, type, mainRecContainer) {
                     }
                 }
                 html += `</td>`;
+                html += `<td>${trackingIndex}</td>`;
+                html += `<td>${manager}</td>`;
+                html += `<td><span class="badge bg-${isBusiness ? 'danger' : 'secondary'}">${businessText}</span></td>`;
             } else if (type === 'attention') {
                 const attentionChange = Number(item.attention_change);
                 html += `<td class="text-primary">${isNaN(attentionChange) ? '-' : attentionChange.toLocaleString()}</td>`;
+                html += `<td>${trackingIndex}</td>`;
+                html += `<td>${manager}</td>`;
+                html += `<td><span class="badge bg-${isBusiness ? 'danger' : 'secondary'}">${businessText}</span></td>`;
             } else if (type === 'holders') {
                 const holdersChange = Number(item.holders_change);
                 html += `<td class="text-primary">${isNaN(holdersChange) ? '-' : holdersChange.toLocaleString()}</td>`;
+                html += `<td>${trackingIndex}</td>`;
+                html += `<td>${manager}</td>`;
+                html += `<td><span class="badge bg-${isBusiness ? 'danger' : 'secondary'}">${businessText}</span></td>`;
             }
-            
-            html += `<td>${trackingIndex}</td>`;
-            html += `<td>${manager}</td>`;
-            html += `<td><span class="badge bg-${isBusiness ? 'danger' : 'secondary'}">${businessText}</span></td>`;
             
             row.innerHTML = html;
             
             row.dataset.code = code;
-            row.addEventListener('click', function() {
+            row.addEventListener('click', function(e) {
+                // 检查是否点击了商务品链接或者含有内联样式的单元格（红色或绿色推荐单元格）
+                if (e.target.closest('.business-etf-link') || 
+                    (e.target.closest('td') && e.target.closest('td').style && e.target.closest('td').style.color && 
+                    (e.target.closest('td').style.color.includes('dc3545') || e.target.closest('td').style.color.includes('28a745')))) {
+                    e.preventDefault();
+                    let clickedCode;
+                    
+                    if (e.target.closest('.business-etf-link')) {
+                        clickedCode = e.target.closest('.business-etf-link').dataset.code;
+                    } else {
+                        // 获取点击的红色单元格中的第一个span的内容（ETF代码）
+                        const tdElement = e.target.closest('td');
+                        if (tdElement) {
+                            const spans = tdElement.getElementsByTagName('span');
+                            if (spans && spans.length > 0) {
+                                clickedCode = spans[0].innerText;
+                            }
+                        }
+                    }
+                    
+                    const searchInput = document.getElementById('search-input');
+                    if (searchInput && clickedCode) {
+                        searchInput.value = clickedCode;
+                        if (typeof searchETF === 'function') {
+                            searchETF();
+                        }
+                    }
+                    return;
+                }
+                
+                // 常规行点击
                 const searchInput = document.getElementById('search-input');
                 if (searchInput && this.dataset.code !== 'N/A') {
                     searchInput.value = this.dataset.code;
@@ -421,7 +511,7 @@ function renderRecommendationTable(items, type, mainRecContainer) {
         } catch (e) {
             console.error(`[recommendation.js] Error rendering item at index ${index} for type ${type}:`, item, e);
             const errorRow = document.createElement('tr');
-            errorRow.innerHTML = `<td colspan="7" class="text-danger text-center">此行数据加载失败</td>`;
+            errorRow.innerHTML = `<td colspan="8" class="text-danger text-center">此行数据加载失败</td>`;
             tbody.appendChild(errorRow);
         }
     });
@@ -429,6 +519,18 @@ function renderRecommendationTable(items, type, mainRecContainer) {
     table.appendChild(tbody);
     tableResponsive.appendChild(table);
     container.appendChild(tableResponsive);
+    
+    // 添加商务品链接的事件监听
+    const businessLinks = container.querySelectorAll('.business-etf-link');
+    businessLinks.forEach(link => {
+        link.addEventListener('mouseover', function() {
+            this.style.textDecoration = 'underline';
+        });
+        link.addEventListener('mouseout', function() {
+            this.style.textDecoration = 'none';
+        });
+    });
+    
     // console.log(`[recommendation.js] Finished rendering table for type '${type}'. Container outerHTML:`, container.outerHTML.substring(0, 200));
     // console.log(`[recommendation.js] For type '${type}', final container.classList:`, container.classList);
     // console.log(`[recommendation.js] For type '${type}', final container.innerHTML (first 300 chars):`, container.innerHTML.substring(0, 300));

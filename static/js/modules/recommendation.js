@@ -451,40 +451,41 @@ function renderRecommendationTable(items, type, mainRecContainer) {
                 html += `<td>${manager}</td>`;
                 html += `<td><span class="badge bg-${isBusiness ? 'danger' : 'secondary'}">${businessText}</span></td>`;
                 
-                // 添加替补商务品列
-                if (item.best_volume_code && item.code !== item.best_volume_code) {
-                    // 判断显示颜色：如果商务品交易量小于等于排行榜ETF，显示绿色；否则显示红色
-                    const colorStyle = item.is_max_volume === 1 ? '#28a745' : '#dc3545';
-                    // 只展示商务品
-                    html += `<td style="color: ${colorStyle} !important; text-align: center; cursor: pointer;">
-                        <span style="font-weight: 500;">${item.best_volume_code}</span> <span>${item.best_volume_manager || '-'}</span>
-                    </td>`;
-                } else {
-                    html += `<td>-</td>`;
-                }
-                
-                // 低费率商务品逻辑
-                if (!isBusiness) {
-                    // 对于非商务品，显示同指数下费率最低的商务品
-                    if (item.lowest_fee_code) {
-                        html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
-                            <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
+                // 为自选日变化排行榜添加替补商务品列和低费率商务品列
+                if (type === 'favorites') {
+                    // 这里添加自选日变化排行榜的替补商务品逻辑，与涨幅排行榜相似
+                    if (item.best_volume_code && item.code !== item.best_volume_code) {
+                        const colorStyle = item.is_max_volume === 1 ? '#28a745' : '#dc3545';
+                        html += `<td style="color: ${colorStyle} !important; text-align: center; cursor: pointer;">
+                            <span style="font-weight: 500;">${item.best_volume_code}</span> <span>${item.best_volume_manager || '-'}</span>
                         </td>`;
                     } else {
                         html += `<td>-</td>`;
                     }
-                } else {
-                    // 对于商务品，只有费率严格小于当前ETF的同指数商务品才显示
-                    if (item.lowest_fee_code && 
-                        item.code !== item.lowest_fee_code && 
-                        item.lowest_fee_rate !== undefined && 
-                        item.management_fee_rate !== undefined &&
-                        parseFloat(item.lowest_fee_rate) < parseFloat(item.management_fee_rate)) {
-                        html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
-                            <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
-                        </td>`;
+                    
+                    // 这里添加自选日变化排行榜的低费率商务品逻辑，与涨幅排行榜相似
+                    if (!isBusiness) {
+                        // 对于非商务品，显示同指数下费率最低的商务品
+                        if (item.lowest_fee_code) {
+                            html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
+                                <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
+                            </td>`;
+                        } else {
+                            html += `<td>-</td>`;
+                        }
                     } else {
-                        html += `<td>-</td>`;
+                        // 对于商务品，只有费率严格小于当前ETF的同指数商务品才显示
+                        if (item.lowest_fee_code && 
+                            item.code !== item.lowest_fee_code && 
+                            item.lowest_fee_rate !== undefined && 
+                            item.management_fee_rate !== undefined &&
+                            parseFloat(item.lowest_fee_rate) < parseFloat(item.management_fee_rate)) {
+                            html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
+                                <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
+                            </td>`;
+                        } else {
+                            html += `<td>-</td>`;
+                        }
                     }
                 }
             } else if (type === 'attention') {

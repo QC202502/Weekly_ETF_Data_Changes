@@ -617,11 +617,11 @@ def save_promo_data():
 
 @feishu_bp.route('/api/feishu/promotion-overview', methods=['GET'])
 def get_promotion_overview():
-    """获取推广效果关键指标总览数据"""
+    """获取推广效果总览数据"""
     try:
         # 创建数据库连接
         db = Database()
-        conn = db.connect()
+        conn = db.connect()  # 不传递路径参数
         cursor = conn.cursor()
 
         # 获取查询参数（支持时间范围和渠道筛选）
@@ -814,4 +814,243 @@ def get_promotion_overview():
         
     except Exception as e:
         logger.error(f"获取推广效果总览数据时出错: {str(e)}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@feishu_bp.route('/api/feishu/promotion-rankings', methods=['GET'])
+def get_promotion_rankings():
+    """获取推广效果排行榜数据"""
+    try:
+        # 创建数据库连接
+        db = Database()
+        conn = db.connect()  # 不传递路径参数
+        cursor = conn.cursor()
+        
+        # 获取查询参数
+        sort_by = request.args.get('sort_by', 'attention_pct')  # 默认按自选增长率排序
+        sort_order = request.args.get('sort_order', 'desc')  # 默认降序
+        limit = request.args.get('limit', 10, type=int)  # 默认返回前10条
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        channel = request.args.get('channel')
+        company = request.args.get('company')
+        
+        # 构建查询条件
+        conditions = []
+        params = []
+        
+        if start_date:
+            conditions.append("fp.publish_date >= ?")
+            params.append(start_date)
+        
+        if end_date:
+            conditions.append("fp.publish_date <= ?")
+            params.append(end_date)
+        
+        if channel and channel != 'all':
+            conditions.append("fp.publish_channel = ?")
+            params.append(channel)
+            
+        # 处理基金公司筛选
+        company_join = ""
+        if company and company != 'all':
+            company_join = "JOIN etf_info ei ON fp.code = ei.code"
+            conditions.append("ei.manager_short = ?")
+            params.append(company)
+        
+        # 构建排序字段映射
+        sort_field_map = {
+            'attention_pct': 'attention_pct_change',  # 自选增长率
+            'attention_abs': 'attention_change',      # 自选绝对增长
+            'holders_pct': 'holders_pct_change',      # 持有人增长率
+            'holders_abs': 'holders_change',          # 持有人绝对增长
+            'value_pct': 'value_pct_change',          # 持仓价值增长率
+            'value_abs': 'value_change',              # 持仓价值绝对增长
+            'days': 'promo_days'                      # 推广天数
+        }
+        
+        # 获取排序字段，如果不在映射中则使用默认值
+        sort_field = sort_field_map.get(sort_by, 'attention_pct_change')
+        
+        # 构建排序子句
+        order_clause = f"ORDER BY {sort_field} {sort_order}"
+        
+        # 查询推广记录
+        query = f"""
+            WITH promotion_stats AS (
+                SELECT 
+                    fp.code,
+                    fp.name,
+                    fp.publish_date,
+                    fp.offline_date,
+                    fp.publish_channel,
+                    fp.remarks AS theme,
+                    (julianday(REPLACE(fp.offline_date, '/', '-')) - julianday(REPLACE(fp.publish_date, '/', '-')) + 1) AS promo_days,
+                    att1.attention_count AS pub_attention,
+                    att2.attention_count AS off_attention,
+                    hold1.holder_count AS pub_holders,
+                    hold2.holder_count AS off_holders,
+                    hold1.holding_value AS pub_value,
+                    hold2.holding_value AS off_value,
+                    (att2.attention_count - att1.attention_count) AS attention_change,
+                    (hold2.holder_count - hold1.holder_count) AS holders_change,
+                    (hold2.holding_value - hold1.holding_value) AS value_change,
+                    CASE 
+                        WHEN att1.attention_count > 0 THEN ROUND((att2.attention_count - att1.attention_count) * 100.0 / att1.attention_count, 2)
+                        ELSE 0 
+                    END AS attention_pct_change,
+                    CASE 
+                        WHEN hold1.holder_count > 0 THEN ROUND((hold2.holder_count - hold1.holder_count) * 100.0 / hold1.holder_count, 2)
+                        ELSE 0 
+                    END AS holders_pct_change,
+                    CASE 
+                        WHEN hold1.holding_value > 0 THEN ROUND((hold2.holding_value - hold1.holding_value) * 100.0 / hold1.holding_value, 2)
+                        ELSE 0 
+                    END AS value_pct_change
+                FROM 
+                    feishu_promo_data fp
+                    {company_join}
+                    LEFT JOIN (
+                        SELECT code, date, attention_count FROM etf_attention_history
+                    ) att1 ON fp.code = att1.code AND att1.date = date(julianday(REPLACE(fp.publish_date, '/', '-')) - 1)
+                    LEFT JOIN (
+                        SELECT code, date, attention_count FROM etf_attention_history
+                    ) att2 ON fp.code = att2.code AND att2.date = REPLACE(fp.offline_date, '/', '-')
+                    LEFT JOIN (
+                        SELECT code, date, holder_count, holding_value FROM etf_holders_history
+                    ) hold1 ON fp.code = hold1.code AND hold1.date = date(julianday(REPLACE(fp.publish_date, '/', '-')) - 1)
+                    LEFT JOIN (
+                        SELECT code, date, holder_count, holding_value FROM etf_holders_history
+                    ) hold2 ON fp.code = hold2.code AND hold2.date = REPLACE(fp.offline_date, '/', '-')
+                WHERE
+                    fp.publish_date IS NOT NULL
+                    AND fp.offline_date IS NOT NULL
+                    AND fp.offline_date != ''
+                    {' AND ' + ' AND '.join(conditions) if conditions else ''}
+            )
+            SELECT 
+                code,
+                name,
+                publish_date,
+                offline_date,
+                publish_channel,
+                theme,
+                promo_days,
+                pub_attention,
+                off_attention,
+                attention_change,
+                attention_pct_change,
+                pub_holders,
+                off_holders,
+                holders_change,
+                holders_pct_change,
+                pub_value,
+                off_value,
+                value_change,
+                value_pct_change,
+                COALESCE((SELECT manager_short FROM etf_info WHERE code = promotion_stats.code), '') AS company_name
+            FROM 
+                promotion_stats
+            {order_clause}
+            LIMIT ?
+        """
+        
+        # 添加limit参数
+        params.append(limit)
+        
+        # 执行查询
+        logger.info(f"执行排行榜查询: sort_by={sort_by}, sort_order={sort_order}, limit={limit}")
+        cursor.execute(query, params)
+        
+        # 获取列名
+        columns = [description[0] for description in cursor.description]
+        
+        # 获取数据
+        rows = cursor.fetchall()
+        
+        # 转换为字典列表
+        rankings = []
+        for row in rows:
+            item = {}
+            for i, column in enumerate(columns):
+                item[column] = row[i]
+            rankings.append(item)
+        
+        return jsonify({"success": True, "data": rankings})
+        
+    except Exception as e:
+        logger.error(f"获取推广效果排行榜时出错: {str(e)}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@feishu_bp.route('/api/feishu/filter-options', methods=['GET'])
+def get_filter_options():
+    """获取筛选选项数据（渠道和基金公司）"""
+    try:
+        # 创建数据库连接
+        db = Database()
+        conn = db.connect()
+        cursor = conn.cursor()
+        
+        # 查询所有不同的渠道
+        cursor.execute("""
+            SELECT DISTINCT publish_channel
+            FROM feishu_promo_data
+            WHERE publish_channel IS NOT NULL AND publish_channel != ''
+            ORDER BY publish_channel
+        """)
+        
+        channels = [row[0] for row in cursor.fetchall()]
+        
+        # 处理渠道名称
+        processed_channels = []
+        for channel in channels:
+            # 如果包含逗号，分割并标准化
+            if ',' in channel:
+                parts = [part.strip() for part in channel.split(',')]
+                # 将"APP首页"标准化为"首页"等
+                normalized_parts = []
+                for part in parts:
+                    if part == 'APP首页' or part == 'APP 首页':
+                        normalized_parts.append('首页')
+                    elif part == 'APP理财界面' or part == 'APP 理财界面':
+                        normalized_parts.append('理财页')
+                    else:
+                        normalized_parts.append(part)
+                # 排序并去重
+                normalized_parts = sorted(list(set(normalized_parts)))
+                processed_channel = '+'.join(normalized_parts)
+            else:
+                # 单一渠道也进行标准化
+                if channel == 'APP首页' or channel == 'APP 首页':
+                    processed_channel = '首页'
+                elif channel == 'APP理财界面' or channel == 'APP 理财界面':
+                    processed_channel = '理财页'
+                else:
+                    processed_channel = channel
+            
+            # 避免重复添加
+            if processed_channel not in processed_channels:
+                processed_channels.append(processed_channel)
+        
+        # 查询所有基金公司
+        cursor.execute("""
+            SELECT DISTINCT manager_short
+            FROM etf_info
+            WHERE manager_short IS NOT NULL AND manager_short != ''
+            ORDER BY manager_short
+        """)
+        
+        companies = [row[0] for row in cursor.fetchall()]
+        
+        return jsonify({
+            "success": True, 
+            "data": {
+                "channels": processed_channels,
+                "companies": companies
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"获取筛选选项数据时出错: {str(e)}")
         return jsonify({"success": False, "error": str(e)})

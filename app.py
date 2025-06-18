@@ -182,7 +182,8 @@ def index():
         conn = db.connect()
         cursor = conn.cursor()
         cursor.execute("SELECT MAX(date) FROM etf_price")
-        latest_date = cursor.fetchone()[0]
+        latest_date_result = cursor.fetchone()
+        latest_date = latest_date_result[0] if latest_date_result and latest_date_result[0] else None
         
         if latest_date:
             # 直接使用最新数据的日期，而不是当前日期
@@ -417,6 +418,110 @@ if __name__ == '__main__':
             print("无法找到可用端口，请手动指定其他端口或关闭占用端口的程序")
             print("提示：您可以使用 --port 参数指定其他端口，例如: python app.py --port 8080")
             exit(1)
+    
+    # 自动同步飞书数据
+    try:
+        from blueprints.feishu_routes import get_feishu_poster_data
+        from database.models import Database
+        print("正在同步飞书推广数据...")
+        
+        # 获取飞书数据
+        poster_data = get_feishu_poster_data()
+        if poster_data:
+            # 创建数据库连接
+            db = Database()
+            conn = db.connect()
+            cursor = conn.cursor()
+            
+            # 确保表存在
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='feishu_promo_data'")
+            table_exists = cursor.fetchone() is not None
+            
+            if not table_exists:
+                # 创建表
+                cursor.execute("""
+                    CREATE TABLE feishu_promo_data (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        code TEXT NOT NULL,
+                        name TEXT,
+                        publish_date TEXT,
+                        offline_date TEXT,
+                        publish_channel TEXT,
+                        remarks TEXT,
+                        banner_url TEXT,
+                        long_image_url TEXT,
+                        expiry_date TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                conn.commit()
+            else:
+                # 检查表结构，确保expiry_date字段存在
+                cursor.execute("PRAGMA table_info(feishu_promo_data)")
+                columns = [column[1] for column in cursor.fetchall()]
+                if 'expiry_date' not in columns:
+                    print("正在更新表结构，添加expiry_date字段...")
+                    cursor.execute("ALTER TABLE feishu_promo_data ADD COLUMN expiry_date TEXT")
+                    conn.commit()
+            
+            # 先清空现有数据，完全重建
+            print("清空现有数据，准备全量同步...")
+            cursor.execute("DELETE FROM feishu_promo_data")
+            conn.commit()
+            
+            # 保存数据
+            saved_count = 0
+            for poster in poster_data:
+                try:
+                    code = poster.get('code', '')
+                    if not code:  # 跳过没有代码的记录
+                        print("跳过一条没有证券代码的记录")
+                        continue
+                    
+                    # 插入新记录
+                    cursor.execute("""
+                        INSERT INTO feishu_promo_data
+                        (code, name, publish_date, offline_date, publish_channel, remarks, 
+                         banner_url, long_image_url, expiry_date)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        code,
+                        poster.get('name', ''),
+                        poster.get('publish_date', ''),
+                        poster.get('offline_date', ''),
+                        poster.get('publish_channel', ''),
+                        poster.get('remarks', ''),
+                        poster.get('banner_url', ''),
+                        poster.get('long_image_url', ''),
+                        poster.get('expiry_date', '')  # 添加过期日期字段
+                    ))
+                    
+                    saved_count += 1
+                except Exception as e:
+                    print(f"保存推广记录时出错: {str(e)}")
+            
+            conn.commit()
+            
+            # 打印一些记录示例，帮助调试
+            print("数据同步完成，检查部分记录示例:")
+            cursor.execute("""
+                SELECT code, name, publish_date, offline_date, expiry_date, publish_channel
+                FROM feishu_promo_data
+                LIMIT 5
+            """)
+            sample_records = cursor.fetchall()
+            for i, record in enumerate(sample_records):
+                print(f"样本{i+1}: 代码={record[0]}, 名称={record[1]}, 推送时间={record[2]}, 下线时间={record[3]}, 过期时间={record[4]}, 渠道={record[5]}")
+            
+            conn.close()
+            print(f"成功同步 {saved_count}/{len(poster_data)} 条飞书推广数据")
+        else:
+            print("无法获取飞书推广数据，请检查网络连接或API配置")
+    except Exception as e:
+        print(f"同步飞书数据时出错: {str(e)}")
+        import traceback
+        traceback.print_exc()
     
     # 启动应用
     print(f"服务已启动，请访问 http://localhost:{port} 或 http://127.0.0.1:{port}")

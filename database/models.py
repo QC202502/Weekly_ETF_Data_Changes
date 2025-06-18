@@ -181,144 +181,23 @@ class Database:
 
             # 查询两天之间的自选变化
             query = """
-            WITH daily_changes AS (
-                SELECT 
-                    a1.code, 
-                    i.name, 
-                    (a1.attention_count - a2.attention_count) as attention_daily_change,
-                    i.tracking_index_code,
-                    i.tracking_index_name,
-                    i.management_fee_rate,
-                    i.fund_manager,
-                    i.manager_short,
-                    CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
-                    CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_type
-                FROM etf_attention_history a1
-                JOIN etf_attention_history a2 ON a1.code = a2.code
-                JOIN etf_info i ON a1.code = i.code
-                LEFT JOIN etf_business b ON a1.code = b.code
-                WHERE a1.date = ? AND a2.date = ?
-                ORDER BY attention_daily_change DESC
-            ),
-            business_etfs AS (
-                -- 筛选出所有商务品
-                SELECT 
-                    dc.code, 
-                    dc.name, 
-                    dc.fund_manager,
-                    dc.manager_short,
-                    dc.tracking_index_code,
-                    dc.tracking_index_name,
-                    dc.management_fee_rate,
-                    p.amount
-                FROM daily_changes dc
-                JOIN etf_price p ON dc.code = p.code
-                WHERE dc.is_business = 1
-                AND p.date = (SELECT MAX(date) FROM etf_price)
-            ),
-            best_volume_business AS (
-                -- 对每个指数，找出交易量最大的"商务品"
-                WITH all_etfs AS (
-                    -- 所有ETF按指数分组
-                    SELECT 
-                        dc.tracking_index_code,
-                        dc.code,
-                        dc.manager_short,
-                        p.amount,
-                        dc.is_business
-                    FROM daily_changes dc
-                    JOIN etf_price p ON dc.code = p.code
-                    WHERE p.date = (SELECT MAX(date) FROM etf_price)
-                ),
-                business_etfs_by_index AS (
-                    -- 仅商务品
-                    SELECT *
-                    FROM all_etfs
-                    WHERE is_business = 1
-                ),
-                max_volume_business AS (
-                    -- 每个指数下交易量最大的"商务品"
-                    SELECT 
-                        be1.tracking_index_code,
-                        be1.code,
-                        be1.manager_short,
-                        be1.amount
-                    FROM business_etfs_by_index be1
-                    WHERE NOT EXISTS (
-                        SELECT 1 FROM business_etfs_by_index be2
-                        WHERE be2.tracking_index_code = be1.tracking_index_code
-                        AND be2.amount > be1.amount
-                    )
-                ),
-                current_etf_rank AS (
-                    -- 每个指数下自选变动排名第一的ETF
-                    SELECT 
-                        dc1.tracking_index_code,
-                        dc1.code AS rank_one_code,
-                        p1.amount AS rank_one_amount
-                    FROM daily_changes dc1
-                    JOIN etf_price p1 ON dc1.code = p1.code
-                    WHERE p1.date = (SELECT MAX(date) FROM etf_price)
-                    AND NOT EXISTS (
-                        SELECT 1 FROM daily_changes dc2
-                        WHERE dc2.tracking_index_code = dc1.tracking_index_code
-                        AND dc2.attention_daily_change > dc1.attention_daily_change
-                    )
-                )
-                -- 最终结果
-                SELECT
-                    mvb.tracking_index_code,
-                    mvb.code AS best_volume_code,
-                    mvb.manager_short AS best_volume_manager,
-                    1 AS is_business_product, -- 始终为1，因为只选择商务品
-                    CASE 
-                        WHEN mvb.amount > cer.rank_one_amount THEN 0 -- 有商务品交易量大于排行榜中的ETF，显示红色
-                        ELSE 1 -- 没有商务品交易量大于排行榜中的ETF，显示绿色
-                    END AS is_max_volume
-                FROM max_volume_business mvb
-                JOIN current_etf_rank cer ON mvb.tracking_index_code = cer.tracking_index_code
-            ),
-            lowest_fee_business AS (
-                -- 对每个指数和每个ETF，找出费率严格低于该ETF的同指数商务品中费率最低的
-                SELECT DISTINCT
-                    dc.tracking_index_code,
-                    dc.code AS etf_code,
-                    b_min.code AS lowest_fee_code,
-                    b_min.manager_short AS lowest_fee_manager,
-                    b_min.management_fee_rate
-                FROM daily_changes dc
-                JOIN business_etfs b_min ON dc.tracking_index_code = b_min.tracking_index_code
-                WHERE NOT EXISTS (
-                    -- 确保没有其他同指数商务品的费率更低
-                    SELECT 1 FROM business_etfs b2
-                    WHERE b2.tracking_index_code = dc.tracking_index_code
-                    AND b2.management_fee_rate < b_min.management_fee_rate
-                )
-                AND b_min.management_fee_rate < dc.management_fee_rate  -- 严格小于当前ETF的费率
-                AND b_min.code != dc.code  -- 不是当前ETF自身
-            )
             SELECT 
-                dc.code, 
-                dc.name, 
-                dc.attention_daily_change, 
-                dc.tracking_index_name,
-                dc.tracking_index_code,
-                dc.fund_manager,
-                dc.manager_short,
-                dc.is_business, 
-                dc.business_type,
-                dc.management_fee_rate,
-                bvb.best_volume_code,
-                bvb.best_volume_manager,
-                bvb.is_business_product,
-                bvb.is_max_volume,
-                lfb.lowest_fee_code,
-                lfb.lowest_fee_manager,
-                lfb.management_fee_rate AS lowest_fee_rate
-            FROM daily_changes dc
-            LEFT JOIN best_volume_business bvb ON dc.tracking_index_code = bvb.tracking_index_code
-            LEFT JOIN lowest_fee_business lfb ON dc.tracking_index_code = lfb.tracking_index_code AND dc.code = lfb.etf_code
-            ORDER BY dc.attention_daily_change DESC
+                a1.code, 
+                i.name, 
+                (a1.attention_count - a2.attention_count) as attention_daily_change,
+                i.tracking_index_code,
+                i.tracking_index_name,
+                i.fund_manager,
+                i.manager_short,
+                i.management_fee_rate,
+                CASE WHEN b.code IS NOT NULL THEN 1 ELSE 0 END as is_business,
+                CASE WHEN b.code IS NOT NULL THEN '商务品' ELSE '非商务品' END as business_type
+            FROM etf_attention_history a1
+            JOIN etf_attention_history a2 ON a1.code = a2.code
+            JOIN etf_info i ON a1.code = i.code
+            LEFT JOIN etf_business b ON a1.code = b.code
+            WHERE a1.date = ? AND a2.date = ?
+            ORDER BY attention_daily_change DESC
             LIMIT 20
             """
 
@@ -330,23 +209,15 @@ class Database:
                 item = {
                     'code': row[0],
                     'name': row[1],
+                    # 这里使用日变化而不是总数
                     'attention_count': int(row[2]) if row[2] else 0,
-                    'tracking_index': row[3] if row[3] else '',
-                    'tracking_index_code': row[4] if row[4] else '',
+                    'tracking_index_code': row[3] if row[3] else '',
+                    'tracking_index_name': row[4] if row[4] else '',
                     'fund_manager': row[5] if row[5] else '',
                     'manager_short': row[6] if row[6] else '',
-                    'is_business': int(row[7]) if row[7] is not None else 0,
-                    'business_type': row[8] if row[8] else '非商务品',
-                    'management_fee_rate': float(row[9]) if row[9] is not None else 0.0,
-                    # 替补商务品数据
-                    'best_volume_code': row[10] if row[10] else None,
-                    'best_volume_manager': row[11] if row[11] else None,
-                    'is_business_product': int(row[12]) if row[12] is not None else 0,
-                    'is_max_volume': int(row[13]) if row[13] is not None else 1,
-                    # 低费率商务品数据
-                    'lowest_fee_code': row[14] if row[14] else None,
-                    'lowest_fee_manager': row[15] if row[15] else None,
-                    'lowest_fee_rate': float(row[16]) if row[16] is not None else 0.0
+                    'management_fee_rate': float(row[7]) if row[7] else 0.0,
+                    'is_business': bool(row[8]) if row[8] is not None else False,
+                    'business_text': row[9] if row[9] else '非商务品'
                 }
 
                 # 尝试获取最新价格变化率

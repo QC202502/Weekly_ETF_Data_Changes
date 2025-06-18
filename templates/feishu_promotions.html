@@ -239,11 +239,11 @@
                         <label>&nbsp;</label>
                         <div class="d-flex">
                             <button id="apply-filter" class="btn btn-primary flex-grow-1 me-2">
-                                <i class="bi bi-funnel-fill me-1"></i>应用筛选
-                            </button>
-                            <button id="reset-filter" class="btn btn-outline-secondary">
+                            <i class="bi bi-funnel-fill me-1"></i>应用筛选
+                        </button>
+                        <button id="reset-filter" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-counterclockwise"></i>
-                            </button>
+                        </button>
                         </div>
                     </div>
                 </div>
@@ -267,6 +267,92 @@
         <!-- 总览卡片容器 -->
         <div id="overview-container" class="mb-4">
             <!-- 这里将由JavaScript动态填充关键指标总览卡片 -->
+        </div>
+        
+        <!-- 排行榜控件 -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">推广效果排行榜</h5>
+                    <div class="d-flex">
+                        <div class="me-2">
+                            <label for="ranking-sort-by" class="form-label small text-muted mb-1">排序指标</label>
+                            <select id="ranking-sort-by" class="form-select form-select-sm">
+                                <option value="attention_pct">自选增长率</option>
+                                <option value="attention_abs">自选增长值</option>
+                                <option value="holders_pct">持有人增长率</option>
+                                <option value="holders_abs">持有人增长值</option>
+                                <option value="value_pct">持仓价值增长率</option>
+                                <option value="value_abs">持仓价值增长值</option>
+                                <option value="days">推广天数</option>
+                            </select>
+                        </div>
+                        <div class="me-2">
+                            <label for="ranking-sort-order" class="form-label small text-muted mb-1">排序方式</label>
+                            <select id="ranking-sort-order" class="form-select form-select-sm">
+                                <option value="desc">降序</option>
+                                <option value="asc">升序</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="ranking-limit" class="form-label small text-muted mb-1">显示数量</label>
+                            <select id="ranking-limit" class="form-select form-select-sm">
+                                <option value="10">10条</option>
+                                <option value="20">20条</option>
+                                <option value="50">50条</option>
+                                <option value="100">100条</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 筛选条件区域 -->
+                <div class="filter-container mt-3">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-2">
+                            <label for="filter-start-date" class="form-label small text-muted mb-1">开始日期</label>
+                            <input type="date" id="filter-start-date" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="filter-end-date" class="form-label small text-muted mb-1">结束日期</label>
+                            <input type="date" id="filter-end-date" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filter-channel" class="form-label small text-muted mb-1">推广渠道</label>
+                            <select id="filter-channel" class="form-select form-select-sm">
+                                <option value="all">全部渠道</option>
+                                <option value="APP首页">首页</option>
+                                <option value="APP理财界面">理财页</option>
+                                <option value="APP首页, APP理财界面">首页+理财页</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filter-company" class="form-label small text-muted mb-1">基金公司</label>
+                            <select id="filter-company" class="form-select form-select-sm">
+                                <option value="all">全部公司</option>
+                                <option value="华夏">华夏基金</option>
+                                <option value="易方达">易方达基金</option>
+                                <option value="南方">南方基金</option>
+                                <option value="嘉实">嘉实基金</option>
+                                <option value="汇添富">汇添富基金</option>
+                                <option value="华泰柏瑞">华泰柏瑞基金</option>
+                                <option value="广发">广发基金</option>
+                                <option value="博时">博时基金</option>
+                                <option value="工银瑞信">工银瑞信基金</option>
+                                <option value="银华">银华基金</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button id="apply-filter" class="btn btn-primary btn-sm w-100">应用筛选</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 排行榜容器 -->
+        <div id="rankings-container" class="mb-4">
+            <!-- 这里将由JavaScript动态填充排行榜数据 -->
         </div>
         
         <div id="error-message" class="error-message" style="display: none;"></div>
@@ -318,6 +404,7 @@
     {{ super() }}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/feishu_promotion_cards.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/feishu_promotion_rankings.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // DOM元素
@@ -635,7 +722,7 @@
                 if (cell.cellIndex >= 13 && cell.cellIndex <= 14) { // 持仓价值的推广前和推广后列
                     cell.textContent = value ? Math.round(value).toLocaleString() : '-';
                 } else {
-                    cell.textContent = value ? value.toLocaleString() : '-';
+                cell.textContent = value ? value.toLocaleString() : '-';
                 }
                 return cell;
             }
@@ -655,12 +742,12 @@
                         cell.textContent = '0';
                     }
                 } else {
-                    if (changeValue > 0) {
-                        cell.innerHTML = `<span class="positive-change">+${changeValue.toLocaleString()}</span>`;
-                    } else if (changeValue < 0) {
-                        cell.innerHTML = `<span class="negative-change">${changeValue.toLocaleString()}</span>`;
-                    } else {
-                        cell.textContent = '0';
+                if (changeValue > 0) {
+                    cell.innerHTML = `<span class="positive-change">+${changeValue.toLocaleString()}</span>`;
+                } else if (changeValue < 0) {
+                    cell.innerHTML = `<span class="negative-change">${changeValue.toLocaleString()}</span>`;
+                } else {
+                    cell.textContent = '0';
                     }
                 }
                 

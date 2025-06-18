@@ -842,7 +842,115 @@ def get_recommendations():
             favorites_data = db.get_etf_favorites_recommendations()
             
             if favorites_data:
+                # 收集所有的跟踪指数代码，以便后续查询替补商务品和低费率商务品
+                tracking_index_codes = [item['tracking_index_code'] for item in favorites_data if item.get('tracking_index_code')]
+                
+                # 查询为每个跟踪指数找出交易量最大的商务品
+                best_volume_business = {}
+                lowest_fee_business = {}
+                
+                if tracking_index_codes:
+                    # 查询交易量最大的商务品
+                    try:
+                        index_codes_str = ', '.join([f"'{code}'" for code in tracking_index_codes])
+                        query_best_volume = f"""
+                        WITH ranked_business AS (
+                            SELECT 
+                                i.code,
+                                i.tracking_index_code,
+                                i.fund_manager,
+                                i.manager_short,
+                                i.market_volume,
+                                i.management_fee_rate,
+                                ROW_NUMBER() OVER (PARTITION BY i.tracking_index_code ORDER BY i.market_volume DESC) as volume_rank
+                            FROM etf_info i
+                            JOIN etf_business b ON i.code = b.code
+                            WHERE i.tracking_index_code IN ({index_codes_str})
+                        )
+                        SELECT 
+                            code,
+                            tracking_index_code,
+                            fund_manager,
+                            manager_short,
+                            market_volume,
+                            management_fee_rate
+                        FROM ranked_business
+                        WHERE volume_rank = 1
+                        """
+                        cursor.execute(query_best_volume)
+                        for row in cursor.fetchall():
+                            code, tracking_index_code, fund_manager, manager_short, volume, fee_rate = row
+                            best_volume_business[tracking_index_code] = {
+                                'code': code,
+                                'manager': manager_short or fund_manager,
+                                'volume': volume
+                            }
+                        
+                        # 查询每个指数下费率最低的商务品
+                        query_lowest_fee = f"""
+                        WITH ranked_fee AS (
+                            SELECT 
+                                i.code,
+                                i.tracking_index_code,
+                                i.fund_manager,
+                                i.manager_short,
+                                i.management_fee_rate,
+                                ROW_NUMBER() OVER (PARTITION BY i.tracking_index_code ORDER BY i.management_fee_rate ASC) as fee_rank
+                            FROM etf_info i
+                            JOIN etf_business b ON i.code = b.code
+                            WHERE i.tracking_index_code IN ({index_codes_str})
+                        )
+                        SELECT 
+                            code,
+                            tracking_index_code,
+                            fund_manager,
+                            manager_short,
+                            management_fee_rate
+                        FROM ranked_fee
+                        WHERE fee_rank = 1
+                        """
+                        cursor.execute(query_lowest_fee)
+                        for row in cursor.fetchall():
+                            code, tracking_index_code, fund_manager, manager_short, fee_rate = row
+                            lowest_fee_business[tracking_index_code] = {
+                                'code': code,
+                                'manager': manager_short or fund_manager,
+                                'fee_rate': fee_rate
+                            }
+                    except Exception as e:
+                        print(f"查询替补商务品或低费率商务品时出错: {str(e)}")
+                        import traceback
+                        traceback.print_exc()
+                
                 for item in favorites_data:
+                    # 获取该ETF的交易量
+                    etf_volume = 0
+                    try:
+                        volume_query = "SELECT market_volume FROM etf_info WHERE code = ?"
+                        cursor.execute(volume_query, (item['code'],))
+                        volume_result = cursor.fetchone()
+                        if volume_result and volume_result[0]:
+                            etf_volume = float(volume_result[0])
+                    except Exception as e:
+                        print(f"获取ETF交易量时出错 ({item['code']}): {str(e)}")
+                    
+                    # 添加替补商务品数据
+                    tracking_index_code = item.get('tracking_index_code', '')
+                    best_volume_data = best_volume_business.get(tracking_index_code, {})
+                    
+                    is_max_volume = 0
+                    if tracking_index_code and best_volume_data:
+                        best_volume_code = best_volume_data.get('code')
+                        if best_volume_code != item['code']:  # 如果不是当前ETF
+                            best_volume_volume = best_volume_data.get('volume', 0) or 0
+                            # 判断商务品交易量是否大于当前ETF
+                            if best_volume_volume > etf_volume:
+                                is_max_volume = 1
+                    
+                    # 添加低费率商务品数据
+                    lowest_fee_data = lowest_fee_business.get(tracking_index_code, {})
+                    lowest_fee_code = lowest_fee_data.get('code')
+                    
                     # 转换为前端需要的格式
                     recommendations["favorites"].append({
                         'code': item['code'],
@@ -850,9 +958,23 @@ def get_recommendations():
                         'attention_count': item['attention_count'],
                         'price_change_rate': item.get('price_change_rate', 0.0),
                         'fund_manager': item['fund_manager'],
-                        'tracking_index': item['tracking_index'],
-                        'is_business': item['business_type'] == '商务品',
-                        'business_text': item['business_type']
+                        'manager_short': item.get('manager_short', ''),
+                        'fund_size': item.get('fund_size', 0),
+                        'tracking_index_code': item.get('tracking_index_code', ''),
+                        'tracking_index_name': item.get('tracking_index_name', ''),
+                        'tracking_index': item.get('tracking_index_name', ''),
+                        'is_business': item.get('is_business', False),
+                        'business_text': item.get('business_text', '非商务品'),
+                        'management_fee_rate': item.get('management_fee_rate', 0),
+                        # 替补商务品信息
+                        'best_volume_code': best_volume_data.get('code', ''),
+                        'best_volume_manager': best_volume_data.get('manager', ''),
+                        'is_business_product': item.get('is_business', False),
+                        'is_max_volume': is_max_volume,
+                        # 低费率商务品信息
+                        'lowest_fee_code': lowest_fee_data.get('code', ''),
+                        'lowest_fee_manager': lowest_fee_data.get('manager', ''),
+                        'lowest_fee_rate': lowest_fee_data.get('fee_rate', 0)
                     })
                 
                 print(f"成功加载ETF加自选排行榜数据，共{len(recommendations['favorites'])}条记录")

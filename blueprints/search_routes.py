@@ -910,7 +910,9 @@ def get_recommendations():
                         WHERE fee_rank = 1
                         """
                         cursor.execute(query_lowest_fee)
-                        for row in cursor.fetchall():
+                        lowest_fee_results = cursor.fetchall()
+                        
+                        for row in lowest_fee_results:
                             code, tracking_index_code, fund_manager, manager_short, fee_rate = row
                             lowest_fee_business[tracking_index_code] = {
                                 'code': code,
@@ -951,6 +953,11 @@ def get_recommendations():
                     lowest_fee_data = lowest_fee_business.get(tracking_index_code, {})
                     lowest_fee_code = lowest_fee_data.get('code')
                     
+                    # 确保数据正确
+                    management_fee_rate = item.get('management_fee_rate', 0)
+                    if not management_fee_rate and management_fee_rate != 0:
+                        management_fee_rate = 0
+                    
                     # 转换为前端需要的格式
                     recommendations["favorites"].append({
                         'code': item['code'],
@@ -965,7 +972,7 @@ def get_recommendations():
                         'tracking_index': item.get('tracking_index_name', ''),
                         'is_business': item.get('is_business', False),
                         'business_text': item.get('business_text', '非商务品'),
-                        'management_fee_rate': item.get('management_fee_rate', 0),
+                        'management_fee_rate': management_fee_rate,
                         # 替补商务品信息
                         'best_volume_code': best_volume_data.get('code', ''),
                         'best_volume_manager': best_volume_data.get('manager', ''),

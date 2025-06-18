@@ -392,10 +392,14 @@ function renderRecommendationTable(items, type, mainRecContainer) {
                     html += `<td>-</td>`;
                 }
                 
-                // 低费率商务品逻辑
-                if (!isBusiness) {
-                    // 对于非商务品，显示同指数下费率最低的商务品
-                    if (item.lowest_fee_code) {
+                // 低费率商务品逻辑 - 与自选日变化排行榜保持一致
+                // 不管是商务品还是非商务品，都需要显示同指数下费率最低的商务品
+                if (item.lowest_fee_code && 
+                    item.lowest_fee_rate !== undefined && 
+                    item.management_fee_rate !== undefined) {
+                    
+                    // 始终显示当前追踪指数下费率严格低于当前ETF的商务品
+                    if (parseFloat(item.lowest_fee_rate) < parseFloat(item.management_fee_rate)) {
                         html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
                             <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
                         </td>`;
@@ -403,18 +407,7 @@ function renderRecommendationTable(items, type, mainRecContainer) {
                         html += `<td>-</td>`;
                     }
                 } else {
-                    // 对于商务品，只有费率严格小于当前ETF的同指数商务品才显示
-                    if (item.lowest_fee_code && 
-                        item.code !== item.lowest_fee_code && 
-                        item.lowest_fee_rate !== undefined && 
-                        item.management_fee_rate !== undefined &&
-                        parseFloat(item.lowest_fee_rate) < parseFloat(item.management_fee_rate)) {
-                        html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
-                            <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
-                        </td>`;
-                    } else {
-                        html += `<td>-</td>`;
-                    }
+                    html += `<td>-</td>`;
                 }
             } else if (type === 'favorites') {
                 const attentionCount = Number(item.attention_count);
@@ -463,10 +456,14 @@ function renderRecommendationTable(items, type, mainRecContainer) {
                         html += `<td>-</td>`;
                     }
                     
-                    // 这里添加自选日变化排行榜的低费率商务品逻辑，与涨幅排行榜相似
-                    if (!isBusiness) {
-                        // 对于非商务品，显示同指数下费率最低的商务品
-                        if (item.lowest_fee_code) {
+                    // 这里添加自选日变化排行榜的低费率商务品逻辑，与涨幅排行榜类似但有区别
+                    // 不管是商务品还是非商务品，都需要显示同指数下费率最低的商务品
+                    if (item.lowest_fee_code && 
+                        item.lowest_fee_rate !== undefined && 
+                        item.management_fee_rate !== undefined) {
+                        
+                        // 始终显示当前追踪指数下费率严格低于当前ETF的商务品
+                        if (parseFloat(item.lowest_fee_rate) < parseFloat(item.management_fee_rate)) {
                             html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
                                 <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
                             </td>`;
@@ -474,18 +471,7 @@ function renderRecommendationTable(items, type, mainRecContainer) {
                             html += `<td>-</td>`;
                         }
                     } else {
-                        // 对于商务品，只有费率严格小于当前ETF的同指数商务品才显示
-                        if (item.lowest_fee_code && 
-                            item.code !== item.lowest_fee_code && 
-                            item.lowest_fee_rate !== undefined && 
-                            item.management_fee_rate !== undefined &&
-                            parseFloat(item.lowest_fee_rate) < parseFloat(item.management_fee_rate)) {
-                            html += `<td style="color: #dc3545 !important; text-align: center; cursor: pointer;">
-                                <span style="font-weight: 500;">${item.lowest_fee_code}</span> <span>${item.lowest_fee_manager || '-'}</span>
-                            </td>`;
-                        } else {
-                            html += `<td>-</td>`;
-                        }
+                        html += `<td>-</td>`;
                     }
                 }
             } else if (type === 'attention') {

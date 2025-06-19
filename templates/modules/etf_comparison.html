@@ -1,0 +1,523 @@
+{% extends "base.html" %}
+
+{% block title %}ETF对比分析{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-container {
+        margin: 20px 0;
+        padding: 20px;
+        border: 2px dashed #ccc;
+        text-align: center;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+    }
+    .hidden {
+        display: none;
+    }
+    #uploadedImage {
+        max-width: 100%;
+        max-height: 400px;
+        margin: 15px auto;
+    }
+    #loadingIndicator {
+        margin: 20px 0;
+        text-align: center;
+        display: none;
+    }
+    #resultTable {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+    #resultTable th, #resultTable td {
+        padding: 8px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+    #resultTable th {
+        background-color: #f2f2f2;
+    }
+    #resultTable tr:hover {
+        background-color: #f5f5f5;
+    }
+    .business-label {
+        background-color: #007bff;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+    .red-highlight {
+        color: #dc3545 !important;
+        font-weight: 500;
+    }
+    .green-highlight {
+        color: #28a745 !important;
+        font-weight: 500;
+    }
+    .code-link {
+        color: #0056b3;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    .manual-input {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+    #manualCodes {
+        width: 100%;
+        height: 80px;
+        margin-bottom: 10px;
+    }
+    .example-etfs {
+        margin-top: 10px;
+        font-size: 0.9em;
+    }
+    .example-code {
+        cursor: pointer;
+        color: #0056b3;
+        margin: 0 5px;
+    }
+    .status-message {
+        margin: 10px 0;
+        padding: 10px;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 5px;
+        color: #721c24;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">ETF对比分析</h1>
+    
+    <div id="statusMessage" class="status-message">
+        注意：当前系统未安装Tesseract OCR引擎，图片识别功能无法正常使用。请使用手动输入方式。
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">上传截图识别ETF代码</div>
+                <div class="card-body">
+                    <div class="upload-container">
+                        <p>点击或拖拽上传ETF截图</p>
+                        <input type="file" id="imageUpload" accept="image/*" class="hidden">
+                        <button id="uploadBtn" class="btn btn-primary">选择图片</button>
+                    </div>
+                    <div id="imagePreview" class="hidden">
+                        <img id="uploadedImage" src="" alt="上传的图片">
+                        <button id="processImageBtn" class="btn btn-success">识别图片</button>
+                        <button id="cancelImageBtn" class="btn btn-secondary ml-2">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">手动输入ETF代码</div>
+                <div class="card-body">
+                    <div class="manual-input">
+                        <p>请输入ETF代码，每行一个或用逗号分隔</p>
+                        <textarea id="manualCodes" placeholder="例如: 159892,513280,159615">159892,513280,159615</textarea>
+                        <div class="example-etfs">
+                            <p>常用ETF代码：
+                                <span class="example-code" data-code="159915">创业板ETF(159915)</span>
+                                <span class="example-code" data-code="510300">沪深300ETF(510300)</span>
+                                <span class="example-code" data-code="512170">医疗ETF(512170)</span>
+                                <span class="example-code" data-code="512760">芯片ETF(512760)</span>
+                            </p>
+                        </div>
+                        <button id="processManualBtn" class="btn btn-primary">分析ETF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loadingIndicator">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">处理中...</span>
+        </div>
+        <p class="mt-2">正在处理，请稍候...</p>
+    </div>
+    
+    <div id="resultContainer" class="hidden">
+        <h3 class="mt-4">ETF对比分析结果</h3>
+        <table id="resultTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ETF代码</th>
+                    <th>产品名称</th>
+                    <th>基金公司</th>
+                    <th>是否商务品</th>
+                    <th>管理费率(%)</th>
+                    <th>替代商务品(交易量)</th>
+                    <th>低费率商务品</th>
+                </tr>
+            </thead>
+            <tbody id="resultBody">
+                <!-- 结果将在这里动态填充 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/modules/utils.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("ETF比较页面已加载");
+        const uploadBtn = document.getElementById('uploadBtn');
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadedImage = document.getElementById('uploadedImage');
+        const processImageBtn = document.getElementById('processImageBtn');
+        const cancelImageBtn = document.getElementById('cancelImageBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultBody = document.getElementById('resultBody');
+        const processManualBtn = document.getElementById('processManualBtn');
+        const manualCodes = document.getElementById('manualCodes');
+        const statusMessage = document.getElementById('statusMessage');
+        
+        // 检查系统是否支持OCR
+        fetch('/api/ocr/status')
+            .then(response => response.json())
+            .then(data => {
+                console.log("OCR状态检查结果:", data);
+                if (!data.installed) {
+                    statusMessage.style.display = 'block';
+                    statusMessage.innerHTML = `
+                        <strong>注意：</strong> 系统未安装Tesseract OCR引擎，图片识别功能将使用示例数据。<br>
+                        <details>
+                            <summary>点击查看安装说明</summary>
+                            <pre>${data.installation_instructions}</pre>
+                        </details>
+                    `;
+                } else {
+                    console.log("Tesseract已安装，版本:", data.version);
+                    console.log("支持的语言:", data.languages);
+                }
+            })
+            .catch(error => {
+                console.error("检查OCR状态出错:", error);
+                statusMessage.style.display = 'block';
+                statusMessage.textContent = '注意：无法检查OCR引擎状态，图片识别功能可能无法正常工作。';
+            });
+        
+        // 绑定示例ETF代码点击事件
+        document.querySelectorAll('.example-code').forEach(item => {
+            item.addEventListener('click', function() {
+                const code = this.getAttribute('data-code');
+                if (manualCodes.value.trim()) {
+                    manualCodes.value += ',' + code;
+                } else {
+                    manualCodes.value = code;
+                }
+            });
+        });
+        
+        // 绑定上传按钮点击事件
+        uploadBtn.addEventListener('click', function() {
+            imageUpload.click();
+        });
+        
+        // 图片选择完成事件 - 恢复直接处理逻辑，确保图片预览能正常显示
+        imageUpload.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    uploadedImage.src = e.target.result;
+                    imagePreview.classList.remove('hidden');
+                };
+                
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+        
+        // 取消按钮点击事件
+        cancelImageBtn.addEventListener('click', function() {
+            imagePreview.classList.add('hidden');
+            imageUpload.value = '';
+        });
+        
+        // 处理图片按钮点击事件
+        processImageBtn.addEventListener('click', function() {
+            console.log("处理图片按钮被点击");
+            
+            // 显示加载指示器
+            loadingIndicator.style.display = 'block';
+            
+            // 获取图片数据
+            const imageData = uploadedImage.src;
+            console.log("图片数据长度:", imageData.length);
+            
+            // 确保图片数据有效
+            if (!imageData || imageData.length < 100) {
+                alert('无效的图片数据，请重新选择图片。');
+                loadingIndicator.style.display = 'none';
+                return;
+            }
+            
+            // 发送到后端进行OCR识别
+            console.log("发送OCR请求...");
+            fetch('/api/ocr/recognize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image: imageData })
+            })
+            .then(response => {
+                console.log("收到OCR响应:", response.status);
+                if (!response.ok) {
+                    throw new Error('网络请求失败: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("OCR识别结果:", data);
+                
+                // 无论结果如何，都尝试使用返回的代码
+                if (data.success && data.codes && data.codes.length > 0) {
+                    // 获取识别到的ETF代码后调用API获取详细信息
+                    fetchETFInfo(data.codes);
+                    
+                    // 如果包含错误信息，显示警告但继续处理
+                    if (data.text && (data.text.includes('未安装Tesseract OCR引擎') || 
+                                     data.text.includes('使用示例数据'))) {
+                        statusMessage.style.display = 'block';
+                        statusMessage.textContent = '注意：系统未安装OCR引擎或识别失败，使用的是示例数据。';
+                    }
+                } else {
+                    alert('未能识别到有效的ETF代码，请重试或手动输入。');
+                    loadingIndicator.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('识别出错:', error);
+                alert('识别过程中出错，请重试。如果多次失败，可尝试手动输入ETF代码。\n错误信息: ' + error.message);
+                loadingIndicator.style.display = 'none';
+            });
+        });
+        
+        // 处理手动输入按钮点击事件
+        processManualBtn.addEventListener('click', function() {
+            console.log("手动输入按钮被点击");
+            const inputText = manualCodes.value.trim();
+            if (!inputText) {
+                alert('请输入ETF代码');
+                return;
+            }
+            
+            // 解析输入的代码，支持逗号分隔和换行
+            const codes = inputText
+                .replace(/[\n\r,，;；\s]+/g, ',')  // 将换行、逗号、分号、空格等替换为逗号
+                .split(',')
+                .filter(code => code.trim());      // 过滤空项
+                
+            if (codes.length === 0) {
+                alert('未识别到有效的ETF代码');
+                return;
+            }
+            
+            // 显示加载指示器
+            loadingIndicator.style.display = 'block';
+            
+            // 获取ETF详细信息
+            fetchETFInfo(codes);
+        });
+        
+        // 获取ETF详细信息的函数
+        function fetchETFInfo(codes) {
+            const apiUrl = '/api/etf/batch_info';
+            console.log(`发送请求到 ${apiUrl} 获取ETF信息:`, codes);
+            
+            // 显示正在处理信息
+            const loadingText = document.querySelector('#loadingIndicator p');
+            if (loadingText) {
+                loadingText.textContent = `正在处理 ${codes.length} 个ETF代码，请稍候...`;
+            }
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ codes: codes })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络请求失败: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('获取ETF信息响应:', data);
+                if (data.success && data.data) {
+                    displayResults(data.data);
+                } else {
+                    alert('获取ETF信息失败：' + (data.error || '未知错误'));
+                }
+                loadingIndicator.style.display = 'none';
+            })
+            .catch(error => {
+                console.error('获取ETF信息出错:', error);
+                alert('获取ETF信息过程中出错: ' + error.message);
+                loadingIndicator.style.display = 'none';
+            });
+        }
+        
+        // 显示结果的函数
+        function displayResults(etfList) {
+            console.log('显示ETF比较结果:', etfList);
+            resultBody.innerHTML = '';
+            
+            etfList.forEach(etf => {
+                const row = document.createElement('tr');
+                
+                // ETF代码
+                const codeCell = document.createElement('td');
+                const codeLink = document.createElement('span');
+                codeLink.textContent = etf.code;
+                codeLink.className = 'code-link';
+                codeLink.addEventListener('click', function() {
+                    // 使用POST表单提交而不是直接跳转URL
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/search';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'code';
+                    input.value = etf.code;
+                    
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                });
+                codeCell.appendChild(codeLink);
+                row.appendChild(codeCell);
+                
+                // 产品名称
+                const nameCell = document.createElement('td');
+                nameCell.textContent = etf.name;
+                row.appendChild(nameCell);
+                
+                // 基金公司
+                const companyCell = document.createElement('td');
+                companyCell.textContent = etf.company;
+                row.appendChild(companyCell);
+                
+                // 是否商务品
+                const businessCell = document.createElement('td');
+                if (etf.is_business) {
+                    const businessLabel = document.createElement('span');
+                    businessLabel.className = 'business-label';
+                    businessLabel.textContent = '商务品';
+                    businessCell.appendChild(businessLabel);
+                } else {
+                    businessCell.textContent = '-';
+                }
+                row.appendChild(businessCell);
+                
+                // 管理费率
+                const feeCell = document.createElement('td');
+                feeCell.textContent = etf.management_fee_rate ? 
+                    (etf.management_fee_rate * 100).toFixed(2) : '-';
+                row.appendChild(feeCell);
+                
+                // 替代商务品
+                const volumeCell = document.createElement('td');
+                if (etf.best_volume_code) {
+                    const volumeLink = document.createElement('span');
+                    volumeLink.className = etf.is_max_volume == 0 ? 'red-highlight' : 'green-highlight';
+                    volumeLink.textContent = `${etf.best_volume_code} ${etf.best_volume_manager || ''}`;
+                    volumeLink.style.cursor = 'pointer';
+                    volumeLink.addEventListener('click', function() {
+                        // 使用POST表单提交而不是直接跳转URL
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/search';
+                        
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'code';
+                        input.value = etf.best_volume_code;
+                        
+                        form.appendChild(input);
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                    volumeCell.appendChild(volumeLink);
+                } else {
+                    volumeCell.textContent = '-';
+                }
+                row.appendChild(volumeCell);
+                
+                // 低费率商务品
+                const feeProCell = document.createElement('td');
+                if (etf.lowest_fee_code) {
+                    const feeLink = document.createElement('span');
+                    feeLink.className = 'red-highlight';
+                    feeLink.textContent = `${etf.lowest_fee_code} ${etf.lowest_fee_manager || ''} ${etf.lowest_fee_rate ? (etf.lowest_fee_rate * 100).toFixed(2) + '%' : ''}`;
+                    feeLink.style.cursor = 'pointer';
+                    feeLink.addEventListener('click', function() {
+                        // 使用POST表单提交而不是直接跳转URL
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/search';
+                        
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'code';
+                        input.value = etf.lowest_fee_code;
+                        
+                        form.appendChild(input);
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                    feeProCell.appendChild(feeLink);
+                } else {
+                    feeProCell.textContent = '-';
+                }
+                row.appendChild(feeProCell);
+                
+                resultBody.appendChild(row);
+            });
+            
+            resultContainer.classList.remove('hidden');
+        }
+        
+        // 页面加载完成后自动处理预设ETF代码
+        console.log("准备立即处理预设ETF代码");
+        if (manualCodes.value.trim()) {
+            const inputText = manualCodes.value.trim();
+            // 解析输入的代码
+            const codes = inputText
+                .replace(/[\n\r,，;；\s]+/g, ',')  // 将换行、逗号、分号、空格等替换为逗号
+                .split(',')
+                .filter(code => code.trim());      // 过滤空项
+                
+            if (codes.length > 0) {
+                console.log("直接分析ETF代码:", codes);
+                // 显示加载指示器
+                loadingIndicator.style.display = 'block';
+                // 获取ETF详细信息
+                fetchETFInfo(codes);
+            }
+        }
+    });
+</script>
+{% endblock %} 
